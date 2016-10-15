@@ -19,6 +19,7 @@ import pl.pwr.hierarchyvis.core.HVContext;
 import pl.pwr.hierarchyvis.core.HierarchyStatistics;
 import pl.pwr.hierarchyvis.ui.VisualizerFrame;
 import pl.pwr.hierarchyvis.util.CmdLineParser;
+import pl.pwr.hierarchyvis.util.SwingUIUtils;
 import pl.pwr.hierarchyvis.visualisation.HierarchyProcessor;
 
 
@@ -36,6 +37,17 @@ public final class HierarchyVisualizer {
 
 	public static void main( String[] args ) {
 		HVContext context = new HVContext();
+
+		// Check if the program can access its own folder
+		if ( new File( "." ).exists() == false ) {
+			log.error( "Failed to access current working directory." );
+			SwingUIUtils.showErrorDialog(
+					"Program was unable to access the current working directory.\n\n" +
+							"Make sure that you're not trying to run the program from inside of a zip archive.\n" +
+							"Also, instead of double-clicking on hv.jar, try to launch start.bat/start.sh" );
+
+			System.exit( 0 );
+		}
 
 		if ( args != null && args.length > 0 ) {
 			log.info( "Args list is not empty -- running in CLI mode." );
