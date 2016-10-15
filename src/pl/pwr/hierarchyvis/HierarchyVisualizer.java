@@ -80,7 +80,16 @@ public final class HierarchyVisualizer {
 	}
 
 	private static void executeGUI( HVContext context ) {
-		if ( context.getConfig().isUseNativeGUI() ) {
+		// Ensure all popups are triggered from the event dispatch thread.
+		SwingUtilities.invokeLater( new Runnable() {
+			public void run() {
+				initGUI( context );
+			}
+		} );
+	}
+
+	private static void initGUI( HVContext ctx ) {
+		if ( ctx.getConfig().isUseNativeGUI() ) {
 			try {
 				// Swing is ugly. Use native L&F if possible.
 				UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
@@ -95,15 +104,6 @@ public final class HierarchyVisualizer {
 			}
 		}
 
-		// Ensure all popups are triggered from the event dispatch thread.
-		SwingUtilities.invokeLater( new Runnable() {
-			public void run() {
-				initGUI( context );
-			}
-		} );
-	}
-
-	private static void initGUI( HVContext ctx ) {
 		VisualizerFrame frame = new VisualizerFrame( ctx );
 		frame.setVisible( true );
 	}
