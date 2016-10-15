@@ -129,7 +129,7 @@ public class HVContext {
 	}
 
 	private static Hierarchy loadHierarchy( Path path, boolean isClassAttribute ) {
-		return new GeneratedCSVReader().load( path.toString(), isClassAttribute, false );
+		return new GeneratedCSVReader().load( path.toString(), isClassAttribute, false, false );
 	}
 
 	private static Tree createHierarchyTree( HVContext context ) {

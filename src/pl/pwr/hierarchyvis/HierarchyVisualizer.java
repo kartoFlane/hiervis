@@ -60,6 +60,7 @@ public final class HierarchyVisualizer {
 			inputData = new GeneratedCSVReader().load(
 					config.getInputDataFilePath().toString(),
 					config.isClassAttribute(),
+					false,
 					false );
 		}
 		else {
