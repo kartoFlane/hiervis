@@ -146,7 +146,7 @@ public final class HierarchyVisualizer {
 				UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
 			}
 			catch ( Exception ex ) {
-				// If THAT failed, fall back to cross-platform.
+				// If THAT failed, fall back to cross-platform, ie. default Swing look.
 				log.info( "Could not set system default LAF. Falling back to cross-platform LAF.%n" );
 
 				try {
