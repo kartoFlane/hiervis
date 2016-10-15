@@ -21,6 +21,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import pl.pwr.hierarchyvis.HierarchyVisualizer;
 import pl.pwr.hierarchyvis.core.HVConfig;
 import pl.pwr.hierarchyvis.core.HVContext;
@@ -36,6 +39,8 @@ import prefuse.controls.Control;
 
 
 public class VisualizerFrame extends JFrame {
+
+	private static final Logger log = LogManager.getLogger( VisualizerFrame.class );
 	private static final long serialVersionUID = 1L;
 
 	private static final int defaultFrameWidth = 900;
@@ -242,6 +247,10 @@ public class VisualizerFrame extends JFrame {
 	 * take effect on the interactive visualization.
 	 */
 	private void reprocess() {
+		if ( !context.isHierarchyDataLoaded() ) {
+			throw new RuntimeException( "No hierarchy data is available." );
+		}
+
 		Visualization vis = context.createHierarchyVisualization();
 		treeDisplay.setBackground( context.getConfig().getBackgroundColor() );
 		treeDisplay.setVisualization( null );
