@@ -1,6 +1,8 @@
 package pl.pwr.hierarchyvis;
 
+import java.awt.Toolkit;
 import java.io.File;
+import java.lang.reflect.Field;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -16,6 +18,9 @@ import pl.pwr.hierarchyvis.visualisation.HierarchyProcessor;
 
 
 public final class HierarchyVisualizer {
+
+	public static final String APP_NAME = "Hierarchy Visualizer";
+
 
 	private HierarchyVisualizer() {
 		// Static class -- disallow instantiation.
@@ -80,6 +85,22 @@ public final class HierarchyVisualizer {
 	}
 
 	private static void executeGUI( HVContext context ) {
+		// Attempt to set the application name so that it displays correctly on all platforms.
+		// Mac
+		System.setProperty( "com.apple.mrj.application.apple.menu.about.name", APP_NAME );
+		System.setProperty( "apple.awt.application.name", APP_NAME );
+
+		// Linux
+		try {
+			Toolkit xToolkit = Toolkit.getDefaultToolkit();
+			Field awtAppClassNameField = xToolkit.getClass().getDeclaredField( "awtAppClassName" );
+			awtAppClassNameField.setAccessible( true );
+			awtAppClassNameField.set( xToolkit, APP_NAME );
+		}
+		catch ( Exception e ) {
+			System.out.println( "Could not set app name via toolkit reflection." );
+		}
+
 		// Ensure all popups are triggered from the event dispatch thread.
 		SwingUtilities.invokeLater( new Runnable() {
 			public void run() {

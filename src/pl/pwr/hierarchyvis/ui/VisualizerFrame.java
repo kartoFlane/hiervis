@@ -21,6 +21,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
+import pl.pwr.hierarchyvis.HierarchyVisualizer;
 import pl.pwr.hierarchyvis.core.HVConfig;
 import pl.pwr.hierarchyvis.core.HVContext;
 import pl.pwr.hierarchyvis.ui.control.NodeSelectionControl;
@@ -47,7 +48,7 @@ public class VisualizerFrame extends JFrame {
 
 
 	public VisualizerFrame( HVContext context ) {
-		super( "Hierarchy Visualizer" );
+		super( HierarchyVisualizer.APP_NAME );
 
 		if ( context == null )
 			throw new RuntimeException( "Context must not be null!" );
