@@ -186,6 +186,9 @@ public class VisualizerFrame extends JFrame {
 		} );
 	}
 
+	/**
+	 * Opens a file selection dialog, alowing the user to select a hierarchy file to load.
+	 */
 	private void openFileSelectionDialog() {
 		FileDialog dialog = new FileDialog( this, "Choose a file", FileDialog.LOAD );
 		dialog.setDirectory( new File( "." ).getAbsolutePath() );
@@ -210,6 +213,12 @@ public class VisualizerFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * Opens a configuration dialog, allowing the user to change application settings.
+	 * This method blocks until the user exits the dialog.
+	 * If the user made changes to the application's settings, the hierarchy visualization
+	 * is recreated.
+	 */
 	private void openConfigDialog() {
 		ConfigDialog dialog = new ConfigDialog( context, VisualizerFrame.this );
 		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
@@ -225,6 +234,12 @@ public class VisualizerFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * Processes the currently loaded hierarchy data, creating and laying out the visualization
+	 * using the currently selected settings.
+	 * This needs to be called after changes are made to the application's settings so that they
+	 * take effect on the interactive visualization.
+	 */
 	private void reprocess() {
 		Visualization vis = context.createHierarchyVisualization();
 		treeDisplay.setBackground( context.getConfig().getBackgroundColor() );
