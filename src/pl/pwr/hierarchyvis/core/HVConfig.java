@@ -3,6 +3,10 @@ package pl.pwr.hierarchyvis.core;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
@@ -36,23 +40,41 @@ public class HVConfig {
 	 */
 	public static final String FILE_PATH = "./config.json";
 
+	@SerializableField
 	private Path inputDataFilePath;
+	@SerializableField
 	private Path outputFolder;
+	@SerializableField
 	private Color currentLevelColor;
+	@SerializableField
 	private Color childGroupColor;
+	@SerializableField
 	private Color parentGroupColor;
+	@SerializableField
 	private Color ancestorGroupColor;
+	@SerializableField
 	private Color otherGroupColor;
+	@SerializableField
 	private Color backgroundColor;
+	@SerializableField
 	private int treeResolutionWidth;
+	@SerializableField
 	private int treeResolutionHeight;
+	@SerializableField
 	private int pointResolutionWidth;
+	@SerializableField
 	private int pointResolutionHeight;
+	@SerializableField
 	private double pointScalingFactor;
+	@SerializableField
 	private int numberOfHistogramBins;
+	@SerializableField
 	private boolean displayAllPoints;
+	@SerializableField
 	private boolean classAttribute;
+	@SerializableField
 	private boolean skipVisualisations;
+	@SerializableField
 	private boolean useNativeGUI;
 
 
@@ -221,12 +243,10 @@ public class HVConfig {
 	 * 
 	 * @param f
 	 *            the field to check
-	 * @return true if the field is a non-final, non-static private field,
-	 *         false otherwise
+	 * @return true if the field is marked with the SerializableField annnotation.
 	 */
 	private static boolean isValidField( Field f ) {
-		int m = f.getModifiers();
-		return !Modifier.isStatic( m ) && !Modifier.isFinal( m ) && Modifier.isPrivate( m );
+		return f.isAnnotationPresent( SerializableField.class );
 	}
 
 	/**
@@ -537,5 +557,18 @@ public class HVConfig {
 		}
 
 		return true;
+	}
+
+
+	/**
+	 * Marker annotation used to distinguish fields that are meant to be
+	 * serialized into the config file.
+	 * 
+	 * @author Tomasz Bachmiñski
+	 *
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	private @interface SerializableField {
 	}
 }
