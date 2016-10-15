@@ -76,6 +76,8 @@ public class HVConfig {
 	@SerializableField
 	private boolean classAttribute;
 	@SerializableField
+	private boolean instanceNameAttribute;
+	@SerializableField
 	private boolean skipVisualisations;
 	@SerializableField
 	private String preferredLookAndFeel;
@@ -102,6 +104,7 @@ public class HVConfig {
 
 		displayAllPoints = true;
 		classAttribute = false;
+		instanceNameAttribute = false;
 		skipVisualisations = false;
 		preferredLookAndFeel = "";
 	}
@@ -489,12 +492,20 @@ public class HVConfig {
 		this.outputFolder = path;
 	}
 
-	public boolean isClassAttribute() {
+	public boolean hasClassAttribute() {
 		return classAttribute;
 	}
 
 	public void setClassAttribute( boolean classAttribute ) {
 		this.classAttribute = classAttribute;
+	}
+
+	public boolean hasInstanceNameAttribute() {
+		return instanceNameAttribute;
+	}
+
+	public void setInstanceNameAttribute( boolean instanceNameAttribute ) {
+		this.instanceNameAttribute = instanceNameAttribute;
 	}
 
 	public void setNumberOfHistogramBins( int numberOfHistogramBins ) {
@@ -509,7 +520,7 @@ public class HVConfig {
 		this.skipVisualisations = skipVisualisations;
 	}
 
-	public boolean isSkipVisualisations() {
+	public boolean hasSkipVisualisations() {
 		return this.skipVisualisations;
 	}
 

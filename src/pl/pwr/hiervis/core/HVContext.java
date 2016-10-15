@@ -53,7 +53,7 @@ public class HVContext {
 	 *            path to the *.csv file to load.
 	 */
 	public void load( Path path ) {
-		setHierarchy( loadHierarchy( path, config.isClassAttribute() ) );
+		setHierarchy( loadHierarchy( path, config.hasInstanceNameAttribute(), config.hasClassAttribute() ) );
 		setTree( createHierarchyTree( this ) );
 
 		selectedRow = 0;
@@ -133,8 +133,8 @@ public class HVContext {
 		return config;
 	}
 
-	private static Hierarchy loadHierarchy( Path path, boolean isClassAttribute ) {
-		return new GeneratedCSVReader().load( path.toString(), isClassAttribute, false, false );
+	private static Hierarchy loadHierarchy( Path path, boolean hasInstanceName, boolean hasClass ) {
+		return new GeneratedCSVReader().load( path.toString(), hasInstanceName, hasClass, false );
 	}
 
 	private static Tree createHierarchyTree( HVContext context ) {

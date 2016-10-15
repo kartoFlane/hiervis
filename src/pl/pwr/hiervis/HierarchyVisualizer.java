@@ -76,8 +76,8 @@ public final class HierarchyVisualizer {
 		if ( config.getInputDataFilePath().getFileName().endsWith( ".csv" ) ) {
 			inputData = new GeneratedCSVReader().load(
 					config.getInputDataFilePath().toString(),
-					config.isClassAttribute(),
-					false,
+					config.hasInstanceNameAttribute(),
+					config.hasClassAttribute(),
 					false );
 		}
 		else {
@@ -93,7 +93,7 @@ public final class HierarchyVisualizer {
 
 		HierarchyStatistics stats = new HierarchyStatistics( inputData, statsFilePath );
 
-		if ( !config.isSkipVisualisations() ) {
+		if ( !config.hasSkipVisualisations() ) {
 			HierarchyProcessor vis = new HierarchyProcessor();
 
 			try {
