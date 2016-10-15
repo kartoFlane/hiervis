@@ -13,7 +13,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -22,6 +22,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
@@ -45,7 +46,7 @@ public class ConfigDialog extends JDialog {
 	private JLabel lblColorAncestorGroup;
 	private JLabel lblColorOtherGroup;
 	private JLabel lblColorBackground;
-	private JCheckBox cbNativeGUI;
+	private JComboBox<String> listLAF;
 
 	private HVConfig newConfig = null;
 
@@ -78,22 +79,33 @@ public class ConfigDialog extends JDialog {
 		cTabs.addTab( "General", null, cGeneral, null );
 		GridBagLayout gbl_cGeneral = new GridBagLayout();
 		gbl_cGeneral.columnWidths = new int[] { 200, 0 };
-		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0, 0 };
+		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0, 0, 0 };
 		gbl_cGeneral.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0 };
+		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 1.0 };
 		cGeneral.setLayout( gbl_cGeneral );
 
-		cbNativeGUI = new JCheckBox( "Use native Look and Feel" );
-		GridBagConstraints gbc_cbNativeGUI = new GridBagConstraints();
-		gbc_cbNativeGUI.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cbNativeGUI.anchor = GridBagConstraints.NORTH;
-		gbc_cbNativeGUI.insets = new Insets( 5, 5, 5, 0 );
-		gbc_cbNativeGUI.gridx = 0;
-		gbc_cbNativeGUI.gridy = 0;
-		cGeneral.add( cbNativeGUI, gbc_cbNativeGUI );
+		JLabel lblLAF = new JLabel( "GUI Look And Feel (restart required):" );
+		GridBagConstraints gbc_lblLookAndFeel = new GridBagConstraints();
+		gbc_lblLookAndFeel.fill = GridBagConstraints.HORIZONTAL;
+		gbc_lblLookAndFeel.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblLookAndFeel.gridx = 0;
+		gbc_lblLookAndFeel.gridy = 0;
+		cGeneral.add( lblLAF, gbc_lblLookAndFeel );
 
-		cbNativeGUI.setToolTipText( SwingUIUtils.toHTML(
-				"Whether the application should imitate native platform look.\n" +
+		listLAF = new JComboBox<String>();
+		GridBagConstraints gbc_listLAF = new GridBagConstraints();
+		gbc_listLAF.insets = new Insets( 0, 5, 5, 5 );
+		gbc_listLAF.fill = GridBagConstraints.BOTH;
+		gbc_listLAF.gridx = 0;
+		gbc_listLAF.gridy = 1;
+		cGeneral.add( listLAF, gbc_listLAF );
+
+		for ( LookAndFeelInfo info : UIManager.getInstalledLookAndFeels() ) {
+			listLAF.addItem( info.getName() );
+		}
+
+		listLAF.setToolTipText( SwingUIUtils.toHTML(
+				"The look and feel used by the application's GUI.\n" +
 						"Requires restart." ) );
 
 		JPanel cTreeResolution = new JPanel();
@@ -102,13 +114,13 @@ public class ConfigDialog extends JDialog {
 				"Hierarchy visualization resolution" ) );
 
 		GridBagConstraints gbc_cTreeResolution = new GridBagConstraints();
-		gbc_cTreeResolution.insets = new Insets( 0, 5, 5, 0 );
+		gbc_cTreeResolution.insets = new Insets( 5, 5, 5, 5 );
 		gbc_cTreeResolution.fill = GridBagConstraints.BOTH;
 		gbc_cTreeResolution.gridx = 0;
-		gbc_cTreeResolution.gridy = 1;
+		gbc_cTreeResolution.gridy = 2;
 		cGeneral.add( cTreeResolution, gbc_cTreeResolution );
 		GridBagLayout gbl_cTreeResolution = new GridBagLayout();
-		gbl_cTreeResolution.columnWidths = new int[] { 0, 100, 0 };
+		gbl_cTreeResolution.columnWidths = new int[] { 0, 150, 0 };
 		gbl_cTreeResolution.rowHeights = new int[] { 0, 0, 0 };
 		gbl_cTreeResolution.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		gbl_cTreeResolution.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
@@ -162,13 +174,13 @@ public class ConfigDialog extends JDialog {
 				"Point visualization resolution" ) );
 
 		GridBagConstraints gbc_cPointResolution = new GridBagConstraints();
-		gbc_cPointResolution.insets = new Insets( 0, 5, 5, 0 );
+		gbc_cPointResolution.insets = new Insets( 0, 5, 5, 5 );
 		gbc_cPointResolution.fill = GridBagConstraints.BOTH;
 		gbc_cPointResolution.gridx = 0;
-		gbc_cPointResolution.gridy = 2;
+		gbc_cPointResolution.gridy = 3;
 		cGeneral.add( cPointResolution, gbc_cPointResolution );
 		GridBagLayout gbl_cPointResolution = new GridBagLayout();
-		gbl_cPointResolution.columnWidths = new int[] { 0, 100, 0 };
+		gbl_cPointResolution.columnWidths = new int[] { 0, 150, 0 };
 		gbl_cPointResolution.rowHeights = new int[] { 0, 0, 0 };
 		gbl_cPointResolution.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		gbl_cPointResolution.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
@@ -218,7 +230,8 @@ public class ConfigDialog extends JDialog {
 
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
-		cbNativeGUI.setSelected( cfg.isUseNativeGUI() );
+
+		listLAF.setSelectedItem( cfg.getPreferredLookAndFeel() );
 
 		txtTreeWidth.setDocument( new NumberDocument( 4 ) );
 		txtTreeHeight.setDocument( new NumberDocument( 4 ) );
@@ -365,15 +378,6 @@ public class ConfigDialog extends JDialog {
 		lblColorBackground.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorBackground.setPreferredSize( colorLabelDim );
 
-		// Apply current config values
-		HVConfig cfg = context.getConfig();
-		lblColorSelectedNode.setBackground( cfg.getCurrentLevelColor() );
-		lblColorChildGroup.setBackground( cfg.getChildGroupColor() );
-		lblColorParentGroup.setBackground( cfg.getParentGroupColor() );
-		lblColorAncestorGroup.setBackground( cfg.getAncestorGroupColor() );
-		lblColorOtherGroup.setBackground( cfg.getOtherGroupColor() );
-		lblColorBackground.setBackground( cfg.getBackgroundColor() );
-
 		MouseListener ml = new MouseAdapter() {
 			@Override
 			public void mouseClicked( MouseEvent e ) {
@@ -395,6 +399,15 @@ public class ConfigDialog extends JDialog {
 		lblColorAncestorGroup.addMouseListener( ml );
 		lblColorOtherGroup.addMouseListener( ml );
 		lblColorBackground.addMouseListener( ml );
+
+		// Apply current config values
+		HVConfig cfg = context.getConfig();
+		lblColorSelectedNode.setBackground( cfg.getCurrentLevelColor() );
+		lblColorChildGroup.setBackground( cfg.getChildGroupColor() );
+		lblColorParentGroup.setBackground( cfg.getParentGroupColor() );
+		lblColorAncestorGroup.setBackground( cfg.getAncestorGroupColor() );
+		lblColorOtherGroup.setBackground( cfg.getOtherGroupColor() );
+		lblColorBackground.setBackground( cfg.getBackgroundColor() );
 	}
 
 	private void createButtonPanel( HVContext context ) {
@@ -442,15 +455,18 @@ public class ConfigDialog extends JDialog {
 		newConfig.setOtherGroupColor( lblColorOtherGroup.getBackground() );
 		newConfig.setBackgroundColor( lblColorBackground.getBackground() );
 
-		newConfig.setUseNativeGUI( cbNativeGUI.isSelected() );
+		newConfig.setPreferredLookAndFeel( listLAF.getSelectedItem().toString() );
 		newConfig.setTreeWidth( Integer.parseInt( getText( txtTreeWidth ) ) );
 		newConfig.setTreeHeight( Integer.parseInt( getText( txtTreeHeight ) ) );
 		newConfig.setPointWidth( Integer.parseInt( getText( txtPointWidth ) ) );
 		newConfig.setPointHeight( Integer.parseInt( getText( txtPointHeight ) ) );
 
-		// cfg.setClassAttribute( ... );
+		// cfg.setClassAttribute( ... ); // TODO
 	}
 
+	/**
+	 * Gets the text of the specified text field, or "0", if the text field is empty.
+	 */
 	private String getText( JTextField text ) {
 		String t = text.getText();
 		return t == null || t.equals( "" ) ? "0" : t;

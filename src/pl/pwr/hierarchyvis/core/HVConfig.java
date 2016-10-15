@@ -75,7 +75,7 @@ public class HVConfig {
 	@SerializableField
 	private boolean skipVisualisations;
 	@SerializableField
-	private boolean useNativeGUI;
+	private String preferredLookAndFeel;
 
 
 	/**
@@ -100,7 +100,7 @@ public class HVConfig {
 		displayAllPoints = true;
 		classAttribute = false;
 		skipVisualisations = false;
-		useNativeGUI = true;
+		preferredLookAndFeel = "";
 	}
 
 	/**
@@ -518,12 +518,12 @@ public class HVConfig {
 		return this.skipVisualisations;
 	}
 
-	public void setUseNativeGUI( boolean newValue ) {
-		useNativeGUI = newValue;
+	public void setPreferredLookAndFeel( String lookAndFeel ) {
+		preferredLookAndFeel = lookAndFeel;
 	}
 
-	public boolean isUseNativeGUI() {
-		return useNativeGUI;
+	public String getPreferredLookAndFeel() {
+		return preferredLookAndFeel;
 	}
 
 	/*
