@@ -32,7 +32,7 @@ public class HVContext {
 	private Hierarchy inputHierarchy = null;
 	private Tree hierarchyTree = null;
 
-	private int selectedRow = -1;
+	private int selectedRow = 0;
 
 
 	public HVContext() {
@@ -51,7 +51,7 @@ public class HVContext {
 		setHierarchy( loadHierarchy( path, config.isClassAttribute() ) );
 		setTree( createHierarchyTree( this ) );
 
-		selectedRow = -1;
+		selectedRow = 0;
 	}
 
 	/**
