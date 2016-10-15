@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.reader.GeneratedCSVReader;
@@ -26,6 +29,8 @@ import prefuse.data.Tree;
  *
  */
 public class HVContext {
+
+	private static final Logger log = LogManager.getLogger( HVContext.class );
 
 	private HVConfig config = null;
 	private HierarchyProcessor processor = null;
@@ -118,7 +123,7 @@ public class HVContext {
 				config = HVConfig.from( configFile );
 			}
 			catch ( Exception e ) {
-				System.err.println( e );
+				log.error( "Error while loading config file: ", e );
 			}
 		}
 		else {

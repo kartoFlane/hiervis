@@ -9,6 +9,9 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hierarchyvis.core.HVConfig;
@@ -20,6 +23,8 @@ import pl.pwr.hierarchyvis.visualisation.HierarchyProcessor;
 
 
 public final class HierarchyVisualizer {
+
+	private static final Logger log = LogManager.getLogger( HierarchyVisualizer.class );
 
 	public static final String APP_NAME = "Hierarchy Visualizer";
 
@@ -33,12 +38,12 @@ public final class HierarchyVisualizer {
 		HVContext context = new HVContext();
 
 		if ( args != null && args.length > 0 ) {
-			System.out.println( "Args list is not empty -- running in CLI mode." );
+			log.info( "Args list is not empty -- running in CLI mode." );
 
 			executeCLI( context, args );
 		}
 		else {
-			System.out.println( "Args list is empty -- running in GUI mode." );
+			log.info( "Args list is empty -- running in GUI mode." );
 
 			executeGUI( context );
 		}
@@ -50,7 +55,7 @@ public final class HierarchyVisualizer {
 			context.setConfig( parser.parse( args, context.getConfig() ) );
 		}
 		catch ( Exception e ) {
-			e.printStackTrace();
+			log.error( e );
 		}
 
 		HVConfig config = context.getConfig();
@@ -64,12 +69,13 @@ public final class HierarchyVisualizer {
 					false );
 		}
 		else {
-			System.err.printf(
+			log.error(
 					"Unrecognised extension of input file: '%s', only *.csv files are supported.%n",
 					config.getInputDataFilePath().getFileName() );
 			System.exit( 1 );
 		}
 
+		// TODO: Correct handling of stats
 		String statsFilePath = config.getOutputFolder() + File.separator + config.getInputDataFilePath().getFileName();
 		statsFilePath = statsFilePath.substring( 0, statsFilePath.lastIndexOf( "." ) ) + "_hieraryStatistics.csv";
 
@@ -82,7 +88,7 @@ public final class HierarchyVisualizer {
 				vis.process( context, stats );
 			}
 			catch ( Exception e ) {
-				e.printStackTrace();
+				log.error( e );
 			}
 		}
 	}
@@ -106,16 +112,16 @@ public final class HierarchyVisualizer {
 				}
 			}
 			catch ( ClassNotFoundException | UnsupportedLookAndFeelException e ) {
-				System.out.printf(
+				log.error(
 						"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
 						config.getPreferredLookAndFeel() );
 			}
 			catch ( Exception ex ) {
-				System.out.printf( "Error occurred while setting preferred LAF: %s", ex );
+				log.error( "Error occurred while setting preferred LAF: %s", ex );
 			}
 
 			if ( !successLAF ) {
-				System.out.printf(
+				log.info(
 						"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
 						config.getPreferredLookAndFeel() );
 			}
@@ -129,14 +135,14 @@ public final class HierarchyVisualizer {
 			}
 			catch ( Exception ex ) {
 				// If THAT failed, fall back to cross-platform.
-				System.out.printf( "Could not set system default LAF. Falling back to cross-platform LAF.%n" );
+				log.info( "Could not set system default LAF. Falling back to cross-platform LAF.%n" );
 
 				try {
 					UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName() );
 				}
 				catch ( Exception exc ) {
 					// Never happens.
-					System.out.printf( "Error occurred while setting cross-platform LAF: %s", exc );
+					log.error( "Error occurred while setting cross-platform LAF: %s", exc );
 				}
 			}
 
@@ -152,7 +158,7 @@ public final class HierarchyVisualizer {
 			UIManager.put( "AuditoryCues.playList", cueList );
 		}
 		catch ( Exception e ) {
-			System.out.printf( "Error occurred while setting auditory cues list: %s", e );
+			log.error( "Error occurred while setting auditory cues list: %s", e );
 		}
 
 		// Attempt to set the application name so that it displays correctly on all platforms.
@@ -168,7 +174,7 @@ public final class HierarchyVisualizer {
 			awtAppClassNameField.set( xToolkit, APP_NAME );
 		}
 		catch ( Exception e ) {
-			System.out.println( "Could not set app name via toolkit reflection." );
+			log.trace( "Failed to set app name via toolkit reflection." );
 		}
 
 		// Ensure all popups are triggered from the event dispatch thread.

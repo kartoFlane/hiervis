@@ -8,6 +8,7 @@ import prefuse.activity.ActivityManager;
 
 
 public class Utils {
+	
 	/**
 	 * Returns a rotated copy of the image passed in argument.
 	 * 

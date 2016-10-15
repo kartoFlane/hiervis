@@ -25,6 +25,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import pl.pwr.hierarchyvis.ui.components.HuePicker;
 import pl.pwr.hierarchyvis.ui.components.NumberDocument;
 import pl.pwr.hierarchyvis.ui.components.ShadePicker;
@@ -43,6 +46,7 @@ import pl.pwr.hierarchyvis.util.Utils;
 public class SquareColorPickerDialog extends JDialog {
 
 	private static final long serialVersionUID = 3476247193320539039L;
+	private static final Logger log = LogManager.getLogger( SquareColorPickerDialog.class );
 
 	private ShadePicker shadePicker;
 	private HuePicker huePicker;
@@ -433,7 +437,7 @@ public class SquareColorPickerDialog extends JDialog {
 			selectionUpdating = false;
 		}
 		catch ( BadLocationException ex ) {
-			ex.printStackTrace();
+			log.error( ex );
 		}
 	}
 

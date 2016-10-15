@@ -12,10 +12,11 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -39,6 +40,8 @@ public class HVConfig {
 	 * Default path to the config file
 	 */
 	public static final String FILE_PATH = "./config.json";
+
+	private static final Logger log = LogManager.getLogger( HVConfig.class );
 
 	@SerializableField
 	private Path inputDataFilePath;
@@ -120,12 +123,13 @@ public class HVConfig {
 		try {
 			for ( Field field : HVConfig.class.getDeclaredFields() ) {
 				if ( isValidField( field ) ) {
+					// We're setting corresponding fields, so there's no need to use HVConfig.setField().
 					field.set( clone, field.get( source ) );
 				}
 			}
 		}
 		catch ( IllegalArgumentException | IllegalAccessException e ) {
-			e.printStackTrace();
+			log.error( "Error while processing config fields: ", e );
 		}
 
 		return clone;
@@ -161,7 +165,7 @@ public class HVConfig {
 			}
 		}
 		catch ( IllegalArgumentException | IllegalAccessException e ) {
-			e.printStackTrace();
+			log.error( "Error while processing config fields: ", e );
 		}
 
 		return config;
@@ -217,24 +221,15 @@ public class HVConfig {
 			}
 		}
 		catch ( IllegalArgumentException | IllegalAccessException e ) {
-			e.printStackTrace();
+			log.error( "Error while processing config fields: ", e );
 		}
 
 		try {
 			ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
 			writer.writeValue( file, root );
 		}
-		catch ( JsonGenerationException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		catch ( JsonMappingException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		catch ( IOException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		catch ( Exception e ) {
+			log.error( "Error while writing json data to file: ", e );
 		}
 	}
 
@@ -310,7 +305,7 @@ public class HVConfig {
 					f.set( this, value );
 				}
 				catch ( NumberFormatException ex ) {
-					e.printStackTrace();
+					log.error( "Error while processing value for a color field: ", e );
 				}
 			}
 		}
@@ -553,7 +548,7 @@ public class HVConfig {
 			}
 		}
 		catch ( IllegalArgumentException | IllegalAccessException e ) {
-			e.printStackTrace();
+			log.error( "Error while processing config fields: ", e );
 		}
 
 		return true;
