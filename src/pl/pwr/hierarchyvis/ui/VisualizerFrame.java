@@ -187,40 +187,40 @@ public class VisualizerFrame extends JFrame {
 	}
 
 	private void openFileSelectionDialog() {
-		FileDialog fd = new FileDialog( this, "Choose a file", FileDialog.LOAD );
-		fd.setDirectory( new File( "." ).getAbsolutePath() );
+		FileDialog dialog = new FileDialog( this, "Choose a file", FileDialog.LOAD );
+		dialog.setDirectory( new File( "." ).getAbsolutePath() );
 
 		// NOTE: In order to cover all three major platforms (Windows/Linux/Mac),
 		// we need to set *both* filename filter (which works on Linux and Mac, but
 		// not on Windows), as well as file name (which works on Windows, but not on
 		// Linux and Mac...)
-		fd.setFilenameFilter( ( dir, name ) -> name.endsWith( ".csv" ) );
-		fd.setFile( "*.csv" );
+		dialog.setFilenameFilter( ( dir, name ) -> name.endsWith( ".csv" ) );
+		dialog.setFile( "*.csv" );
 
-		fd.setVisible( true ); // Blocks until the dialog is dismissed.
+		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
 
-		String filename = fd.getFile();
+		String filename = dialog.getFile();
 		if ( filename != null ) {
 			treeDisplay.setEnabled( true );
 			pointDisplay.setEnabled( true );
 
-			context.load( Paths.get( fd.getDirectory(), filename ) );
+			context.load( Paths.get( dialog.getDirectory(), filename ) );
 
 			reprocess();
 		}
 	}
 
 	private void openConfigDialog() {
-		ConfigDialog cfd = new ConfigDialog( context, VisualizerFrame.this );
-		cfd.setVisible( true ); // Blocks until the dialog is dismissed.
+		ConfigDialog dialog = new ConfigDialog( context, VisualizerFrame.this );
+		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
 
 		// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
 		if ( !context.isHierarchyDataLoaded() )
 			return;
 
 		// If no changes have been made to the config, then we don't need to reprocess anything.
-		if ( cfd.getConfig() != null ) {
-			context.setConfig( cfd.getConfig() );
+		if ( dialog.getConfig() != null ) {
+			context.setConfig( dialog.getConfig() );
 			reprocess();
 		}
 	}
