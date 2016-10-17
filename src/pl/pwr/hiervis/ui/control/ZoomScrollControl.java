@@ -11,7 +11,119 @@ import prefuse.controls.ControlAdapter;
 import prefuse.visual.VisualItem;
 
 
+/**
+ * A prefuse control which allows the user to zoom a display in and out.
+ * The zoom bounds, as well as zooming step, can be customized.
+ * 
+ * @author Tomasz Bachmiñski
+ *
+ */
 public class ZoomScrollControl extends ControlAdapter {
+
+	private double zoomMin;
+	private double zoomMax;
+	private double zoomStep;
+
+
+	public ZoomScrollControl() {
+		this( 0.1, 10, 0.1 );
+	}
+
+	public ZoomScrollControl( double min, double max, double step ) {
+		if ( min <= 0 )
+			throw new IllegalArgumentException( String.format(
+					"min must be a positive number (%s)",
+					min ) );
+		if ( max <= 0 )
+			throw new IllegalArgumentException( String.format(
+					"max must be a positive number (%s)",
+					max ) );
+		if ( step <= 0 )
+			throw new IllegalArgumentException( String.format(
+					"step must be a positive number (%s)",
+					step ) );
+		if ( min > max )
+			throw new IllegalArgumentException( String.format(
+					"max must be greater than or equal to min (%s <= %s)",
+					min, max ) );
+
+		zoomMin = min;
+		zoomMax = max;
+		zoomStep = step;
+	}
+
+	public double getZoomMin() {
+		return zoomMin;
+	}
+
+	public void setZoomMin( double min ) {
+		if ( min <= 0 ) {
+			throw new IllegalArgumentException( String.format(
+					"min must be a positive number (%s)",
+					min ) );
+		}
+		if ( min > zoomMax ) {
+			throw new IllegalArgumentException( String.format(
+					"max must be greater than or equal to min (%s <= %s)",
+					min, zoomMax ) );
+		}
+
+		zoomMin = min;
+	}
+
+	public double getZoomMax() {
+		return zoomMax;
+	}
+
+	public void setZoomMax( double max ) {
+		if ( max <= 0 ) {
+			throw new IllegalArgumentException( String.format(
+					"max must be a positive number (%s)",
+					max ) );
+		}
+		if ( zoomMin > max ) {
+			throw new IllegalArgumentException( String.format(
+					"max must be greater than or equal to min (%s <= %s)",
+					zoomMin, max ) );
+		}
+
+		zoomMax = max;
+	}
+
+	public void setZoomMinMax( double min, double max ) {
+		if ( min <= 0 ) {
+			throw new IllegalArgumentException( String.format(
+					"min must be a positive number (%s)",
+					min ) );
+		}
+		if ( max <= 0 ) {
+			throw new IllegalArgumentException( String.format(
+					"max must be a positive number (%s)",
+					max ) );
+		}
+		if ( min > max ) {
+			throw new IllegalArgumentException( String.format(
+					"max must be greater than or equal to min (%s <= %s)",
+					min, max ) );
+		}
+
+		zoomMin = min;
+		zoomMax = max;
+	}
+
+	public double getZoomStep() {
+		return zoomStep;
+	}
+
+	public void setZoomStep( double step ) {
+		if ( step <= 0 ) {
+			throw new IllegalArgumentException( String.format(
+					"step must be a positive number (%s)",
+					step ) );
+		}
+
+		zoomStep = step;
+	}
 
 	@Override
 	public void itemWheelMoved( VisualItem item, MouseWheelEvent e ) {
@@ -29,10 +141,6 @@ public class ZoomScrollControl extends ControlAdapter {
 		Display d = (Display)e.getSource();
 		d.requestFocus();
 
-		final double zoomStep = 0.1;
-		final double zoomMin = 0.1;
-		final double zoomMax = 10;
-
 		double dz = -e.getWheelRotation() * zoomStep;
 		double hz = d.getTransform().getScaleX();
 
@@ -47,7 +155,8 @@ public class ZoomScrollControl extends ControlAdapter {
 
 	@Override
 	public void keyPressed( KeyEvent e ) {
-		if ( e.isControlDown() && e.getKeyCode() == KeyEvent.VK_NUMPAD0 ) {
+		if ( e.isControlDown() &&
+				( e.getKeyCode() == KeyEvent.VK_NUMPAD0 || e.getKeyCode() == KeyEvent.VK_0 ) ) {
 			Display d = (Display)e.getSource();
 
 			Rectangle2D rect = null;
