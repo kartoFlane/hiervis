@@ -114,6 +114,14 @@ public class HVContext {
 		return processor.createPointImage( this, node );
 	}
 
+	public Display createPointDisplay() {
+		return processor.createPointDisplay( this );
+	}
+
+	public Visualization createPointVisualization( Node node ) {
+		return processor.createPointVisualization( this, node );
+	}
+
 	private static HVConfig loadConfig() {
 		File configFile = new File( HVConfig.FILE_PATH );
 		HVConfig config = null;

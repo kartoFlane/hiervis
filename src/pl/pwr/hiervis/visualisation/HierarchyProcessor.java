@@ -32,18 +32,22 @@ import pl.pwr.hiervis.core.HierarchyStatistics;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.util.prefuse.histogram.HistogramGraph;
 import pl.pwr.hiervis.util.prefuse.histogram.HistogramTable;
+import prefuse.Constants;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.action.ActionList;
 import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
+import prefuse.action.layout.AxisLayout;
 import prefuse.action.layout.graph.NodeLinkTreeLayout;
 import prefuse.data.Table;
 import prefuse.data.Tree;
+import prefuse.render.AbstractShapeRenderer;
 import prefuse.render.DefaultRendererFactory;
 import prefuse.render.EdgeRenderer;
 import prefuse.util.ColorLib;
 import prefuse.visual.VisualItem;
+import prefuse.visual.expression.VisiblePredicate;
 
 
 //when the histogram is totally flat (every bar have the same height) then the histogram is not drawn
@@ -584,6 +588,97 @@ public class HierarchyProcessor {
 
 	public Display createTreeDisplay( HVContext context ) {
 		return createTreeDisplay( context, null );
+	}
+
+	public Visualization createPointVisualization( HVContext context, Node node ) {
+		HVConfig config = context.getConfig();
+		int pointImageWidth = config.getPointWidth();
+		int pointImageHeight = config.getPointHeight();
+
+		int pointSize = 2;
+
+		Visualization vis = new Visualization();
+
+		AbstractShapeRenderer asr = new PointRenderer( pointSize, config );
+		DefaultRendererFactory drf = new DefaultRendererFactory( asr );
+		vis.setRendererFactory( drf );
+
+		String group = "data";
+		String xField = "x";
+		String yField = "y";
+
+		Table table = new Table();
+		table.addColumn( xField, int.class );
+		table.addColumn( yField, int.class );
+		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
+
+		Node root = context.getHierarchy().getRoot();
+		Rectangle2D bounds = calculateBoundingRectForCluster( root );
+
+		for ( Instance i : node.getSubtreeInstances() ) {
+			double x = i.getData()[0];
+			double y = i.getData()[1];
+
+			int pointLeftEdge = rectCoordinateOnImage(
+					x,
+					bounds.getMinX(), bounds.getMaxX(),
+					pointImageWidth, pointSize );
+			int pointTopEdge = rectCoordinateOnImage(
+					y,
+					bounds.getMinY(), bounds.getMaxY(),
+					pointImageHeight, pointSize );
+
+			int row = table.addRow();
+			table.set( row, 0, pointLeftEdge );
+			table.set( row, 1, pointImageHeight - pointTopEdge );
+		}
+
+		vis.addTable( group, table );
+
+		AxisLayout x_axis = new AxisLayout(
+				group, xField,
+				Constants.X_AXIS, VisiblePredicate.TRUE );
+		vis.putAction( "x", x_axis );
+
+		AxisLayout y_axis = new AxisLayout(
+				group, yField,
+				Constants.Y_AXIS, VisiblePredicate.TRUE );
+		vis.putAction( "y", y_axis );
+
+		ActionList actions = new ActionList();
+		actions.add( x_axis );
+		actions.add( y_axis );
+		actions.add( new RepaintAction() );
+
+		vis.putAction( "draw", actions );
+
+		return vis;
+	}
+
+	private Display createPointDisplay( HVContext context, Node node ) {
+		if ( node == null )
+			node = context.getHierarchy().getRoot();
+
+		HVConfig config = context.getConfig();
+
+		int pointImageWidth = config.getPointWidth();
+		int pointImageHeight = config.getPointHeight();
+
+		Visualization vis = createPointVisualization( context, node );
+
+		Display display = new Display( vis );
+		display.setBackground( config.getBackgroundColor() );
+		display.setHighQuality( true );
+		display.setSize( pointImageWidth, pointImageHeight );
+
+		vis.run( "draw" );
+		Utils.waitUntilActivitiesAreFinished();
+
+		return display;
+	}
+
+	public Display createPointDisplay( HVContext context ) {
+		return createPointDisplay( context, null );
 	}
 
 	public BufferedImage createPointImage( HVContext context, Node node ) {

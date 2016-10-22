@@ -2,7 +2,6 @@ package pl.pwr.hiervis.ui.control;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -11,8 +10,10 @@ import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.NodeRenderer;
 import prefuse.Display;
+import prefuse.Visualization;
 import prefuse.controls.ControlAdapter;
 import prefuse.data.Tree;
 import prefuse.visual.VisualItem;
@@ -142,8 +143,15 @@ public class NodeSelectionControl extends ControlAdapter {
 		treeDisplay.repaint();
 
 		Node node = context.findNode( context.getSelectedRow() );
-		BufferedImage bi = context.createPointImage( node );
-		pointDisplay.setBackgroundImage( bi, false, false );
+		Visualization vis = context.createPointVisualization( node );
+
+		Utils.resetDisplayZoom( pointDisplay );
+
+		pointDisplay.setVisualization( vis );
+
+		vis.run( "draw" );
+		Utils.waitUntilActivitiesAreFinished();
+
 		// Set the entire display area as dirty, so that it is redrawn.
 		pointDisplay.damageReport();
 		pointDisplay.repaint();

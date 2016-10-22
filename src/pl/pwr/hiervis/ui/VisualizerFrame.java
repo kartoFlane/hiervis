@@ -296,6 +296,8 @@ public class VisualizerFrame extends JFrame {
 		treeDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
+		pointDisplay = context.createPointDisplay();
+
 		NodeSelectionControl.selectNode( context, treeDisplay, pointDisplay, context.getSelectedRow() );
 
 		Rectangle2D contentRect = treeDisplay.getVisibleRect();
