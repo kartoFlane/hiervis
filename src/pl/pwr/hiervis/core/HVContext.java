@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
-import pl.pwr.basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Group;
 import pl.pwr.basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
@@ -124,9 +124,9 @@ public class HVContext
 		return processor.createPointDisplay( this );
 	}
 
-	public Visualization createPointVisualization( Node node )
+	public Visualization createPointVisualization( Group group )
 	{
-		return processor.createPointVisualization( this, node );
+		return processor.createPointVisualization( this, group );
 	}
 
 	private static HVConfig loadConfig()
@@ -169,17 +169,17 @@ public class HVContext
 	 *            the row in the data table at which the node is located.
 	 * @return the node at the specified row, or null if not found.
 	 */
-	public Node findNode( int row )
+	public Group findNode( int row )
 	{
 		Hierarchy h = getHierarchy();
-		Node node = h.getRoot();
+		Group node = h.getRoot();
 
 		if ( row == 0 ) {
 			return node;
 		}
 
-		Queue<Node> stack = new LinkedList<>();
-		for ( Node child : node.getChildren() ) {
+		Queue<Group> stack = new LinkedList<>();
+		for ( Group child : node.getChildren() ) {
 			stack.add( child );
 		}
 
@@ -192,7 +192,7 @@ public class HVContext
 				return node;
 			}
 
-			for ( Node child : node.getChildren() ) {
+			for ( Group child : node.getChildren() ) {
 				stack.add( child );
 			}
 		}

@@ -1,6 +1,7 @@
 package pl.pwr.basic_hierarchy.reader;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -10,45 +11,45 @@ import pl.pwr.basic_hierarchy.common.Constants;
 import pl.pwr.basic_hierarchy.common.HierarchyFiller;
 import pl.pwr.basic_hierarchy.implementation.BasicHierarchy;
 import pl.pwr.basic_hierarchy.implementation.BasicInstance;
-import pl.pwr.basic_hierarchy.implementation.BasicNode;
+import pl.pwr.basic_hierarchy.implementation.BasicGroup;
 import pl.pwr.basic_hierarchy.interfaces.DataReader;
 import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
 import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Group;
 
 
-//REFACTOR maybe create a factory pattern to generate nodes
+// REFACTOR maybe create a factory pattern to generate nodes
 public class GeneratedCSVReader implements DataReader
 {
-	/*
-	 * I assume that data are generated using Michal Spytkowski's data generator with the use of TSSB method.
-	 * Assume that:
-	 * "The first node listed is always
-	 * the root node, it is also the only node without a parent and the node specified
-	 * in the first section to be the root of the tree. The nodes are given in depth first
-	 * order."
+	/**
+	 * This method assumes that data are generated using Micha³ Spytkowski's data generator, using TSSB method.
+	 * <p>
+	 * The first node listed is always the root node. It is also the only node without a parent.
+	 * Nodes are given in depth-first order.
+	 * </p>
 	 * 
 	 * @see interfaces.DataReader#load(java.lang.String)
 	 */
 	@Override
-	public Hierarchy load( String filePath, boolean withInstancesNameAttribute, boolean withClassAttribute, boolean fillBreathGaps )
+	public Hierarchy load( String filePath, boolean withInstancesNameAttribute, boolean withClassAttribute, boolean fillBreadthGaps )
 	{
 		// REFACTOR instead of nodes and AdditionalNodes data structures we could use one or more hash maps
 		// REFACTOR skip nodes' elements containing "gen" prefix and assume that every ID prefix always begins with "gen"
 		File inputFile = new File( filePath );
 		if ( !inputFile.exists() && inputFile.isDirectory() ) {
-			System.err.println(
-				"Cannot access to file: " + filePath + ". Does it exist and is it a "
-					+ Constants.DELIMITER + "-separated text file?\n"
+			throw new RuntimeException(
+				String.format(
+					"Cannot access file: '%s'. Does it exist, and is it a %s-separated text file?",
+					filePath, Constants.DELIMITER
+				)
 			);
-			System.exit( 1 );
 		}
 
-		BasicNode root = null;
-		ArrayList<BasicNode> nodes = new ArrayList<BasicNode>();
-		int rootIndexInNodes = -1;
-		int numberOfInstances = 0;
+		BasicGroup root = null;
+		ArrayList<BasicGroup> groups = new ArrayList<BasicGroup>();
+		int rootIndexInGroups = -1;
 		HashMap<String, Integer> eachClassAndItsCount = new HashMap<String, Integer>();
+
 		try ( Scanner scanner = new Scanner( inputFile ) ) {
 			int numberOfDataDimensions = Integer.MIN_VALUE;
 			while ( scanner.hasNextLine() ) {
@@ -57,22 +58,24 @@ public class GeneratedCSVReader implements DataReader
 
 				if ( numberOfDataDimensions == Integer.MIN_VALUE ) {
 					if ( lineValues.length < 2 + ( withClassAttribute ? 1 : 0 ) + ( withInstancesNameAttribute ? 1 : 0 ) ) {
-						System.err.println(
-							"Input data not formatted correctly, each line should contain "
-								+ "at least a node id and a value (and optionally class attribute and/or instance name). "
-								+ "Line: " + inputLine + "\n"
+						throw new RuntimeException(
+							String.format(
+								"Input data is not formatted correctly, each line should contain at least a node ID and a value " +
+									"(and optionally class attribute and/or instance name).%nLine: %s",
+								inputLine
+							)
 						);
-						System.exit( 1 );
 					}
 					numberOfDataDimensions = lineValues.length - 1 - ( withClassAttribute ? 1 : 0 ) - ( withInstancesNameAttribute ? 1 : 0 );
 				}
 
 				if ( lineValues.length != numberOfDataDimensions + 1 + ( withClassAttribute ? 1 : 0 ) + ( withInstancesNameAttribute ? 1 : 0 ) ) {
-					System.err.println(
-						"Input data not formatted corectly, each line should contain a node id " +
-							" and " + numberOfDataDimensions + " data values. Line: " + inputLine + "\n"
+					throw new RuntimeException(
+						String.format(
+							"Input data not formatted corectly, each line should contain a node id and %s data values.%nLine: %s",
+							numberOfDataDimensions, inputLine
+						)
 					);
-					System.exit( 1 );
 				}
 
 				double[] values = new double[lineValues.length - 1 - ( withClassAttribute ? 1 : 0 ) - ( withInstancesNameAttribute ? 1 : 0 )];
@@ -81,65 +84,66 @@ public class GeneratedCSVReader implements DataReader
 						values[j] = Double.parseDouble( lineValues[j + 1 + ( withClassAttribute ? 1 : 0 ) + ( withInstancesNameAttribute ? 1 : 0 )] );
 					}
 					catch ( NumberFormatException e ) {
-						System.err.println(
-							"Cannot parse " + j + "-th value of line: " + inputLine +
-								". All instance features should be valid floating point numbers.\n"
+						throw new RuntimeException(
+							String.format(
+								"Cannot parse %sth value of line: %s. All instance features should be valid floating point numbers.",
+								j, inputLine
+							)
 						);
-						System.exit( 1 );
 					}
 				}
 
-				String classAttrib = null;
+				String classAttr = null;
 				if ( withClassAttribute ) {
-					classAttrib = lineValues[1];
-					if ( eachClassAndItsCount.containsKey( classAttrib ) ) {
-						eachClassAndItsCount.put( classAttrib, eachClassAndItsCount.get( classAttrib ) + 1 );
+					classAttr = lineValues[1];
+					if ( eachClassAndItsCount.containsKey( classAttr ) ) {
+						eachClassAndItsCount.put( classAttr, eachClassAndItsCount.get( classAttr ) + 1 );
 					}
 					else {
-						eachClassAndItsCount.put( classAttrib, 1 );
+						eachClassAndItsCount.put( classAttr, 1 );
 					}
 				}
 
-				String instanceNameAttrib = null;
+				String instanceNameAttr = null;
 				if ( withInstancesNameAttribute ) {
-					instanceNameAttrib = lineValues[1 + ( withClassAttribute ? 1 : 0 )];
+					instanceNameAttr = lineValues[1 + ( withClassAttribute ? 1 : 0 )];
 				}
 
 				// assuming that node's instances are grouped in input file
-				// REFACTOR: below could the binary-search be utilised with sorting by ID-comparator
+				// REFACTOR: below could the binary-search be utilized with sorting by ID-comparator
 				// boolean nodeExist = !nodes.isEmpty() && nodes.get(nodes.size()-1).getId().equalsIgnoreCase(lineValues[0]);
-				boolean nodeExist = false;
-				int nodeIndex = -1;
-				for ( int nodeIndexIter = 0; nodeIndexIter < nodes.size() && !nodeExist; nodeIndexIter++ ) {
-					if ( nodes.get( nodeIndexIter ).getId().equalsIgnoreCase( lineValues[0] ) ) {
-						nodeExist = true;
-						nodeIndex = nodeIndexIter;
+				boolean groupExists = false;
+				int groupIndex = -1;
+				for ( int i = 0; i < groups.size() && !groupExists; ++i ) {
+					if ( groups.get( i ).getId().equalsIgnoreCase( lineValues[0] ) ) {
+						groupExists = true;
+						groupIndex = i;
 					}
 				}
-				if ( nodeExist ) {
+
+				if ( groupExists ) {
 					// nodes.get(nodes.size()-1).addInstance(new BasicInstance(nodes.get(nodes.size()-1).getId(), values, classAttrib));
-					nodes.get( nodeIndex )
-						.addInstance( new BasicInstance( instanceNameAttrib, nodes.get( nodeIndex ).getId(), values, classAttrib ) );
-					numberOfInstances++;
+					groups.get( groupIndex )
+						.addInstance( new BasicInstance( instanceNameAttr, groups.get( groupIndex ).getId(), values, classAttr ) );
 				}
 				else {
-					BasicNode nodeToAdd = new BasicNode( lineValues[0], null, new LinkedList<Node>(), new LinkedList<Instance>() );
-					nodeToAdd.addInstance( new BasicInstance( instanceNameAttrib, nodeToAdd.getId(), values, classAttrib ) );
-					numberOfInstances++;
-					nodes.add( nodeToAdd );
+					BasicGroup newGroup = new BasicGroup( lineValues[0], null, new LinkedList<Group>(), new LinkedList<Instance>() );
+					newGroup.addInstance( new BasicInstance( instanceNameAttr, newGroup.getId(), values, classAttr ) );
+
+					groups.add( newGroup );
 					if ( root == null && lineValues[0].equalsIgnoreCase( Constants.ROOT_ID ) ) {
-						root = nodes.get( nodes.size() - 1 );
-						rootIndexInNodes = nodes.size() - 1;
+						root = groups.get( groups.size() - 1 );
+						rootIndexInGroups = groups.size() - 1;
 					}
 				}
 			}
 		}
-		catch ( Exception e ) {
+		catch ( IOException e ) {
 			System.err.println( "While reading input file: " + filePath + "\n" );
 			e.printStackTrace();
 		}
 
-		LinkedList<Node> allNodes = HierarchyFiller.addMissingEmptyNodes( root, nodes, rootIndexInNodes, fillBreathGaps );
-		return new BasicHierarchy( root, allNodes, eachClassAndItsCount, numberOfInstances );
+		LinkedList<Group> allNodes = HierarchyFiller.addMissingEmptyNodes( root, groups, rootIndexInGroups, fillBreadthGaps );
+		return new BasicHierarchy( root, allNodes, eachClassAndItsCount );
 	}
 }

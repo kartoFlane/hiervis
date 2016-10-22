@@ -14,7 +14,7 @@ public class PointRenderer extends AbstractShapeRenderer
 {
 	private HVConfig config;
 
-	protected Ellipse2D m_box = new Ellipse2D.Double();
+	protected Ellipse2D ellipse = new Ellipse2D.Double();
 	protected int pointSize;
 
 
@@ -27,7 +27,7 @@ public class PointRenderer extends AbstractShapeRenderer
 	@Override
 	protected Shape getRawShape( VisualItem item )
 	{
-		m_box.setFrame(
+		ellipse.setFrame(
 			item.getX() - pointSize * 0.5,
 			item.getY() - pointSize * 0.5,
 			pointSize, pointSize
@@ -55,6 +55,6 @@ public class PointRenderer extends AbstractShapeRenderer
 			item.setFillColor( config.getOtherGroupColor().getRGB() );
 		}
 
-		return m_box;
+		return ellipse;
 	}
 }

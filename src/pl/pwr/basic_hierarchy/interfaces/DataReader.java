@@ -6,6 +6,6 @@ public interface DataReader
 		String filePath,
 		boolean withInstancesNameAttribute,
 		boolean withClassAttribute,
-		boolean fillBreathGaps
+		boolean fillBreadthGaps
 	);
 }

@@ -5,7 +5,7 @@ import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import pl.pwr.basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Group;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
@@ -15,6 +15,7 @@ import pl.pwr.hiervis.visualisation.NodeRenderer;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.ControlAdapter;
+import prefuse.data.Node;
 import prefuse.data.Tree;
 import prefuse.visual.VisualItem;
 import prefuse.visual.tuple.TableEdgeItem;
@@ -82,7 +83,7 @@ public class NodeSelectionControl extends ControlAdapter
 			Display d = (Display)e.getSource();
 
 			Tree hierarchyTree = context.getTree();
-			prefuse.data.Node n = hierarchyTree.getNode( context.getSelectedRow() );
+			Node n = hierarchyTree.getNode( context.getSelectedRow() );
 
 			switch ( e.getKeyCode() ) {
 				case KeyEvent.VK_UP:
@@ -99,7 +100,7 @@ public class NodeSelectionControl extends ControlAdapter
 
 				case KeyEvent.VK_LEFT:
 				case KeyEvent.VK_KP_LEFT: {
-					prefuse.data.Node s = n.getPreviousSibling();
+					Node s = n.getPreviousSibling();
 					if ( s == null && n.getParent() != null ) {
 						s = n.getParent().getLastChild();
 					}
@@ -109,7 +110,7 @@ public class NodeSelectionControl extends ControlAdapter
 
 				case KeyEvent.VK_RIGHT:
 				case KeyEvent.VK_KP_RIGHT: {
-					prefuse.data.Node s = n.getNextSibling();
+					Node s = n.getNextSibling();
 					if ( s == null && n.getParent() != null ) {
 						s = n.getParent().getFirstChild();
 					}
@@ -149,7 +150,7 @@ public class NodeSelectionControl extends ControlAdapter
 		treeDisplay.damageReport();
 		treeDisplay.repaint();
 
-		Node node = context.findNode( context.getSelectedRow() );
+		Group node = context.findNode( context.getSelectedRow() );
 		Visualization vis = context.createPointVisualization( node );
 
 		Utils.resetDisplayZoom( pointDisplay );
@@ -174,7 +175,7 @@ public class NodeSelectionControl extends ControlAdapter
 
 		// Reset all nodes back to 'other'
 		for ( int i = 0; i < hierarchyTree.getNodeCount(); i++ ) {
-			prefuse.data.Node n = hierarchyTree.getNode( i );
+			Node n = hierarchyTree.getNode( i );
 			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 		}
 
@@ -185,17 +186,17 @@ public class NodeSelectionControl extends ControlAdapter
 
 		// Recategorize nodes based on the currently selected node
 		for ( int i = 0; i < hierarchyTree.getNodeCount() && !isFound; i++ ) {
-			prefuse.data.Node n = hierarchyTree.getNode( i );
+			Node n = hierarchyTree.getNode( i );
 			if ( n.getRow() == row ) {
 				isFound = true;
 				// colour child groups
-				LinkedList<prefuse.data.Node> stack = new LinkedList<>();
+				LinkedList<Node> stack = new LinkedList<>();
 				stack.add( n );
 				while ( !stack.isEmpty() ) {
-					prefuse.data.Node current = stack.removeFirst();
+					Node current = stack.removeFirst();
 					current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
-					for ( Iterator<prefuse.data.Node> children = current.children(); children.hasNext(); ) {
-						prefuse.data.Node child = children.next();
+					for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
+						Node child = children.next();
 						stack.add( child );
 					}
 				}
@@ -204,10 +205,10 @@ public class NodeSelectionControl extends ControlAdapter
 					stack = new LinkedList<>();
 					// when the parent is empty, then we need to search up in the hierarchy because empty
 					// parents are skipped, but displayed on output images
-					prefuse.data.Node directParent = n.getParent();
+					Node directParent = n.getParent();
 					stack.add( directParent );
 					while ( !stack.isEmpty() ) {
-						prefuse.data.Node current = stack.removeFirst();
+						Node current = stack.removeFirst();
 						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
 						if ( current.getParent() != null ) {
 							stack.add( current.getParent() );

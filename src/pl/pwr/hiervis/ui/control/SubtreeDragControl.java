@@ -28,7 +28,7 @@ public class SubtreeDragControl extends ControlAdapter
 	private Point2D down = new Point2D.Double();
 	private Point2D tmp = new Point2D.Double();
 	private boolean wasFixed;
-	private int m_button;
+	private int button;
 
 
 	/**
@@ -50,7 +50,7 @@ public class SubtreeDragControl extends ControlAdapter
 	 */
 	public SubtreeDragControl( int mouseButton )
 	{
-		m_button = mouseButton;
+		button = mouseButton;
 	}
 
 	/**
@@ -58,7 +58,9 @@ public class SubtreeDragControl extends ControlAdapter
 	 */
 	public void itemEntered( VisualItem item, MouseEvent e )
 	{
-		if ( !( item instanceof NodeItem ) ) return;
+		if ( !( item instanceof NodeItem ) )
+			return;
+
 		Display d = (Display)e.getSource();
 		d.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
 	}
@@ -68,7 +70,9 @@ public class SubtreeDragControl extends ControlAdapter
 	 */
 	public void itemExited( VisualItem item, MouseEvent e )
 	{
-		if ( !( item instanceof NodeItem ) ) return;
+		if ( !( item instanceof NodeItem ) )
+			return;
+
 		Display d = (Display)e.getSource();
 		d.setCursor( Cursor.getDefaultCursor() );
 	}
@@ -78,8 +82,11 @@ public class SubtreeDragControl extends ControlAdapter
 	 */
 	public void itemPressed( VisualItem item, MouseEvent e )
 	{
-		if ( !UILib.isButtonPressed( e, m_button ) ) return;
-		if ( !( item instanceof NodeItem ) ) return;
+		if ( !UILib.isButtonPressed( e, button ) )
+			return;
+		if ( !( item instanceof NodeItem ) )
+			return;
+
 		Display d = (Display)e.getComponent();
 		down = d.getAbsoluteCoordinate( e.getPoint(), down );
 		wasFixed = item.isFixed();
@@ -91,8 +98,11 @@ public class SubtreeDragControl extends ControlAdapter
 	 */
 	public void itemReleased( VisualItem item, MouseEvent e )
 	{
-		if ( !UILib.isButtonPressed( e, m_button ) ) return;
-		if ( !( item instanceof NodeItem ) ) return;
+		if ( !UILib.isButtonPressed( e, button ) )
+			return;
+		if ( !( item instanceof NodeItem ) )
+			return;
+
 		item.setFixed( wasFixed );
 	}
 
@@ -101,13 +111,18 @@ public class SubtreeDragControl extends ControlAdapter
 	 */
 	public void itemDragged( VisualItem item, MouseEvent e )
 	{
-		if ( !UILib.isButtonPressed( e, m_button ) ) return;
-		if ( !( item instanceof NodeItem ) ) return;
+		if ( !UILib.isButtonPressed( e, button ) )
+			return;
+		if ( !( item instanceof NodeItem ) )
+			return;
+
 		Display d = (Display)e.getComponent();
 		tmp = d.getAbsoluteCoordinate( e.getPoint(), tmp );
 		double dx = tmp.getX() - down.getX();
 		double dy = tmp.getY() - down.getY();
+
 		updateLocations( (NodeItem)item, dx, dy );
+
 		down.setLocation( tmp );
 		item.getVisualization().repaint();
 	}
@@ -125,7 +140,8 @@ public class SubtreeDragControl extends ControlAdapter
 		n.setEndY( y );
 
 		Iterator<?> children = n.children();
-		while ( children.hasNext() )
+		while ( children.hasNext() ) {
 			updateLocations( (NodeItem)children.next(), dx, dy );
+		}
 	}
 }

@@ -8,7 +8,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Group;
 import prefuse.Display;
 import prefuse.activity.ActivityManager;
 
@@ -97,14 +97,14 @@ public class Utils
 	 *            the node for which the extents are to be computed
 	 * @return the smallest bounding rectangle
 	 */
-	public static Rectangle2D calculateBoundingRectForCluster( Node node )
+	public static Rectangle2D calculateBoundingRectForCluster( Group node )
 	{
 		double minX = Double.MAX_VALUE;
 		double minY = Double.MAX_VALUE;
 		double maxX = Double.MIN_VALUE;
 		double maxY = Double.MIN_VALUE;
 
-		for ( Instance i : node.getSubtreeInstances() ) {
+		for ( Instance i : node.getSubgroupInstances() ) {
 			double x = i.getData()[0];
 			double y = i.getData()[1];
 

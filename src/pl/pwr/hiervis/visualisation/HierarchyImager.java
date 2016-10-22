@@ -13,7 +13,7 @@ import javax.imageio.ImageIO;
 
 import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
 import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Group;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
@@ -54,12 +54,12 @@ public class HierarchyImager
 
 		LinkedList<Instance> allPoints = null;
 		if ( config.isDisplayAllPoints() ) {
-			allPoints = input.getRoot().getSubtreeInstances();
+			allPoints = input.getRoot().getSubgroupInstances();
 		}
 
 		int imgCounter = 0;
-		for ( Node n : input.getGroups() ) {
-			if ( n.getNodeInstances().size() > 0 ) {
+		for ( Group n : input.getGroups() ) {
+			if ( n.getInstances().size() > 0 ) {
 				System.out.println( "==== " + n.getId() + " ====" );
 				System.out.println( "Point visualisation..." );
 				BufferedImage nodeImg = new BufferedImage( nodeImgFinalWidth, nodeImgFinalHeight, BufferedImage.TYPE_INT_ARGB );
@@ -80,7 +80,7 @@ public class HierarchyImager
 
 				System.out.println( "Prepare histogram data..." );
 				HistogramTable allDataHistogramTable = createAllDataHistogramTable(
-					input.getRoot().getSubtreeInstances(),
+					input.getRoot().getSubgroupInstances(),
 					config.getNumberOfHistogramBins()
 				);
 				HistogramGraph.setAllDataHistoTable( allDataHistogramTable );
@@ -191,7 +191,7 @@ public class HierarchyImager
 		);
 	}
 
-	private static BufferedImage createPointImage( HVContext context, Node node )
+	private static BufferedImage createPointImage( HVContext context, Group node )
 	{
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( node );
 		int nodeImgFinalWidth = (int)( context.getConfig().getPointWidth() +
@@ -201,7 +201,7 @@ public class HierarchyImager
 
 		LinkedList<Instance> allPoints = null;
 		if ( context.getConfig().isDisplayAllPoints() ) {
-			allPoints = context.getHierarchy().getRoot().getSubtreeInstances();
+			allPoints = context.getHierarchy().getRoot().getSubgroupInstances();
 		}
 
 		BufferedImage nodeImg = new BufferedImage( nodeImgFinalWidth, nodeImgFinalHeight, BufferedImage.TYPE_INT_ARGB );
@@ -336,7 +336,7 @@ public class HierarchyImager
 
 	private static void drawParentAncestorsPoints(
 		Graphics2D imgContent,
-		Node parent,
+		Group parent,
 		Color parentAncestorsColor,
 		double pointScallingFactor,
 		int imageWidth, int imageHeight,
@@ -344,11 +344,11 @@ public class HierarchyImager
 	)
 	{
 
-		Node n = parent;
+		Group n = parent;
 		while ( n.getParent() != null ) {
 			drawPoints(
 				imgContent,
-				n.getParent().getNodeInstances(),
+				n.getParent().getInstances(),
 				parentAncestorsColor,
 				pointScallingFactor,
 				imageWidth, imageHeight,
@@ -360,7 +360,7 @@ public class HierarchyImager
 
 	private static BufferedImage fillImage(
 		BufferedImage nodeImg,
-		Node node,
+		Group node,
 		HVConfig config,
 		Rectangle2D bounds,
 		LinkedList<Instance> allPoints
@@ -392,7 +392,7 @@ public class HierarchyImager
 
 					drawPoints(
 						imgContent,
-						node.getParent().getNodeInstances(),
+						node.getParent().getInstances(),
 						config.getParentGroupColor(),
 						config.getPointScallingFactor(),
 						config.getPointWidth(), config.getPointHeight(),
@@ -403,7 +403,7 @@ public class HierarchyImager
 
 			drawPoints(
 				imgContent,
-				node.getSubtreeInstances(),
+				node.getSubgroupInstances(),
 				config.getChildGroupColor(),
 				config.getPointScallingFactor(),
 				config.getPointWidth(), config.getPointHeight(),
@@ -411,7 +411,7 @@ public class HierarchyImager
 			);
 			drawPoints(
 				imgContent,
-				node.getNodeInstances(),
+				node.getInstances(),
 				config.getCurrentLevelColor(),
 				config.getPointScallingFactor(),
 				config.getPointWidth(), config.getPointHeight(),
@@ -442,7 +442,7 @@ public class HierarchyImager
 	}
 
 	private static HistogramTable prepareHistogramTableUsingAllDataBins(
-		Node node,
+		Group node,
 		HistogramTable allDataHistogramTable,
 		int roleNum
 	)
@@ -450,7 +450,7 @@ public class HierarchyImager
 		Table histogramData = new Table();
 		histogramData.addColumn( "x", double.class );
 		histogramData.addColumn( "y", double.class );
-		for ( Instance i : node.getNodeInstances() ) {
+		for ( Instance i : node.getInstances() ) {
 			int newRowNum = histogramData.addRow();
 			histogramData.set( newRowNum, "x", i.getData()[0] );
 			histogramData.set( newRowNum, "y", i.getData()[1] );

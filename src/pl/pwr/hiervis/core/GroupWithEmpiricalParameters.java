@@ -1,18 +1,18 @@
 package pl.pwr.hiervis.core;
 
 import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Group;
 
 
 public class GroupWithEmpiricalParameters
 {
-	private Node node;
+	private Group node;
 	private double[][] empiricalCovariance;
 	private double[] empiricalMean;
 	private int numOfDimensions;
 
 
-	public GroupWithEmpiricalParameters( Node node )
+	public GroupWithEmpiricalParameters( Group node )
 	{
 		this.node = node;
 		this.numOfDimensions = getNumberOfDimensions( node );
@@ -20,13 +20,13 @@ public class GroupWithEmpiricalParameters
 		this.empiricalCovariance = calculateCovariance( node, empiricalMean, numOfDimensions );
 	}
 
-	private int getNumberOfDimensions( Node node )
+	private int getNumberOfDimensions( Group node )
 	{
 		int numOfDimensions = -1;
-		Node curr = node;
+		Group curr = node;
 		do {
-			if ( !curr.getSubtreeInstances().isEmpty() ) {
-				numOfDimensions = curr.getSubtreeInstances().getFirst().getData().length;
+			if ( !curr.getSubgroupInstances().isEmpty() ) {
+				numOfDimensions = curr.getSubgroupInstances().getFirst().getData().length;
 			}
 		} while ( numOfDimensions == -1 && ( curr = curr.getParent() ) != null );
 
@@ -42,28 +42,28 @@ public class GroupWithEmpiricalParameters
 		return numOfDimensions;
 	}
 
-	private double[] calculateMean( Node node, int numOfDimensions )
+	private double[] calculateMean( Group node, int numOfDimensions )
 	{
 		double[] empiricalMean = new double[numOfDimensions];
 
-		for ( Instance i : node.getSubtreeInstances() ) {
+		for ( Instance i : node.getSubgroupInstances() ) {
 			for ( int dim = 0; dim < numOfDimensions; dim++ ) {
 				empiricalMean[dim] += i.getData()[dim];
 			}
 		}
 
 		for ( int dim = 0; dim < numOfDimensions; dim++ ) {
-			empiricalMean[dim] = empiricalMean[dim] / node.getSubtreeInstances().size();
+			empiricalMean[dim] = empiricalMean[dim] / node.getSubgroupInstances().size();
 		}
 
 		return empiricalMean;
 	}
 
-	private double[][] calculateCovariance( Node node, double[] empiricalMean, int numOfDimensions )
+	private double[][] calculateCovariance( Group node, double[] empiricalMean, int numOfDimensions )
 	{
 		double[][] empiricalCovariance = new double[numOfDimensions][numOfDimensions];
 
-		for ( Instance inst : node.getSubtreeInstances() ) {
+		for ( Instance inst : node.getSubgroupInstances() ) {
 			for ( int i = 0; i < numOfDimensions; i++ ) {
 				for ( int j = 0; j <= i; j++ ) {
 					empiricalCovariance[i][j] += ( inst.getData()[i] - empiricalMean[i] ) * ( inst.getData()[j] - empiricalMean[j] );
@@ -73,7 +73,7 @@ public class GroupWithEmpiricalParameters
 
 		for ( int i = 0; i < numOfDimensions; i++ ) {
 			for ( int j = 0; j <= i; j++ ) {
-				empiricalCovariance[i][j] /= Math.max( node.getSubtreeInstances().size() - 1, 1 );// sample variance
+				empiricalCovariance[i][j] /= Math.max( node.getSubgroupInstances().size() - 1, 1 );// sample variance
 				empiricalCovariance[j][i] = empiricalCovariance[i][j];
 			}
 		}

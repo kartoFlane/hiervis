@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 
+import pl.pwr.basic_hierarchy.interfaces.Group;
 import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
@@ -26,6 +26,7 @@ import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
 import prefuse.action.layout.AxisLayout;
 import prefuse.action.layout.graph.NodeLinkTreeLayout;
+import prefuse.data.Node;
 import prefuse.data.Table;
 import prefuse.data.Tree;
 import prefuse.render.AbstractShapeRenderer;
@@ -60,14 +61,14 @@ public class HierarchyProcessor
 	private double nodeSizeToBetweenSiblingsSpaceRatio = 4.0; // minimum value
 
 
-	public Tree createHierarchyTree( Node root, HVConfig config )
+	public Tree createHierarchyTree( Group root, HVConfig config )
 	{
 		Tree tree = new Tree();
 		tree.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
 		tree.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
 		// tree.addColumn(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, Integer.class);
 
-		prefuse.data.Node n = tree.addRoot();
+		Node n = tree.addRoot();
 		n.set( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, root.getId() );
 		// n.set(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, root.getNodeInstances().size());
 		n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
@@ -80,14 +81,14 @@ public class HierarchyProcessor
 
 		int nodesCounter = 1;
 
-		Queue<Map.Entry<prefuse.data.Node, Node>> stackParentAndChild = new LinkedList<>(); // FIFO
-		for ( Node child : root.getChildren() ) {
-			stackParentAndChild.add( new AbstractMap.SimpleEntry<prefuse.data.Node, Node>( n, child ) );
+		Queue<Map.Entry<Node, Group>> stackParentAndChild = new LinkedList<>(); // FIFO
+		for ( Group child : root.getChildren() ) {
+			stackParentAndChild.add( new AbstractMap.SimpleEntry<Node, Group>( n, child ) );
 		}
 
 		while ( !stackParentAndChild.isEmpty() ) {
-			Entry<prefuse.data.Node, Node> sourceNodeWithItsParent = stackParentAndChild.remove();
-			Node sourceNode = sourceNodeWithItsParent.getValue();
+			Entry<Node, Group> sourceNodeWithItsParent = stackParentAndChild.remove();
+			Group sourceNode = sourceNodeWithItsParent.getValue();
 
 			n = tree.addChild( sourceNodeWithItsParent.getKey() );
 			nodesCounter++;
@@ -108,8 +109,8 @@ public class HierarchyProcessor
 				treeLevelWithWidth.put( nodeDepth, depthCount + 1 );
 			}
 
-			for ( Node child : sourceNode.getChildren() ) {
-				stackParentAndChild.add( new AbstractMap.SimpleEntry<prefuse.data.Node, Node>( n, child ) );
+			for ( Group child : sourceNode.getChildren() ) {
+				stackParentAndChild.add( new AbstractMap.SimpleEntry<Node, Group>( n, child ) );
 			}
 		}
 		System.out.println( "Number of nodes: " + nodesCounter );
@@ -168,7 +169,7 @@ public class HierarchyProcessor
 	}
 
 	@SuppressWarnings("unchecked")
-	public Visualization createTreeVisualization( HVContext context, String currentNodeId )
+	public Visualization createTreeVisualization( HVContext context, String currentGroupId )
 	{
 		boolean isFound = false;
 
@@ -182,33 +183,33 @@ public class HierarchyProcessor
 
 		if ( context.isHierarchyDataLoaded() ) {
 			for ( int i = 0; i < hierarchyTree.getNodeCount(); i++ ) {
-				prefuse.data.Node n = hierarchyTree.getNode( i );
+				Node n = hierarchyTree.getNode( i );
 				n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 			}
 
 			for ( int i = 0; i < hierarchyTree.getNodeCount() && !isFound; i++ ) {
-				prefuse.data.Node n = hierarchyTree.getNode( i );
-				if ( n.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME ).equals( currentNodeId ) ) {
+				Node n = hierarchyTree.getNode( i );
+				if ( n.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME ).equals( currentGroupId ) ) {
 					isFound = true;
 					// colour child groups
-					LinkedList<prefuse.data.Node> stack = new LinkedList<>();
+					LinkedList<Node> stack = new LinkedList<>();
 					stack.add( n );
 					while ( !stack.isEmpty() ) {
-						prefuse.data.Node current = stack.removeFirst();
+						Node current = stack.removeFirst();
 						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
-						for ( Iterator<prefuse.data.Node> children = current.children(); children.hasNext(); ) {
-							prefuse.data.Node child = children.next();
+						for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
+							Node child = children.next();
 							stack.add( child );
 						}
 					}
 
 					if ( config.isDisplayAllPoints() && n.getParent() != null ) {
 						stack = new LinkedList<>();
-						prefuse.data.Node directParent = n.getParent();// when the parent is empty, then we need to search up in the hierarchy because empty
+						Node directParent = n.getParent();// when the parent is empty, then we need to search up in the hierarchy because empty
 						// parents are skipped,but displayed on output images
 						stack.add( directParent );
 						while ( !stack.isEmpty() ) {
-							prefuse.data.Node current = stack.removeFirst();
+							Node current = stack.removeFirst();
 							current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
 							if ( current.getParent() != null ) {
 								stack.add( current.getParent() );
@@ -292,7 +293,7 @@ public class HierarchyProcessor
 		return createTreeDisplay( context, null );
 	}
 
-	public Visualization createPointVisualization( HVContext context, Node node )
+	public Visualization createPointVisualization( HVContext context, Group group )
 	{
 		HVConfig config = context.getConfig();
 		int pointImageWidth = config.getPointWidth();
@@ -306,7 +307,7 @@ public class HierarchyProcessor
 		DefaultRendererFactory drf = new DefaultRendererFactory( asr );
 		vis.setRendererFactory( drf );
 
-		String group = "data";
+		String datasetName = "data";
 		String xField = "x";
 		String yField = "y";
 
@@ -315,10 +316,10 @@ public class HierarchyProcessor
 		table.addColumn( yField, int.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
 
-		Node root = context.getHierarchy().getRoot();
+		Group root = context.getHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root );
 
-		for ( Instance i : node.getSubtreeInstances() ) {
+		for ( Instance i : group.getSubgroupInstances() ) {
 			double x = i.getData()[0];
 			double y = i.getData()[1];
 
@@ -338,16 +339,16 @@ public class HierarchyProcessor
 			table.set( row, 1, pointImageHeight - pointTopEdge );
 		}
 
-		vis.addTable( group, table );
+		vis.addTable( datasetName, table );
 
 		AxisLayout x_axis = new AxisLayout(
-			group, xField,
+			datasetName, xField,
 			Constants.X_AXIS, VisiblePredicate.TRUE
 		);
 		vis.putAction( "x", x_axis );
 
 		AxisLayout y_axis = new AxisLayout(
-			group, yField,
+			datasetName, yField,
 			Constants.Y_AXIS, VisiblePredicate.TRUE
 		);
 		vis.putAction( "y", y_axis );
@@ -369,17 +370,17 @@ public class HierarchyProcessor
 		return (int)result;
 	}
 
-	private Display createPointDisplay( HVContext context, Node node )
+	private Display createPointDisplay( HVContext context, Group group )
 	{
-		if ( node == null )
-			node = context.getHierarchy().getRoot();
+		if ( group == null )
+			group = context.getHierarchy().getRoot();
 
 		HVConfig config = context.getConfig();
 
 		int pointImageWidth = config.getPointWidth();
 		int pointImageHeight = config.getPointHeight();
 
-		Visualization vis = createPointVisualization( context, node );
+		Visualization vis = createPointVisualization( context, group );
 
 		Display display = new Display( vis );
 		display.setBackground( config.getBackgroundColor() );

@@ -2,19 +2,43 @@ package pl.pwr.basic_hierarchy.interfaces;
 
 public interface Hierarchy
 {
-	public Node getRoot();
+	/**
+	 * Returns the root node of this hierarchy.
+	 */
+	public Group getRoot();
 
-	public Node[] getGroups();
+	/**
+	 * Returns an array of groups of instances.
+	 */
+	public Group[] getGroups();
 
-	public int getNumberOfGroups();
+	/**
+	 * Returns the number of groups in this hierarchy. Equivalent to {@code getGroups().length}.
+	 */
+	public int getGroupCount();
 
+	/**
+	 * Returns an array of ground-truth classes present in this hierarchy.
+	 */
 	public String[] getClasses();
 
-	public int getNumberOfClasses();
+	/**
+	 * Returns the number of ground-truth classes. Equivalent to {@code getClasses().length}.
+	 */
+	public int getClassCount();
 
-	public int getClassCount( String className, boolean withClassHierarchy );
+	/**
+	 * Returns the total number of instances in this hierarchy, ie. sum of instances in all groups.
+	 */
+	public int getInstanceCount();
 
-	public int getNumberOfInstances();
-
-	public void printTree();
+	/**
+	 * Returns the number of groups within the specified class.
+	 * 
+	 * @param className
+	 *            Class name to look for.
+	 * @param withInstanceInheritance
+	 *            if true, the result will also include child classes of the specified class. (?)
+	 */
+	public int getClassCount( String className, boolean withInstanceInheritance );
 }
