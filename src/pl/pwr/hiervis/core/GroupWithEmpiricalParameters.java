@@ -4,21 +4,24 @@ import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
 
 
-public class GroupWithEmpiricalParameters {
+public class GroupWithEmpiricalParameters
+{
 	private Node node;
 	private double[][] empiricalCovariance;
 	private double[] empiricalMean;
 	private int numOfDimensions;
 
 
-	public GroupWithEmpiricalParameters( Node node ) {
+	public GroupWithEmpiricalParameters( Node node )
+	{
 		this.node = node;
 		this.numOfDimensions = getNumberOfDimensions( node );
 		this.empiricalMean = calculateMean( node, numOfDimensions );
 		this.empiricalCovariance = calculateCovariance( node, empiricalMean, numOfDimensions );
 	}
 
-	private int getNumberOfDimensions( Node node ) {
+	private int getNumberOfDimensions( Node node )
+	{
 		int numOfDimensions = -1;
 		Node curr = node;
 		do {
@@ -29,15 +32,18 @@ public class GroupWithEmpiricalParameters {
 
 		if ( numOfDimensions == -1 ) {
 			System.err.print( "GroupWithParameters.getNumberOfDimensions()" );
-			System.err.println( " cannot determine the number of dimensions! It means that "
-					+ "there exists a tree branch without any instance in it. It should not happened." );
+			System.err.println(
+				" cannot determine the number of dimensions! It means that "
+					+ "there exists a tree branch without any instance in it. It should not happened."
+			);
 			System.exit( 1 );
 		}
 
 		return numOfDimensions;
 	}
 
-	private double[] calculateMean( Node node, int numOfDimensions ) {
+	private double[] calculateMean( Node node, int numOfDimensions )
+	{
 		double[] empiricalMean = new double[numOfDimensions];
 
 		for ( Instance i : node.getSubtreeInstances() ) {
@@ -53,7 +59,8 @@ public class GroupWithEmpiricalParameters {
 		return empiricalMean;
 	}
 
-	private double[][] calculateCovariance( Node node, double[] empiricalMean, int numOfDimensions ) {
+	private double[][] calculateCovariance( Node node, double[] empiricalMean, int numOfDimensions )
+	{
 		double[][] empiricalCovariance = new double[numOfDimensions][numOfDimensions];
 
 		for ( Instance inst : node.getSubtreeInstances() ) {
@@ -74,15 +81,18 @@ public class GroupWithEmpiricalParameters {
 		return empiricalCovariance;
 	}
 
-	public String getId() {
+	public String getId()
+	{
 		return node.getId();
 	}
 
-	public double[][] getEmpiricalCovariance() {
+	public double[][] getEmpiricalCovariance()
+	{
 		return empiricalCovariance;
 	}
 
-	public double[] getEmpiricalMean() {
+	public double[] getEmpiricalMean()
+	{
 		return empiricalMean;
 	}
 }

@@ -24,8 +24,8 @@ import javax.swing.RootPaneContainer;
  * 
  */
 @SuppressWarnings("serial")
-public final class SwingUIUtils {
-
+public final class SwingUIUtils
+{
 	public static final String AMK_DISPATCH_WINDOW_CLOSING = SwingUIUtils.class.getCanonicalName() + ":WINDOW_CLOSING";
 	public static final String AMK_HIDE_WINDOW = SwingUIUtils.class.getCanonicalName() + ":WINDOW_HIDE";
 	public static final String AMK_IGNORE_OPERATION = SwingUIUtils.class.getCanonicalName() + ":IGNORE_OPERATION";
@@ -33,13 +33,15 @@ public final class SwingUIUtils {
 	public static final KeyStroke KS_ESCAPE = KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 );
 
 	private static final Action ignoreAction = new AbstractAction( AMK_IGNORE_OPERATION ) {
-		public void actionPerformed( ActionEvent e ) {
+		public void actionPerformed( ActionEvent e )
+		{
 			// Nothing.
 		}
 	};
 
 
-	private SwingUIUtils() {
+	private SwingUIUtils()
+	{
 		// Static class -- disallow instantiation.
 		throw new RuntimeException( "Attempted to instantiate a static class: " + getClass().getName() );
 	}
@@ -54,13 +56,17 @@ public final class SwingUIUtils {
 	 * 
 	 * @see #AMK_DISPATCH_WINDOW_CLOSING
 	 */
-	public static void installEscapeCloseOperation( final JDialog dialog ) {
-		installOperation( dialog, JComponent.WHEN_IN_FOCUSED_WINDOW, KS_ESCAPE, AMK_DISPATCH_WINDOW_CLOSING,
-				new AbstractAction( AMK_DISPATCH_WINDOW_CLOSING ) {
-					public void actionPerformed( ActionEvent e ) {
-						dialog.dispatchEvent( new WindowEvent( dialog, WindowEvent.WINDOW_CLOSING ) );
-					}
-				} );
+	public static void installEscapeCloseOperation( final JDialog dialog )
+	{
+		installOperation(
+			dialog, JComponent.WHEN_IN_FOCUSED_WINDOW, KS_ESCAPE, AMK_DISPATCH_WINDOW_CLOSING,
+			new AbstractAction( AMK_DISPATCH_WINDOW_CLOSING ) {
+				public void actionPerformed( ActionEvent e )
+				{
+					dialog.dispatchEvent( new WindowEvent( dialog, WindowEvent.WINDOW_CLOSING ) );
+				}
+			}
+		);
 	}
 
 	/**
@@ -72,13 +78,17 @@ public final class SwingUIUtils {
 	 * 
 	 * @see #AMK_HIDE_WINDOW
 	 */
-	public static void installEscapeHideOperation( final JDialog dialog ) {
-		installOperation( dialog, JComponent.WHEN_IN_FOCUSED_WINDOW, KS_ESCAPE, AMK_HIDE_WINDOW,
-				new AbstractAction( AMK_HIDE_WINDOW ) {
-					public void actionPerformed( ActionEvent e ) {
-						dialog.setVisible( false );
-					}
-				} );
+	public static void installEscapeHideOperation( final JDialog dialog )
+	{
+		installOperation(
+			dialog, JComponent.WHEN_IN_FOCUSED_WINDOW, KS_ESCAPE, AMK_HIDE_WINDOW,
+			new AbstractAction( AMK_HIDE_WINDOW ) {
+				public void actionPerformed( ActionEvent e )
+				{
+					dialog.setVisible( false );
+				}
+			}
+		);
 	}
 
 	/**
@@ -89,9 +99,10 @@ public final class SwingUIUtils {
 	 * @see #AMK_IGNORE_OPERATION
 	 */
 	public static void installIgnoredOperation(
-			final JDialog dialog,
-			final int condition,
-			final KeyStroke keyStroke ) {
+		final JDialog dialog,
+		final int condition,
+		final KeyStroke keyStroke )
+	{
 
 		installOperation( dialog, condition, keyStroke, AMK_IGNORE_OPERATION, ignoreAction );
 	}
@@ -113,11 +124,12 @@ public final class SwingUIUtils {
 	 *            The action to execute when the keybind is activated
 	 */
 	public static void installOperation(
-			final RootPaneContainer frame,
-			final int condition,
-			final KeyStroke keyStroke,
-			final String actionKey,
-			Action action ) {
+		final RootPaneContainer frame,
+		final int condition,
+		final KeyStroke keyStroke,
+		final String actionKey,
+		Action action )
+	{
 
 		JRootPane root = frame.getRootPane();
 		root.getInputMap( condition ).put( keyStroke, actionKey );
@@ -128,14 +140,16 @@ public final class SwingUIUtils {
 	 * {@linkplain #installOperation(RootPaneContainer, int, KeyStroke, String, Action)}
 	 */
 	public static Action installOperation(
-			final RootPaneContainer frame,
-			final int condition,
-			final KeyStroke keyStroke,
-			final String actionKey,
-			final Runnable runnable ) {
+		final RootPaneContainer frame,
+		final int condition,
+		final KeyStroke keyStroke,
+		final String actionKey,
+		final Runnable runnable )
+	{
 
 		Action result = new AbstractAction( actionKey ) {
-			public void actionPerformed( ActionEvent e ) {
+			public void actionPerformed( ActionEvent e )
+			{
 				runnable.run();
 			}
 		};
@@ -158,9 +172,10 @@ public final class SwingUIUtils {
 	 *            The keystroke used to activate the keybind
 	 */
 	public static void uninstallOperation(
-			final RootPaneContainer frame,
-			final int condition,
-			final KeyStroke keyStroke ) {
+		final RootPaneContainer frame,
+		final int condition,
+		final KeyStroke keyStroke )
+	{
 
 		JRootPane root = frame.getRootPane();
 
@@ -195,9 +210,10 @@ public final class SwingUIUtils {
 	 *            action key, if none was found in the first one.
 	 */
 	public static Action getInstalledOperation(
-			final RootPaneContainer frame,
-			final Object actionKey,
-			boolean selfOnly ) {
+		final RootPaneContainer frame,
+		final Object actionKey,
+		boolean selfOnly )
+	{
 
 		JRootPane root = frame.getRootPane();
 
@@ -224,28 +240,32 @@ public final class SwingUIUtils {
 	 * @param message
 	 *            message in the dialog
 	 */
-	public static void showDialog( String title, String message ) {
+	public static void showDialog( String title, String message )
+	{
 		JOptionPane.showMessageDialog( null, message, title, JOptionPane.INFORMATION_MESSAGE );
 	}
 
 	/**
 	 * Displays an error dialog with the specified message.
 	 */
-	public static void showErrorDialog( String message ) {
+	public static void showErrorDialog( String message )
+	{
 		JOptionPane.showMessageDialog( null, message, "Error", JOptionPane.ERROR_MESSAGE );
 	}
 
 	/**
 	 * Displays a warning dialog with the specified message.
 	 */
-	public static void showWarningDialog( String message ) {
+	public static void showWarningDialog( String message )
+	{
 		JOptionPane.showMessageDialog( null, message, "Warning", JOptionPane.WARNING_MESSAGE );
 	}
 
 	/**
 	 * Displays an information dialog with the specified message.
 	 */
-	public static void showInfoDialog( String message ) {
+	public static void showInfoDialog( String message )
+	{
 		JOptionPane.showMessageDialog( null, message, "Information", JOptionPane.INFORMATION_MESSAGE );
 	}
 
@@ -261,29 +281,34 @@ public final class SwingUIUtils {
 	 * the message in <head></head> tags.
 	 * }
 	 */
-	public static String toHTML( String msg ) {
+	public static String toHTML( String msg )
+	{
 		msg = msg.replaceAll( "<", "&lt;" );
 		msg = msg.replaceAll( ">", "&gt;" );
 		msg = msg.replaceAll( "\n", "<br/>" );
 		return "<html>" + msg + "</html>";
 	}
 
-	public static String unescapeNewline( String msg ) {
+	public static String unescapeNewline( String msg )
+	{
 		return msg.replace( "\\n", "\n" );
 	}
 
 
-	public static final class OperationNotInstalledException extends RuntimeException {
+	public static final class OperationNotInstalledException extends RuntimeException
+	{
 		private int condition;
 		private KeyStroke keyStroke;
 
 
-		public OperationNotInstalledException( KeyStroke keyStroke ) {
+		public OperationNotInstalledException( KeyStroke keyStroke )
+		{
 			condition = 0;
 			this.keyStroke = keyStroke;
 		}
 
-		public OperationNotInstalledException( int condition, KeyStroke keyStroke ) {
+		public OperationNotInstalledException( int condition, KeyStroke keyStroke )
+		{
 			this.condition = condition;
 			this.keyStroke = keyStroke;
 		}
@@ -291,7 +316,8 @@ public final class SwingUIUtils {
 		/**
 		 * The condition for whose inputMap no operation was found.
 		 */
-		public int getCondition() {
+		public int getCondition()
+		{
 			return condition;
 		}
 
@@ -299,7 +325,8 @@ public final class SwingUIUtils {
 		 * The keystroke for which no operation was found in the inputMap specified by
 		 * the {@link #getCondition() condition}.
 		 */
-		public KeyStroke getKeyStroke() {
+		public KeyStroke getKeyStroke()
+		{
 			return keyStroke;
 		}
 	}

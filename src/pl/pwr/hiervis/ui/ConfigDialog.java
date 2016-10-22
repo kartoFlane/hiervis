@@ -33,8 +33,8 @@ import pl.pwr.hiervis.util.SwingUIUtils;
 
 
 @SuppressWarnings("serial")
-public class ConfigDialog extends JDialog {
-
+public class ConfigDialog extends JDialog
+{
 	private JTextField txtTreeWidth;
 	private JTextField txtTreeHeight;
 	private JTextField txtPointWidth;
@@ -51,7 +51,8 @@ public class ConfigDialog extends JDialog {
 	private HVConfig newConfig = null;
 
 
-	public ConfigDialog( HVContext context, Window frame ) {
+	public ConfigDialog( HVContext context, Window frame )
+	{
 		super( frame, "Config" );
 
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
@@ -66,7 +67,8 @@ public class ConfigDialog extends JDialog {
 		SwingUIUtils.installEscapeCloseOperation( this );
 	}
 
-	private void createConfigTabPanel( HVContext context ) {
+	private void createConfigTabPanel( HVContext context )
+	{
 		JTabbedPane cTabs = new JTabbedPane( JTabbedPane.TOP );
 		getContentPane().add( cTabs, BorderLayout.CENTER );
 
@@ -74,7 +76,8 @@ public class ConfigDialog extends JDialog {
 		createColorsTab( context, cTabs );
 	}
 
-	private void createGeneralTab( HVContext context, JTabbedPane cTabs ) {
+	private void createGeneralTab( HVContext context, JTabbedPane cTabs )
+	{
 		JPanel cGeneral = new JPanel();
 		cTabs.addTab( "General", null, cGeneral, null );
 		GridBagLayout gbl_cGeneral = new GridBagLayout();
@@ -104,14 +107,17 @@ public class ConfigDialog extends JDialog {
 			listLAF.addItem( info.getName() );
 		}
 
-		listLAF.setToolTipText( SwingUIUtils.toHTML(
-				"The look and feel used by the application's GUI.\n" +
-						"Requires restart." ) );
+		listLAF.setToolTipText(
+			SwingUIUtils.toHTML( "The look and feel used by the application's GUI.\nRequires restart." )
+		);
 
 		JPanel cTreeResolution = new JPanel();
-		cTreeResolution.setBorder( new TitledBorder(
+		cTreeResolution.setBorder(
+			new TitledBorder(
 				UIManager.getBorder( "TitledBorder.border" ),
-				"Hierarchy visualization resolution" ) );
+				"Hierarchy visualization resolution"
+			)
+		);
 
 		GridBagConstraints gbc_cTreeResolution = new GridBagConstraints();
 		gbc_cTreeResolution.insets = new Insets( 5, 5, 5, 5 );
@@ -169,9 +175,12 @@ public class ConfigDialog extends JDialog {
 		txtTreeHeight.setToolTipText( t );
 
 		JPanel cPointResolution = new JPanel();
-		cPointResolution.setBorder( new TitledBorder(
+		cPointResolution.setBorder(
+			new TitledBorder(
 				UIManager.getBorder( "TitledBorder.border" ),
-				"Point visualization resolution" ) );
+				"Point visualization resolution"
+			)
+		);
 
 		GridBagConstraints gbc_cPointResolution = new GridBagConstraints();
 		gbc_cPointResolution.insets = new Insets( 0, 5, 5, 5 );
@@ -244,7 +253,8 @@ public class ConfigDialog extends JDialog {
 		txtPointHeight.setText( "" + cfg.getPointHeight() );
 	}
 
-	private void createColorsTab( HVContext context, JTabbedPane cTabs ) {
+	private void createColorsTab( HVContext context, JTabbedPane cTabs )
+	{
 		final Dimension colorLabelDim = new Dimension( 60, 25 );
 
 		JPanel cColors = new JPanel();
@@ -252,8 +262,8 @@ public class ConfigDialog extends JDialog {
 		GridBagLayout gbl_cColors = new GridBagLayout();
 		gbl_cColors.columnWidths = new int[] { 0, colorLabelDim.width, 0 };
 		gbl_cColors.rowHeights = new int[] {
-				colorLabelDim.height, colorLabelDim.height, colorLabelDim.height,
-				colorLabelDim.height, colorLabelDim.height, colorLabelDim.height, 0 };
+			colorLabelDim.height, colorLabelDim.height, colorLabelDim.height,
+			colorLabelDim.height, colorLabelDim.height, colorLabelDim.height, 0 };
 		gbl_cColors.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		gbl_cColors.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		cColors.setLayout( gbl_cColors );
@@ -380,12 +390,14 @@ public class ConfigDialog extends JDialog {
 
 		MouseListener ml = new MouseAdapter() {
 			@Override
-			public void mouseClicked( MouseEvent e ) {
+			public void mouseClicked( MouseEvent e )
+			{
 				if ( SwingUtilities.isLeftMouseButton( e ) ) {
 					JLabel source = (JLabel)e.getSource();
 
 					SquareColorPickerDialog colorPickerDialog = new SquareColorPickerDialog(
-							ConfigDialog.this, source.getBackground() );
+						ConfigDialog.this, source.getBackground()
+					);
 					colorPickerDialog.setVisible( true ); // Blocks until the dialog is dismissed.
 
 					source.setBackground( colorPickerDialog.getSelection() );
@@ -410,7 +422,8 @@ public class ConfigDialog extends JDialog {
 		lblColorBackground.setBackground( cfg.getBackgroundColor() );
 	}
 
-	private void createButtonPanel( HVContext context ) {
+	private void createButtonPanel( HVContext context )
+	{
 		JPanel cButtons = new JPanel();
 		getContentPane().add( cButtons, BorderLayout.SOUTH );
 		GridBagLayout gbl_cButtons = new GridBagLayout();
@@ -435,17 +448,22 @@ public class ConfigDialog extends JDialog {
 		gbc_btnCancel.gridy = 0;
 		cButtons.add( btnCancel, gbc_btnCancel );
 
-		btnCancel.addActionListener( ( e ) -> {
-			dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
-		} );
+		btnCancel.addActionListener(
+			( e ) -> {
+				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
+			}
+		);
 
-		btnConfirm.addActionListener( ( e ) -> {
-			updateConfig( context );
-			dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
-		} );
+		btnConfirm.addActionListener(
+			( e ) -> {
+				updateConfig( context );
+				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
+			}
+		);
 	}
 
-	private void updateConfig( HVContext context ) {
+	private void updateConfig( HVContext context )
+	{
 		newConfig = context.getConfig();
 
 		newConfig.setCurrentLevelColor( lblColorSelectedNode.getBackground() );
@@ -467,7 +485,8 @@ public class ConfigDialog extends JDialog {
 	/**
 	 * Gets the text of the specified text field, or "0", if the text field is empty.
 	 */
-	private String getText( JTextField text ) {
+	private String getText( JTextField text )
+	{
 		String t = text.getText();
 		return t == null || t.equals( "" ) ? "0" : t;
 	}
@@ -476,7 +495,8 @@ public class ConfigDialog extends JDialog {
 	 * @return the new config instance, if the user exited the dialog by
 	 *         pressing the 'Confirm' button. Null otherwise.
 	 */
-	public HVConfig getConfig() {
+	public HVConfig getConfig()
+	{
 		return newConfig;
 	}
 }

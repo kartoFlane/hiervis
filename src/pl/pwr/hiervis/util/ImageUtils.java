@@ -8,9 +8,10 @@ import java.awt.image.BufferedImage;
 import pl.pwr.hiervis.core.HVConfig;
 
 
-public class ImageUtils {
-
-	private ImageUtils() {
+public class ImageUtils
+{
+	private ImageUtils()
+	{
 		// Static class -- disallow instantiation.
 		throw new RuntimeException( "Attempted to instantiate a static class: " + getClass().getName() );
 	}
@@ -24,7 +25,8 @@ public class ImageUtils {
 	 *            The angle in degrees
 	 * @return The rotated image
 	 */
-	public static BufferedImage rotate( BufferedImage img, double angle ) {
+	public static BufferedImage rotate( BufferedImage img, double angle )
+	{
 		double sin = Math.abs( Math.sin( Math.toRadians( angle ) ) );
 		double cos = Math.abs( Math.cos( Math.toRadians( angle ) ) );
 
@@ -45,7 +47,8 @@ public class ImageUtils {
 		return bimg;
 	}
 
-	public static BufferedImage trimImg( BufferedImage img, HVConfig config ) {
+	public static BufferedImage trimImg( BufferedImage img, HVConfig config )
+	{
 		// TODO instead of iterating through the columns of image, we can use BINARY SEARCH through columns
 		// and check if column doesn't contain at least 1 non-background colour pixel
 		int imgHeight = img.getHeight();
@@ -84,9 +87,10 @@ public class ImageUtils {
 		int newWidth = endWidth - startWidth;
 
 		BufferedImage newImg = new BufferedImage(
-				newWidth,
-				imgHeight,
-				BufferedImage.TYPE_INT_RGB );
+			newWidth,
+			imgHeight,
+			BufferedImage.TYPE_INT_RGB
+		);
 		Graphics g = newImg.createGraphics();
 		g.drawImage( img, 0, 0, newImg.getWidth(), newImg.getHeight(), startWidth, 0, endWidth, imgHeight, null );
 		img = newImg;
@@ -95,15 +99,16 @@ public class ImageUtils {
 	}
 
 	public static BufferedImage addBorder(
-			BufferedImage img,
-			int leftWidth, int rightWidth,
-			int topHeight, int bottomHeight,
-			Color color ) {
-
+		BufferedImage img,
+		int leftWidth, int rightWidth,
+		int topHeight, int bottomHeight,
+		Color color )
+	{
 		BufferedImage borderedImg = new BufferedImage(
-				img.getWidth() + leftWidth + rightWidth,
-				img.getHeight() + topHeight + bottomHeight,
-				img.getType() );
+			img.getWidth() + leftWidth + rightWidth,
+			img.getHeight() + topHeight + bottomHeight,
+			img.getType()
+		);
 		Graphics2D g = borderedImg.createGraphics();
 
 		g.setColor( color );
@@ -113,7 +118,8 @@ public class ImageUtils {
 		return borderedImg;
 	}
 
-	public static BufferedImage setBackgroud( BufferedImage image, Color backgroundColor ) {
+	public static BufferedImage setBackgroud( BufferedImage image, Color backgroundColor )
+	{
 		Graphics2D g2d = image.createGraphics();
 		g2d.setPaint( backgroundColor );
 		g2d.fillRect( 0, 0, image.getWidth(), image.getHeight() );

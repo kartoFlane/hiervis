@@ -22,8 +22,8 @@ import pl.pwr.hiervis.util.Utils;
  * @author Tomasz Bachmiñski
  *
  */
-public class ShadePicker extends JComponent {
-
+public class ShadePicker extends JComponent
+{
 	public static final String SELECTED_HUE = ShadePicker.class.getCanonicalName() + ":SELECTED_HUE";
 	public static final String SELECTED_SATURATION = ShadePicker.class.getCanonicalName() + ":SELECTED_SATURATION";
 	public static final String SELECTED_VALUE = ShadePicker.class.getCanonicalName() + ":SELECTED_VALUE";
@@ -36,17 +36,20 @@ public class ShadePicker extends JComponent {
 	private HSV hsv = new HSV( 1f, 0f, 1f );
 
 
-	public ShadePicker() {
+	public ShadePicker()
+	{
 		super();
 
 		MouseAdapter ml = new MouseAdapter() {
 			@Override
-			public void mousePressed( MouseEvent e ) {
+			public void mousePressed( MouseEvent e )
+			{
 				setSelection( e );
 			}
 
 			@Override
-			public void mouseDragged( MouseEvent e ) {
+			public void mouseDragged( MouseEvent e )
+			{
 				setSelection( e );
 			}
 		};
@@ -55,57 +58,66 @@ public class ShadePicker extends JComponent {
 		this.addMouseMotionListener( ml );
 	}
 
-	public void setSelectionRadius( int radius ) {
+	public void setSelectionRadius( int radius )
+	{
 		if ( radius <= 0 )
 			throw new IllegalArgumentException( "Radius must be greater than 0." );
 		selectionRadius = radius;
 		repaint();
 	}
 
-	public int getSelectionRadius() {
+	public int getSelectionRadius()
+	{
 		return selectionRadius;
 	}
 
-	public void setHue( float hue ) {
+	public void setHue( float hue )
+	{
 		float o = hsv.getHue();
 		hsv.setHue( hue );
 		repaint();
 		firePropertyChange( SELECTED_HUE, o, hue );
 	}
 
-	public void setHue( Color color ) {
+	public void setHue( Color color )
+	{
 		if ( color == null )
 			throw new IllegalArgumentException( "Argument must not be null." );
 		setHue( new HSV( color ).getHue() );
 	}
 
-	public void setSaturation( float saturation ) {
+	public void setSaturation( float saturation )
+	{
 		float o = hsv.getSaturation();
 		hsv.setSaturation( saturation );
 		repaint();
 		firePropertyChange( SELECTED_SATURATION, o, saturation );
 	}
 
-	public void setSaturation( Color color ) {
+	public void setSaturation( Color color )
+	{
 		if ( color == null )
 			throw new IllegalArgumentException( "Argument must not be null." );
 		setSaturation( new HSV( color ).getSaturation() );
 	}
 
-	public void setValue( float value ) {
+	public void setValue( float value )
+	{
 		float o = hsv.getValue();
 		hsv.setValue( value );
 		repaint();
 		firePropertyChange( SELECTED_VALUE, o, value );
 	}
 
-	public void setValue( Color color ) {
+	public void setValue( Color color )
+	{
 		if ( color == null )
 			throw new IllegalArgumentException( "Argument must not be null." );
 		setValue( new HSV( color ).getValue() );
 	}
 
-	public void setSelection( float saturation, float value ) {
+	public void setSelection( float saturation, float value )
+	{
 		float os = hsv.getSaturation();
 		float ov = hsv.getValue();
 
@@ -118,7 +130,8 @@ public class ShadePicker extends JComponent {
 		firePropertyChange( SELECTED_VALUE, ov, value );
 	}
 
-	public void setSelection( Color color ) {
+	public void setSelection( Color color )
+	{
 		if ( color == null )
 			throw new IllegalArgumentException( "Argument must not be null." );
 
@@ -127,7 +140,8 @@ public class ShadePicker extends JComponent {
 		setSelection( hsv.getSaturation(), hsv.getValue() );
 	}
 
-	private void setSelection( MouseEvent e ) {
+	private void setSelection( MouseEvent e )
+	{
 		if ( SwingUtilities.isLeftMouseButton( e ) ) {
 			float width = getWidth();
 			float height = getHeight();
@@ -139,24 +153,28 @@ public class ShadePicker extends JComponent {
 		}
 	}
 
-	public HSV getSelection() {
+	public HSV getSelection()
+	{
 		return new HSV( hsv );
 	}
 
 	@Override
-	public void paintComponent( Graphics g ) {
+	public void paintComponent( Graphics g )
+	{
 		super.paintComponent( g );
 
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint(
-				RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON );
+			RenderingHints.KEY_ANTIALIASING,
+			RenderingHints.VALUE_ANTIALIAS_ON
+		);
 
 		paintShades( g2 );
 		paintSelectionIndicator( g2 );
 	}
 
-	protected void paintShades( Graphics g ) {
+	protected void paintShades( Graphics g )
+	{
 		int w = getWidth();
 		int h = getHeight();
 
@@ -168,11 +186,13 @@ public class ShadePicker extends JComponent {
 		Paint p = g2.getPaint();
 
 		GradientPaint primary = new GradientPaint(
-				0, 0, Color.white,
-				w, 0, new HSV( hsv.getHue(), 1.0f, 1.0f ).toColor() );
+			0, 0, Color.white,
+			w, 0, new HSV( hsv.getHue(), 1.0f, 1.0f ).toColor()
+		);
 		GradientPaint secondary = new GradientPaint(
-				0, 0, gradientMaskTranslucent,
-				0, h, Color.black );
+			0, 0, gradientMaskTranslucent,
+			0, h, Color.black
+		);
 
 		g2.setPaint( primary );
 		g2.fillRect( 0, 0, w, h );
@@ -182,7 +202,8 @@ public class ShadePicker extends JComponent {
 		g2.setPaint( p );
 	}
 
-	protected void paintSelectionIndicator( Graphics g ) {
+	protected void paintSelectionIndicator( Graphics g )
+	{
 		final int s = (int)( hsv.getSaturation() * getWidth() );
 		final int v = (int)( ( 1 - hsv.getValue() ) * getHeight() );
 

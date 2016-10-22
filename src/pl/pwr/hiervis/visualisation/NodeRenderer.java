@@ -10,24 +10,28 @@ import prefuse.render.AbstractShapeRenderer;
 import prefuse.visual.VisualItem;
 
 
-public class NodeRenderer extends AbstractShapeRenderer {
+public class NodeRenderer extends AbstractShapeRenderer
+{
 	protected HVConfig params;
 
 	protected Ellipse2D m_box = new Ellipse2D.Double();
 	protected int nodeSize;
 
 
-	public NodeRenderer( int nodeSize, HVConfig params ) {
+	public NodeRenderer( int nodeSize, HVConfig params )
+	{
 		this.params = params;
 		this.nodeSize = nodeSize;
 	}
 
 	@Override
-	protected Shape getRawShape( VisualItem item ) {
+	protected Shape getRawShape( VisualItem item )
+	{
 		m_box.setFrame(
-				item.getX() - nodeSize * 0.5,
-				item.getY() - nodeSize * 0.5,
-				nodeSize, nodeSize );
+			item.getX() - nodeSize * 0.5,
+			item.getY() - nodeSize * 0.5,
+			nodeSize, nodeSize
+		);
 
 		// (Integer) item.get("age")/3, (Integer) item.get("age")/3);
 		int role = item.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );

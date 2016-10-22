@@ -23,8 +23,8 @@ import prefuse.visual.VisualItem;
  * @author <a href="http://jheer.org">jeffrey heer</a>
  * @author Tomasz Bachmiñski - modified to include customizable mouse button
  */
-public class SubtreeDragControl extends ControlAdapter {
-
+public class SubtreeDragControl extends ControlAdapter
+{
 	private Point2D down = new Point2D.Double();
 	private Point2D tmp = new Point2D.Double();
 	private boolean wasFixed;
@@ -35,7 +35,8 @@ public class SubtreeDragControl extends ControlAdapter {
 	 * Creates a new subtree drag control that issues repaint requests as an
 	 * item is dragged.
 	 */
-	public SubtreeDragControl() {
+	public SubtreeDragControl()
+	{
 	}
 
 	/**
@@ -47,14 +48,16 @@ public class SubtreeDragControl extends ControlAdapter {
 	 *            {@link Control#LEFT_MOUSE_BUTTON}, {@link Control#MIDDLE_MOUSE_BUTTON},
 	 *            or {@link Control#RIGHT_MOUSE_BUTTON}.
 	 */
-	public SubtreeDragControl( int mouseButton ) {
+	public SubtreeDragControl( int mouseButton )
+	{
 		m_button = mouseButton;
 	}
 
 	/**
 	 * @see Control#itemEntered(VisualItem, MouseEvent)
 	 */
-	public void itemEntered( VisualItem item, MouseEvent e ) {
+	public void itemEntered( VisualItem item, MouseEvent e )
+	{
 		if ( !( item instanceof NodeItem ) ) return;
 		Display d = (Display)e.getSource();
 		d.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
@@ -63,7 +66,8 @@ public class SubtreeDragControl extends ControlAdapter {
 	/**
 	 * @see Control#itemExited(VisualItem, MouseEvent)
 	 */
-	public void itemExited( VisualItem item, MouseEvent e ) {
+	public void itemExited( VisualItem item, MouseEvent e )
+	{
 		if ( !( item instanceof NodeItem ) ) return;
 		Display d = (Display)e.getSource();
 		d.setCursor( Cursor.getDefaultCursor() );
@@ -72,7 +76,8 @@ public class SubtreeDragControl extends ControlAdapter {
 	/**
 	 * @see Control#itemPressed(VisualItem, MouseEvent)
 	 */
-	public void itemPressed( VisualItem item, MouseEvent e ) {
+	public void itemPressed( VisualItem item, MouseEvent e )
+	{
 		if ( !UILib.isButtonPressed( e, m_button ) ) return;
 		if ( !( item instanceof NodeItem ) ) return;
 		Display d = (Display)e.getComponent();
@@ -84,7 +89,8 @@ public class SubtreeDragControl extends ControlAdapter {
 	/**
 	 * @see Control#itemReleased(VisualItem, MouseEvent)
 	 */
-	public void itemReleased( VisualItem item, MouseEvent e ) {
+	public void itemReleased( VisualItem item, MouseEvent e )
+	{
 		if ( !UILib.isButtonPressed( e, m_button ) ) return;
 		if ( !( item instanceof NodeItem ) ) return;
 		item.setFixed( wasFixed );
@@ -93,7 +99,8 @@ public class SubtreeDragControl extends ControlAdapter {
 	/**
 	 * @see Control#itemDragged(VisualItem, MouseEvent)
 	 */
-	public void itemDragged( VisualItem item, MouseEvent e ) {
+	public void itemDragged( VisualItem item, MouseEvent e )
+	{
 		if ( !UILib.isButtonPressed( e, m_button ) ) return;
 		if ( !( item instanceof NodeItem ) ) return;
 		Display d = (Display)e.getComponent();
@@ -105,7 +112,8 @@ public class SubtreeDragControl extends ControlAdapter {
 		item.getVisualization().repaint();
 	}
 
-	private void updateLocations( NodeItem n, double dx, double dy ) {
+	private void updateLocations( NodeItem n, double dx, double dy )
+	{
 		double x = n.getX(), y = n.getY();
 		n.setStartX( x );
 		n.setStartY( y );
@@ -120,5 +128,4 @@ public class SubtreeDragControl extends ControlAdapter {
 		while ( children.hasNext() )
 			updateLocations( (NodeItem)children.next(), dx, dy );
 	}
-
-} // end of class SubtreeDragControl
+}

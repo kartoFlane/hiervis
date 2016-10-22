@@ -46,8 +46,8 @@ import prefuse.util.collections.CopyOnWriteArrayList;
  * @author <a href="http://webfoot.com/ducky.home.html">Kaitlin Duck Sherwood</a>
  * @author <a href="http://jheer.org">jeffrey heer</a>
  */
-public class HistogramTable extends Table implements ColumnListener {
-
+public class HistogramTable extends Table implements ColumnListener
+{
 	// m_bin{Min, Max} are the min and max of the data column BUT for Strings, min is 1
 	// and max is the number of unique strings.
 	protected Hashtable<String, Double> m_binMin = new Hashtable<String, Double>();
@@ -62,7 +62,8 @@ public class HistogramTable extends Table implements ColumnListener {
 
 
 	public HistogramTable( Table aTable )
-			throws Exception {
+		throws Exception
+	{
 		this( aTable, DEFAULT_BIN_COUNT, -1 );
 	}
 
@@ -73,7 +74,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *            how many bins the data's range should be split into
 	 * @throws Exception
 	 */
-	public HistogramTable( Table aTable, int aBinCount, int roleNumber ) {
+	public HistogramTable( Table aTable, int aBinCount, int roleNumber )
+	{
 		super();
 
 		String[] fieldNames = getFieldNames( aTable );
@@ -101,7 +103,8 @@ public class HistogramTable extends Table implements ColumnListener {
 			}
 			else {
 				throw new RuntimeException(
-						String.format( "Field '%s' is neither a number nor a string. What to do with this?", field ) );
+					String.format( "Field '%s' is neither a number nor a string. What to do with this?", field )
+				);
 			}
 		}
 
@@ -121,7 +124,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	}
 
 	// REFACTOR: there is a duplication of code with above defined constructor
-	public HistogramTable( Table aTable, /* int aBinCount, */ HistogramTable computedBinsToUse, int roleNumber ) {
+	public HistogramTable( Table aTable, /* int aBinCount, */ HistogramTable computedBinsToUse, int roleNumber )
+	{
 		super();
 
 		String[] fieldNames = getFieldNames( aTable );
@@ -160,7 +164,8 @@ public class HistogramTable extends Table implements ColumnListener {
 			}
 			else {
 				throw new RuntimeException(
-						String.format( "Field '%s' is neither a number nor a string. What to do with this?", field ) );
+					String.format( "Field '%s' is neither a number nor a string. What to do with this?", field )
+				);
 			}
 		}
 
@@ -180,7 +185,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *         TODO It might be interesting to have a method getNonCountFieldNames which
 	 *         strips out the count fields.
 	 */
-	public static String[] getFieldNames( Table aTable ) {
+	public static String[] getFieldNames( Table aTable )
+	{
 		int columnCount = aTable.getColumnCount();
 		String[] fieldNames = new String[columnCount];
 
@@ -202,7 +208,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *            I can get that from the field name -- but the dataColumn happens
 	 *            to be handy, so why not.
 	 */
-	private void initializeStringColumn( String field, Column dataColumn ) {
+	private void initializeStringColumn( String field, Column dataColumn )
+	{
 		// create the two columns, one for bins and one for counts
 		addColumn( field, String.class );
 		Column binColumn = getColumn( field );
@@ -269,7 +276,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 * @param dataColumn
 	 *            the dataColumn to histogrammize
 	 */
-	private void initializeNumericColumn( String field, Column dataColumn, boolean binsAlreadyComputed ) {
+	private void initializeNumericColumn( String field, Column dataColumn, boolean binsAlreadyComputed )
+	{
 		addColumn( field, double.class );
 		getColumn( field ).setParser( new DoubleParser() );
 		String countField = getCountField( field );
@@ -290,7 +298,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 * @param dataColumn
 	 *            the dataColumn to histogrammize
 	 */
-	private void initializeNumericBinInfo( String field, Column dataColumn ) {
+	private void initializeNumericBinInfo( String field, Column dataColumn )
+	{
 		double[] minMax = new double[2];
 		minMax = getNumericColumnMinMax( dataColumn );
 		double minValue = minMax[0];
@@ -315,7 +324,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *            the number of rows
 	 */
 	@SuppressWarnings("rawtypes")
-	private void initializeHistogramTable( String[] fields, int rowCount ) {
+	private void initializeHistogramTable( String[] fields, int rowCount )
+	{
 		int columnCount = 2 * fields.length;
 
 		m_listeners = new CopyOnWriteArrayList();
@@ -342,7 +352,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 * @param field
 	 *            the name of the dataColumn to histogrammize
 	 */
-	private void initializeNumericBinColumn( String field ) {
+	private void initializeNumericBinColumn( String field )
+	{
 		double dataColumnMin = m_binMin.get( field );
 		// System.out.println("FIELD: " + field + " BIN WIDTH: " + m_binWidth);
 		for ( int binIndex = 0; binIndex < m_binCount; binIndex++ ) {
@@ -362,7 +373,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *            the column in the original (@link prefuse.data.Table)
 	 *            to be histogramized.
 	 */
-	private void initializeCountColumn( String field, Column dataColumn ) {
+	private void initializeCountColumn( String field, Column dataColumn )
+	{
 		int currentCount;  // separate var just for debugging ease
 		String countField = getCountField( field );
 
@@ -391,15 +403,18 @@ public class HistogramTable extends Table implements ColumnListener {
 		// printWholeTable();
 	}
 
-	private void removeRightEmptyBins( String field, Column dataColumn ) {
+	private void removeRightEmptyBins( String field, Column dataColumn )
+	{
 		String countField = getCountField( field );
 
 		boolean foundNonZeroCount = false;
 		for ( int binSlot = m_binCount - 1; binSlot >= 0 && !foundNonZeroCount; binSlot-- ) {
 			int currentCount = getInt( binSlot, countField );
 			if ( currentCount == 0 ) {
-				System.err.println( "On " + field + " histogram, there is additional empty bin on the right or bottom side."
-						+ " In odrer to remove it, decrease number of bins. Honestly, this should never happen." );
+				System.err.println(
+					"On " + field + " histogram, there is additional empty bin on the right or bottom side."
+						+ " In odrer to remove it, decrease number of bins. Honestly, this should never happen."
+				);
 			}
 			else {
 				foundNonZeroCount = true;
@@ -411,7 +426,8 @@ public class HistogramTable extends Table implements ColumnListener {
 
 	// For debugging. It has its uses.
 	@SuppressWarnings("unchecked")
-	public void printWholeTable() {
+	public void printWholeTable()
+	{
 		Tuple t;
 		for ( Iterator<Tuple> tuplesIterator = tuples(); tuplesIterator.hasNext(); ) {
 
@@ -421,15 +437,18 @@ public class HistogramTable extends Table implements ColumnListener {
 	}
 
 
-	public double getBinMin( String field ) {
+	public double getBinMin( String field )
+	{
 		return m_binMin.get( field );
 	}
 
-	public double getBinMax( String field ) {
+	public double getBinMax( String field )
+	{
 		return m_binMax.get( field );
 	}
 
-	public int getBinCount() {
+	public int getBinCount()
+	{
 		return m_binCount;
 	}
 
@@ -438,7 +457,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *            the column to get min/max of
 	 * @return min and max (in an array) of aColumn
 	 */
-	private double[] getNumericColumnMinMax( Column aColumn ) {
+	private double[] getNumericColumnMinMax( Column aColumn )
+	{
 		double oldMin = aColumn.getDouble( 0 );
 		double oldMax = oldMin;
 		double[] minMax = new double[2];
@@ -463,7 +483,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 * @return the minimum and maximum values of the associated
 	 *         count column in an array.
 	 */
-	private double[] getNumericColumnMinMax( String field ) {
+	private double[] getNumericColumnMinMax( String field )
+	{
 		Column col = getColumn( field );
 
 		return getNumericColumnMinMax( col );
@@ -476,7 +497,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *         (In other words, if you ask for getCountMin("A"), you
 	 *         will get the min of the column "A counts".)
 	 */
-	public double getCountMin( String field ) {
+	public double getCountMin( String field )
+	{
 
 		String countField = getCountField( field );
 		double[] minMax = new double[2];
@@ -497,7 +519,8 @@ public class HistogramTable extends Table implements ColumnListener {
 	 *         (In other words, if you ask for getCountMin("A"), you
 	 *         will get the max of the column "A counts".)
 	 */
-	public double getCountMax( String field ) {
+	public double getCountMax( String field )
+	{
 		String countField = getCountField( field );
 
 		if ( m_countMaxes.get( countField ) == null ) {
@@ -508,11 +531,13 @@ public class HistogramTable extends Table implements ColumnListener {
 	}
 
 
-	public static String getCountField( String field ) {
+	public static String getCountField( String field )
+	{
 		return field + " count";
 	}
 
-	public double getBinWidth() {
+	public double getBinWidth()
+	{
 		return m_binWidth;
 	}
 }

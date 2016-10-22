@@ -23,28 +23,31 @@ import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 
 
-public final class HierarchyVisualizer {
-
+public final class HierarchyVisualizer
+{
 	private static final Logger log = LogManager.getLogger( HierarchyVisualizer.class );
 
 	public static final String APP_NAME = "Hierarchy Visualizer";
 
 
-	private HierarchyVisualizer() {
+	private HierarchyVisualizer()
+	{
 		// Static class -- disallow instantiation.
 		throw new RuntimeException( "Attempted to instantiate a static class: " + getClass().getName() );
 	}
 
-	public static void main( String[] args ) {
+	public static void main( String[] args )
+	{
 		HVContext context = new HVContext();
 
 		// Check if the program can access its own folder
 		if ( new File( "." ).exists() == false ) {
 			log.error( "Failed to access current working directory." );
 			SwingUIUtils.showErrorDialog(
-					"Program was unable to access the current working directory.\n\n" +
-							"Make sure that you're not trying to run the program from inside of a zip archive.\n" +
-							"Also, instead of double-clicking on hv.jar, try to launch start.bat/start.sh" );
+				"Program was unable to access the current working directory.\n\n" +
+					"Make sure that you're not trying to run the program from inside of a zip archive.\n" +
+					"Also, instead of double-clicking on hv.jar, try to launch start.bat/start.sh"
+			);
 
 			System.exit( 0 );
 		}
@@ -61,7 +64,8 @@ public final class HierarchyVisualizer {
 		}
 	}
 
-	private static void executeCLI( HVContext context, String[] args ) {
+	private static void executeCLI( HVContext context, String[] args )
+	{
 		try {
 			CmdLineParser parser = new CmdLineParser();
 			context.setConfig( parser.parse( args, context.getConfig() ) );
@@ -75,15 +79,17 @@ public final class HierarchyVisualizer {
 
 		if ( config.getInputDataFilePath().getFileName().endsWith( ".csv" ) ) {
 			inputData = new GeneratedCSVReader().load(
-					config.getInputDataFilePath().toString(),
-					config.hasInstanceNameAttribute(),
-					config.hasClassAttribute(),
-					false );
+				config.getInputDataFilePath().toString(),
+				config.hasInstanceNameAttribute(),
+				config.hasClassAttribute(),
+				false
+			);
 		}
 		else {
 			log.error(
-					"Unrecognised extension of input file: '%s', only *.csv files are supported.%n",
-					config.getInputDataFilePath().getFileName() );
+				"Unrecognised extension of input file: '%s', only *.csv files are supported.%n",
+				config.getInputDataFilePath().getFileName()
+			);
 			System.exit( 1 );
 		}
 
@@ -106,7 +112,8 @@ public final class HierarchyVisualizer {
 		}
 	}
 
-	private static void executeGUI( HVContext ctx ) {
+	private static void executeGUI( HVContext ctx )
+	{
 		HVConfig config = ctx.getConfig();
 
 		// Attempt to set the application's Look and Feel
@@ -126,8 +133,9 @@ public final class HierarchyVisualizer {
 			}
 			catch ( ClassNotFoundException | UnsupportedLookAndFeelException e ) {
 				log.error(
-						"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
-						config.getPreferredLookAndFeel() );
+					"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
+					config.getPreferredLookAndFeel()
+				);
 			}
 			catch ( Exception ex ) {
 				log.error( "Error occurred while setting preferred LAF: %s", ex );
@@ -135,8 +143,9 @@ public final class HierarchyVisualizer {
 
 			if ( !successLAF ) {
 				log.info(
-						"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
-						config.getPreferredLookAndFeel() );
+					"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
+					config.getPreferredLookAndFeel()
+				);
 			}
 		}
 
@@ -191,14 +200,18 @@ public final class HierarchyVisualizer {
 		}
 
 		// Ensure all popups are triggered from the event dispatch thread.
-		SwingUtilities.invokeLater( new Runnable() {
-			public void run() {
-				initGUI( ctx );
+		SwingUtilities.invokeLater(
+			new Runnable() {
+				public void run()
+				{
+					initGUI( ctx );
+				}
 			}
-		} );
+		);
 	}
 
-	private static void initGUI( HVContext ctx ) {
+	private static void initGUI( HVContext ctx )
+	{
 		VisualizerFrame frame = new VisualizerFrame( ctx );
 		frame.setVisible( true );
 	}

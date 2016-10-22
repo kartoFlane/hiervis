@@ -43,7 +43,8 @@ import prefuse.Visualization;
 import prefuse.controls.Control;
 
 
-public class VisualizerFrame extends JFrame {
+public class VisualizerFrame extends JFrame
+{
 	private static final Logger log = LogManager.getLogger( VisualizerFrame.class );
 	private static final long serialVersionUID = 1L;
 
@@ -59,8 +60,11 @@ public class VisualizerFrame extends JFrame {
 	private ZoomScrollControl pointZoomControl;
 
 
-	public VisualizerFrame( HVContext context ) {
-		super( HierarchyVisualizer.APP_NAME );
+	public VisualizerFrame( HVContext context )
+	{
+		super(
+			HierarchyVisualizer.APP_NAME
+		);
 
 		if ( context == null )
 			throw new RuntimeException( "Context must not be null!" );
@@ -74,19 +78,23 @@ public class VisualizerFrame extends JFrame {
 		// Make the frame appear at the center of the screen
 		setLocationRelativeTo( null );
 
-		addWindowListener( new WindowAdapter() {
-			@Override
-			public void windowClosing( WindowEvent e ) {
-				// Save the current configuration on application exit.
-				context.getConfig().to( new File( HVConfig.FILE_PATH ) );
+		addWindowListener(
+			new WindowAdapter() {
+				@Override
+				public void windowClosing( WindowEvent e )
+				{
+					// Save the current configuration on application exit.
+					context.getConfig().to( new File( HVConfig.FILE_PATH ) );
+				}
 			}
-		} );
+		);
 
 		createMenu();
 		createGUI();
 	}
 
-	private void createGUI() {
+	private void createGUI()
+	{
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWeights = new double[] { 1.0, 1.0 };
 		gridBagLayout.rowWeights = new double[] { 1.0 };
@@ -176,7 +184,8 @@ public class VisualizerFrame extends JFrame {
 		cStatistics.add( lblStats );
 	}
 
-	private void createMenu() {
+	private void createMenu()
+	{
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar( menuBar );
 
@@ -186,10 +195,12 @@ public class VisualizerFrame extends JFrame {
 		JMenuItem mntmOpenFile = new JMenuItem( "Open file..." );
 		mnFile.add( mntmOpenFile );
 
-		mntmOpenFile.addActionListener( ( e ) -> {
-			log.trace( "Clicked open file menu item." );
-			openFileSelectionDialog();
-		} );
+		mntmOpenFile.addActionListener(
+			( e ) -> {
+				log.trace( "Clicked open file menu item." );
+				openFileSelectionDialog();
+			}
+		);
 
 		JSeparator separator = new JSeparator();
 		mnFile.add( separator );
@@ -197,27 +208,33 @@ public class VisualizerFrame extends JFrame {
 		JMenuItem mntmConfig = new JMenuItem( "Config" );
 		mnFile.add( mntmConfig );
 
-		mntmConfig.addActionListener( ( e ) -> {
-			log.trace( "Clicked config menu item." );
-			openConfigDialog();
-		} );
+		mntmConfig.addActionListener(
+			( e ) -> {
+				log.trace( "Clicked config menu item." );
+				openConfigDialog();
+			}
+		);
 
 		JMenuItem mntmTest = new JMenuItem( "Config non-lambda" );
 		mnFile.add( mntmTest );
 
-		mntmTest.addActionListener( new ActionListener() {
-			@Override
-			public void actionPerformed( ActionEvent e ) {
-				log.trace( "Clicked non-lambda config menu item." );
-				openConfigDialog();
+		mntmTest.addActionListener(
+			new ActionListener() {
+				@Override
+				public void actionPerformed( ActionEvent e )
+				{
+					log.trace( "Clicked non-lambda config menu item." );
+					openConfigDialog();
+				}
 			}
-		} );
+		);
 	}
 
 	/**
 	 * Opens a file selection dialog, alowing the user to select a hierarchy file to load.
 	 */
-	private void openFileSelectionDialog() {
+	private void openFileSelectionDialog()
+	{
 		log.trace( "Creating FileDialog instance..." );
 		FileDialog dialog = new FileDialog( this, "Choose a file", FileDialog.LOAD );
 		log.trace( "Setting selected path..." );
@@ -258,7 +275,8 @@ public class VisualizerFrame extends JFrame {
 	 * If the user made changes to the application's settings, the hierarchy visualization
 	 * is recreated.
 	 */
-	private void openConfigDialog() {
+	private void openConfigDialog()
+	{
 		log.trace( "Creating ConfigDialog instance..." );
 		ConfigDialog dialog = new ConfigDialog( context, VisualizerFrame.this );
 		log.trace( "Making the dialog visible..." );
@@ -286,7 +304,8 @@ public class VisualizerFrame extends JFrame {
 	 * This needs to be called after changes are made to the application's settings so that they
 	 * take effect on the interactive visualization.
 	 */
-	private void reprocess() {
+	private void reprocess()
+	{
 		if ( !context.isHierarchyDataLoaded() ) {
 			throw new RuntimeException( "No hierarchy data is available." );
 		}
@@ -303,8 +322,9 @@ public class VisualizerFrame extends JFrame {
 		Rectangle2D contentRect = treeDisplay.getVisibleRect();
 
 		Point2D p = new Point2D.Double(
-				contentRect.getCenterX(),
-				contentRect.getCenterY() );
+			contentRect.getCenterX(),
+			contentRect.getCenterY()
+		);
 
 		double zoom = -1;
 

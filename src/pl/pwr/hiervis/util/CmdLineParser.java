@@ -19,14 +19,16 @@ import org.apache.commons.cli.ParseException;
 import pl.pwr.hiervis.core.HVConfig;
 
 
-public class CmdLineParser {
+public class CmdLineParser
+{
 	private CommandLineParser parser;
 	private CommandLine cmd;
 	private Options options;
 	private HelpFormatter helpText;
 
 
-	public CmdLineParser() {
+	public CmdLineParser()
+	{
 		parser = new BasicParser();
 		options = new Options();
 		helpText = new HelpFormatter();
@@ -34,143 +36,157 @@ public class CmdLineParser {
 	}
 
 	@SuppressWarnings("static-access")
-	private void createOptions() {
+	private void createOptions()
+	{
 		String colorsString = "Possible values: { green, black, blue, lightBlue, yellow, " +
-				"cyan, lightGray, gray, darkGray, magenta, orange, pink, red, white }, or " +
-				"a hex string.";
+			"cyan, lightGray, gray, darkGray, magenta, orange, pink, red, white }, or " +
+			"a hex string.";
 
 		Option input = OptionBuilder
-				.withArgName( "file path" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "path to file with input data" )
-				.withLongOpt( "input" )
-				.create( 'i' );
+			.withArgName( "file path" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "path to file with input data" )
+			.withLongOpt( "input" )
+			.create( 'i' );
 
 		Option output = OptionBuilder
-				.withArgName( "directory path" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "path where *.PNG files showing each hierarchy level will be saved" )
-				.withLongOpt( "output" )
-				.create( 'o' );
+			.withArgName( "directory path" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "path where *.PNG files showing each hierarchy level will be saved" )
+			.withLongOpt( "output" )
+			.create( 'o' );
 
 		Option backgroundColor = OptionBuilder
-				.withArgName( "color" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "background color of every output image." + colorsString + " Default: transparent." )
-				.withLongOpt( "background-color" )
-				.create( "bg" );
+			.withArgName( "color" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "background color of every output image." + colorsString + " Default: transparent." )
+			.withLongOpt( "background-color" )
+			.create( "bg" );
 
 		Option currentGroup = OptionBuilder
-				.withArgName( "color" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "color used to draw the current Level Group on the output images. " +
-						colorsString + ". Default: red." )
-				.withLongOpt( "current-level-group-color" )
-				.create( "lg" );
+			.withArgName( "color" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription(
+				"color used to draw the current Level Group on the output images. " +
+					colorsString + ". Default: red."
+			)
+			.withLongOpt( "current-level-group-color" )
+			.create( "lg" );
 
 		Option childGroup = OptionBuilder
-				.withArgName( "color" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "color used to draw all Child Groups (successors) on the output images. " +
-						colorsString + " Default: green." )
-				.withLongOpt( "child-group-color" )
-				.create( "cg" );
+			.withArgName( "color" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription(
+				"color used to draw all Child Groups (successors) on the output images. " +
+					colorsString + " Default: green."
+			)
+			.withLongOpt( "child-group-color" )
+			.create( "cg" );
 
 		Option parentGroup = OptionBuilder
-				.withArgName( "color" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "color used to draw direct Parent Groups (ancestors) on the output images. " +
-						colorsString + " Default: black. " +
-						"In order to display these points, the -da flag should be set." )
-				.withLongOpt( "parent-group-color" )
-				.create( "pg" );
+			.withArgName( "color" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription(
+				"color used to draw direct Parent Groups (ancestors) on the output images. " +
+					colorsString + " Default: black. " +
+					"In order to display these points, the -da flag should be set."
+			)
+			.withLongOpt( "parent-group-color" )
+			.create( "pg" );
 
 		Option parentAncestorsGroup = OptionBuilder
-				.withArgName( "color" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "color used to draw Parents' direct ancestor groups on the output images. " +
-						colorsString + " Default: lightBlue. " +
-						"In order to display this points, the -da flag should be set." )
-				.withLongOpt( "parent-group-color" )
-				.create( "pa" );
+			.withArgName( "color" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription(
+				"color used to draw Parents' direct ancestor groups on the output images. " +
+					colorsString + " Default: lightBlue. " +
+					"In order to display this points, the -da flag should be set."
+			)
+			.withLongOpt( "parent-group-color" )
+			.create( "pa" );
 
 		Option otherGroup = OptionBuilder
-				.withArgName( "color" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "color used to draw all Child Groups (e.g. siblings) on the output images. " +
-						colorsString + " Default: lightGray. " +
-						"In order to display this points, the -da flag should be set." )
-				.withLongOpt( "other-group-color" )
-				.create( "og" );
+			.withArgName( "color" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription(
+				"color used to draw all Child Groups (e.g. siblings) on the output images. " +
+					colorsString + " Default: lightGray. " +
+					"In order to display this points, the -da flag should be set."
+			)
+			.withLongOpt( "other-group-color" )
+			.create( "og" );
 
 		Option imageWidth = OptionBuilder
-				.withArgName( "pixel number" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "width of the output images in pixels. Default: 800 px." )
-				.withLongOpt( "images-width" )
-				.create( "w" );
+			.withArgName( "pixel number" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "width of the output images in pixels. Default: 800 px." )
+			.withLongOpt( "images-width" )
+			.create( "w" );
 
 		Option imageHeight = OptionBuilder
-				.withArgName( "pixel number" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "height of the output images in pixels. Default: 600 px." )
-				.withLongOpt( "images-height" )
-				.create( "ht" );
+			.withArgName( "pixel number" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "height of the output images in pixels. Default: 600 px." )
+			.withLongOpt( "images-height" )
+			.create( "ht" );
 
 		Option pointScale = OptionBuilder
-				.withArgName( "real number" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "scaling factor (floating point number) of points drawn on images. Default: 1.0 (no scaling)" )
-				.withLongOpt( "point-scale" )
-				.create( "ps" );
+			.withArgName( "real number" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "scaling factor (floating point number) of points drawn on images. Default: 1.0 (no scaling)" )
+			.withLongOpt( "point-scale" )
+			.create( "ps" );
 
 		Option binsNumber = OptionBuilder
-				.withArgName( "number of bins" )
-				.hasArgs( 1 )
-				.isRequired( false )
-				.withDescription( "number of histogram bins. Default: 100." )
-				.withLongOpt( "bins-number" )
-				.create( "b" );
+			.withArgName( "number of bins" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "number of histogram bins. Default: 100." )
+			.withLongOpt( "bins-number" )
+			.create( "b" );
 
 		Option help = OptionBuilder
-				.withDescription( "prints this message" )
-				.hasArg( false )
-				.isRequired( false )
-				.withLongOpt( "help" )
-				.create( 'h' );
+			.withDescription( "prints this message" )
+			.hasArg( false )
+			.isRequired( false )
+			.withLongOpt( "help" )
+			.create( 'h' );
 
 		options.addOption(
-				"da",
-				"display-all",
-				false,
-				"Display all points on the output images, so the other non-child groups " +
-						"(e.g. siblings and all parent groups) are also displayed." );
+			"da",
+			"display-all",
+			false,
+			"Display all points on the output images, so the other non-child groups " +
+				"(e.g. siblings and all parent groups) are also displayed."
+		);
 
 		options.addOption(
-				"c",
-				"class-attribute",
-				false,
-				"Indicates that the provided input file also contains a ground-truth class attribute, " +
-						"which will be omitted by this program. Assumed that class is in the second " +
-						"column (attribute) in the input file." );
+			"c",
+			"class-attribute",
+			false,
+			"Indicates that the provided input file also contains a ground-truth class attribute, " +
+				"which will be omitted by this program. Assumed that class is in the second " +
+				"column (attribute) in the input file."
+		);
 
 		options.addOption(
-				"sv",
-				"skip-visualisation",
-				false,
-				"The program will skip printing the visualisations as images. "
-						+ "Only hierarchy statistics file will be produced." );
+			"sv",
+			"skip-visualisation",
+			false,
+			"The program will skip printing the visualisations as images. "
+				+ "Only hierarchy statistics file will be produced."
+		);
 
 		options.addOption( input );
 		options.addOption( output );
@@ -188,12 +204,14 @@ public class CmdLineParser {
 	}
 
 	public HVConfig parse( String[] args )
-			throws Exception {
+		throws Exception
+	{
 		return parse( args, null );
 	}
 
 	public HVConfig parse( String[] args, HVConfig source )
-			throws Exception {
+		throws Exception
+	{
 		HVConfig config = null;
 
 		if ( source == null ) {
@@ -223,7 +241,8 @@ public class CmdLineParser {
 	}
 
 	private void parseParameters( HVConfig config )
-			throws Exception {
+		throws Exception
+	{
 		config.setInputDataFilePath( parseInputFile() );
 		config.setOutputFolder( parseOutputFile() );
 
@@ -234,27 +253,40 @@ public class CmdLineParser {
 		config.setAncestorGroupColor( parseColor( cmd.getOptionValue( "pa", "lightBlue" ), false ) );
 		config.setOtherGroupColor( parseColor( cmd.getOptionValue( "og", "lightGray" ), false ) );
 
-		config.setTreeWidth( parsePositiveIntegerParameter(
+		config.setTreeWidth(
+			parsePositiveIntegerParameter(
 				cmd.getOptionValue( "w", "800" ),
-				"Image width should be a positive integer number pointing number of pixels." ) );
-		config.setTreeHeight( parsePositiveIntegerParameter(
+				"Image width should be a positive integer number pointing number of pixels."
+			)
+		);
+		config.setTreeHeight(
+			parsePositiveIntegerParameter(
 				cmd.getOptionValue( "ht", "600" ),
-				"Image height should be a positive integer number pointing number of pixels." ) );
+				"Image height should be a positive integer number pointing number of pixels."
+			)
+		);
 
-		config.setPointScallingFactor( parsePositiveDoubleParameter(
+		config.setPointScallingFactor(
+			parsePositiveDoubleParameter(
 				cmd.getOptionValue( "ps", "1.0" ),
-				"Points scalling factor should be a positive real number." ) );
+				"Points scalling factor should be a positive real number."
+			)
+		);
 
-		config.setNumberOfHistogramBins( parsePositiveIntegerParameter(
+		config.setNumberOfHistogramBins(
+			parsePositiveIntegerParameter(
 				cmd.getOptionValue( "b", "100" ),
-				"Number of bins should be a positive integer number." ) );
+				"Number of bins should be a positive integer number."
+			)
+		);
 
 		config.setDisplayAllPoints( cmd.hasOption( "da" ) );
 		config.setClassAttribute( cmd.hasOption( "c" ) );
 		config.setSkipVisualisations( cmd.hasOption( "sv" ) );
 	}
 
-	private Color parseColor( String optionValue, boolean allowTransparent ) {
+	private Color parseColor( String optionValue, boolean allowTransparent )
+	{
 		switch ( optionValue ) {
 			case "green":
 				return Color.green;
@@ -297,18 +329,22 @@ public class CmdLineParser {
 					return Color.decode( optionValue );
 				}
 				else {
-					throw new IllegalArgumentException( String.format(
+					throw new IllegalArgumentException(
+						String.format(
 							"Unknown color: '%s'. Allowed values: { " +
-									"green, black, blue, lightBlue, yellow, cyan, lightGray," +
-									"gray, darkGray, magenta, orange, pink, red, white }, or " +
-									"a hex string.",
-							optionValue ) );
+								"green, black, blue, lightBlue, yellow, cyan, lightGray," +
+								"gray, darkGray, magenta, orange, pink, red, white }, or " +
+								"a hex string.",
+							optionValue
+						)
+					);
 				}
 			}
 		}
 	}
 
-	private int parsePositiveIntegerParameter( String parsedOptionValue, String invalidArgMsg ) {
+	private int parsePositiveIntegerParameter( String parsedOptionValue, String invalidArgMsg )
+	{
 		int parsedValue = -1;
 		try {
 			parsedValue = Integer.valueOf( parsedOptionValue );
@@ -317,28 +353,34 @@ public class CmdLineParser {
 			}
 		}
 		catch ( NumberFormatException e ) {
-			System.err.println( "'" + parsedOptionValue + "' " + invalidArgMsg
-					+ " " + e.getMessage() );
+			System.err.println(
+				"'" + parsedOptionValue + "' " + invalidArgMsg
+					+ " " + e.getMessage()
+			);
 			System.exit( -1 );
 		}
 		return parsedValue;
 	}
 
 	@SuppressWarnings("unused")
-	private int parseIntegerParameter( String parsedOptionValue, String invalidArgMsg ) {
+	private int parseIntegerParameter( String parsedOptionValue, String invalidArgMsg )
+	{
 		int parsedValue = -1;
 		try {
 			parsedValue = Integer.valueOf( parsedOptionValue );
 		}
 		catch ( NumberFormatException e ) {
-			System.err.println( "'" + parsedOptionValue + "' " + invalidArgMsg
-					+ " " + e.getMessage() );
+			System.err.println(
+				"'" + parsedOptionValue + "' " + invalidArgMsg
+					+ " " + e.getMessage()
+			);
 			System.exit( -1 );
 		}
 		return parsedValue;
 	}
 
-	private double parsePositiveDoubleParameter( String parsedOptionValue, String invalidArgMsg ) {
+	private double parsePositiveDoubleParameter( String parsedOptionValue, String invalidArgMsg )
+	{
 		double parsedValue = -1;
 		try {
 			parsedValue = Double.valueOf( parsedOptionValue );
@@ -354,7 +396,8 @@ public class CmdLineParser {
 	}
 
 	@SuppressWarnings("unused")
-	private double parseDoubleParameter( String parsedOptionValue, String invalidArgMsg ) {
+	private double parseDoubleParameter( String parsedOptionValue, String invalidArgMsg )
+	{
 		double parsedValue = -1;
 		try {
 			parsedValue = Double.valueOf( parsedOptionValue );
@@ -366,12 +409,14 @@ public class CmdLineParser {
 		return parsedValue;
 	}
 
-	private void viewHelp() {
+	private void viewHelp()
+	{
 		helpText.printHelp( "HierarchyVisualisation", options );
 	}
 
 	private Path parseInputFile()
-			throws Exception {
+		throws Exception
+	{
 		File inputFile = null;
 
 		if ( cmd.hasOption( 'i' ) ) {
@@ -392,7 +437,8 @@ public class CmdLineParser {
 	}
 
 	private Path parseOutputFile()
-			throws Exception {
+		throws Exception
+	{
 		File outputFolder = null;
 
 		if ( cmd.hasOption( 'o' ) ) {

@@ -10,24 +10,28 @@ import prefuse.render.AbstractShapeRenderer;
 import prefuse.visual.VisualItem;
 
 
-public class PointRenderer extends AbstractShapeRenderer {
+public class PointRenderer extends AbstractShapeRenderer
+{
 	private HVConfig config;
 
 	protected Ellipse2D m_box = new Ellipse2D.Double();
 	protected int pointSize;
 
 
-	public PointRenderer( int pointSize, HVConfig config ) {
+	public PointRenderer( int pointSize, HVConfig config )
+	{
 		this.config = config;
 		this.pointSize = pointSize;
 	}
 
 	@Override
-	protected Shape getRawShape( VisualItem item ) {
+	protected Shape getRawShape( VisualItem item )
+	{
 		m_box.setFrame(
-				item.getX() - pointSize * 0.5,
-				item.getY() - pointSize * 0.5,
-				pointSize, pointSize );
+			item.getX() - pointSize * 0.5,
+			item.getY() - pointSize * 0.5,
+			pointSize, pointSize
+		);
 
 		// int role = item.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
 		int role = 0;

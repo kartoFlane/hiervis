@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 
-import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.ElementRole;
@@ -37,8 +36,8 @@ import prefuse.visual.expression.VisiblePredicate;
 
 
 // Previously called 'Visualisation'
-public class HierarchyProcessor {
-
+public class HierarchyProcessor
+{
 	private int finalSizeOfNodes;
 	private int treeOrientation;
 
@@ -60,7 +59,8 @@ public class HierarchyProcessor {
 	private double nodeSizeToBetweenSiblingsSpaceRatio = 4.0;// minimum value
 
 
-	public Tree createHierarchyTree( Node root, HVConfig config ) {
+	public Tree createHierarchyTree( Node root, HVConfig config )
+	{
 		Tree hierarchyVisualisation = new Tree();
 		hierarchyVisualisation.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
 		// hierarchyVisualisation.addColumn(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, Integer.class);
@@ -119,24 +119,26 @@ public class HierarchyProcessor {
 		finalSizeOfNodes = 0;
 		int widthBasedSizeOfNodes = 0;
 		int heightBasedSizeOfNodes = 0;
-		treeOrientation = prefuse.Constants.ORIENT_TOP_BOTTOM;// TODO: the orientation of charts could be set automatically depending on the
+		treeOrientation = prefuse.Constants.ORIENT_TOP_BOTTOM; // TODO: the orientation of charts could be set automatically depending on the
 		// size of hierarchy
-		levelGap = 0.0;// the spacing to maintain between depth levels of the tree
-		siblingNodeGap = 0.0;// the spacing to maintain between sibling nodes
-		subtreeGap = 0.0;// the spacing to maintain between neighboring subtrees
+		levelGap = 0.0; // the spacing to maintain between depth levels of the tree
+		siblingNodeGap = 0.0; // the spacing to maintain between sibling nodes
+		subtreeGap = 0.0; // the spacing to maintain between neighboring subtrees
 		int hierarchyImageWidth = config.getTreeWidth();
 		int hierarchyImageHeight = config.getTreeHeight();
-		levelGap = Math.max( 1.0, ( hierarchyImageHeight ) /
-				(double)( nodeSizeToBetweenLevelSpaceRatio * (double)maxTreeDepth + nodeSizeToBetweenLevelSpaceRatio
-						+ (double)maxTreeDepth ) );
+
+		levelGap = hierarchyImageHeight
+			/ (double)( nodeSizeToBetweenLevelSpaceRatio * maxTreeDepth + nodeSizeToBetweenLevelSpaceRatio + maxTreeDepth );
+		levelGap = Math.max( 1.0, levelGap );
+
 		// based on above calculation - compute "optimal" size of each node on image
 		heightBasedSizeOfNodes = (int)( nodeSizeToBetweenLevelSpaceRatio * levelGap );
 
 		System.out.println( "Between level space: " + levelGap + " node size: " + heightBasedSizeOfNodes );
 
-		siblingNodeGap = Math.max( 1.0,
-				( (double)hierarchyImageWidth )
-						/ ( (double)maxTreeWidth * nodeSizeToBetweenSiblingsSpaceRatio + (double)maxTreeWidth - 1.0 ) );
+		siblingNodeGap = ( hierarchyImageWidth ) / ( maxTreeWidth * nodeSizeToBetweenSiblingsSpaceRatio + maxTreeWidth - 1.0 );
+		siblingNodeGap = Math.max( 1.0, siblingNodeGap );
+
 		subtreeGap = siblingNodeGap;
 		widthBasedSizeOfNodes = (int)( nodeSizeToBetweenSiblingsSpaceRatio * siblingNodeGap );
 		System.out.println( "Between siblings space: " + siblingNodeGap + " node size: " + widthBasedSizeOfNodes );
@@ -145,28 +147,28 @@ public class HierarchyProcessor {
 		if ( widthBasedSizeOfNodes < heightBasedSizeOfNodes ) {
 			finalSizeOfNodes = widthBasedSizeOfNodes;
 			// assume maximum possible size
-			levelGap = Math.max( 1.0,
-					( (double)hierarchyImageHeight - (double)maxTreeDepth * (double)finalSizeOfNodes - (double)finalSizeOfNodes )
-							/ (double)maxTreeDepth );
+			levelGap = ( hierarchyImageHeight - maxTreeDepth * finalSizeOfNodes - finalSizeOfNodes ) / (double)maxTreeDepth;
+			levelGap = Math.max( 1.0, levelGap );
 		}
 		else {
 			finalSizeOfNodes = heightBasedSizeOfNodes;
 			// assume maximum possible size
-			siblingNodeGap = Math.max( 1.0,
-					( (double)hierarchyImageWidth - (double)maxTreeWidth * (double)finalSizeOfNodes )
-							/ ( (double)maxTreeWidth - 1.0 ) );
+			siblingNodeGap = ( hierarchyImageWidth - maxTreeWidth * finalSizeOfNodes ) / ( maxTreeWidth - 1.0 );
+			siblingNodeGap = Math.max( 1.0, siblingNodeGap );
 			subtreeGap = siblingNodeGap;
 		}
 
 		return hierarchyVisualisation;
 	}
 
-	public Visualization createTreeVisualization( HVContext context ) {
+	public Visualization createTreeVisualization( HVContext context )
+	{
 		return createTreeVisualization( context, null );
 	}
 
 	@SuppressWarnings("unchecked")
-	public Visualization createTreeVisualization( HVContext context, String currentNodeId ) {
+	public Visualization createTreeVisualization( HVContext context, String currentNodeId )
+	{
 		boolean isFound = false;
 
 		Tree hierarchyTree = context.getTree();
@@ -226,16 +228,18 @@ public class HierarchyProcessor {
 			vis.setRendererFactory( drf );
 
 			ColorAction edgesColor = new ColorAction(
-					HVConstants.NAME_OF_HIERARCHY + ".edges",
-					VisualItem.STROKECOLOR,
-					ColorLib.color( Color.lightGray ) );
+				HVConstants.NAME_OF_HIERARCHY + ".edges",
+				VisualItem.STROKECOLOR,
+				ColorLib.color( Color.lightGray )
+			);
 
 			NodeLinkTreeLayout treeLayout = new NodeLinkTreeLayout(
-					HVConstants.NAME_OF_HIERARCHY,
-					treeOrientation,
-					levelGap,
-					siblingNodeGap,
-					subtreeGap );
+				HVConstants.NAME_OF_HIERARCHY,
+				treeOrientation,
+				levelGap,
+				siblingNodeGap,
+				subtreeGap
+			);
 			treeLayout.setLayoutBounds( new Rectangle2D.Float( 0, 0, hierarchyImageWidth, hierarchyImageHeight ) );
 			treeLayout.setRootNodeOffset( 0 );// 0.5*finalSizeOfNodes);//offset is set in order to show all nodes on images
 			ActionList layout = new ActionList();
@@ -253,7 +257,8 @@ public class HierarchyProcessor {
 		return vis;
 	}
 
-	public static void layoutVisualization( Visualization vis ) {
+	public static void layoutVisualization( Visualization vis )
+	{
 		// TODO: in run function a threads are used, so threads could be somehow used
 		// to fill the images more efficiently
 		vis.run( HVConstants.NAME_OF_HIERARCHY + ".edges" );
@@ -262,7 +267,8 @@ public class HierarchyProcessor {
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	private Display createTreeDisplay( HVContext context, String currentNodeId ) {
+	private Display createTreeDisplay( HVContext context, String currentNodeId )
+	{
 		Visualization vis = createTreeVisualization( context, currentNodeId );
 
 		HVConfig config = context.getConfig();
@@ -280,11 +286,13 @@ public class HierarchyProcessor {
 		return display;
 	}
 
-	public Display createTreeDisplay( HVContext context ) {
+	public Display createTreeDisplay( HVContext context )
+	{
 		return createTreeDisplay( context, null );
 	}
 
-	public Visualization createPointVisualization( HVContext context, Node node ) {
+	public Visualization createPointVisualization( HVContext context, Node node )
+	{
 		HVConfig config = context.getConfig();
 		int pointImageWidth = config.getPointWidth();
 		int pointImageHeight = config.getPointHeight();
@@ -314,13 +322,15 @@ public class HierarchyProcessor {
 			double y = i.getData()[1];
 
 			int pointLeftEdge = rectCoordinateOnImage(
-					x,
-					bounds.getMinX(), bounds.getMaxX(),
-					pointImageWidth, pointSize );
+				x,
+				bounds.getMinX(), bounds.getMaxX(),
+				pointImageWidth, pointSize
+			);
 			int pointTopEdge = rectCoordinateOnImage(
-					y,
-					bounds.getMinY(), bounds.getMaxY(),
-					pointImageHeight, pointSize );
+				y,
+				bounds.getMinY(), bounds.getMaxY(),
+				pointImageHeight, pointSize
+			);
 
 			int row = table.addRow();
 			table.set( row, 0, pointLeftEdge );
@@ -330,13 +340,15 @@ public class HierarchyProcessor {
 		vis.addTable( group, table );
 
 		AxisLayout x_axis = new AxisLayout(
-				group, xField,
-				Constants.X_AXIS, VisiblePredicate.TRUE );
+			group, xField,
+			Constants.X_AXIS, VisiblePredicate.TRUE
+		);
 		vis.putAction( "x", x_axis );
 
 		AxisLayout y_axis = new AxisLayout(
-				group, yField,
-				Constants.Y_AXIS, VisiblePredicate.TRUE );
+			group, yField,
+			Constants.Y_AXIS, VisiblePredicate.TRUE
+		);
 		vis.putAction( "y", y_axis );
 
 		ActionList actions = new ActionList();
@@ -349,13 +361,15 @@ public class HierarchyProcessor {
 		return vis;
 	}
 
-	private static int rectCoordinateOnImage( double sourceValue, double min, double max, int dimSize, int pointSize ) {
+	private static int rectCoordinateOnImage( double sourceValue, double min, double max, int dimSize, int pointSize )
+	{
 		double result = dimSize * ( sourceValue - min ) / ( max - min );
 		result -= pointSize / 2.0;
 		return (int)result;
 	}
 
-	private Display createPointDisplay( HVContext context, Node node ) {
+	private Display createPointDisplay( HVContext context, Node node )
+	{
 		if ( node == null )
 			node = context.getHierarchy().getRoot();
 
@@ -377,44 +391,8 @@ public class HierarchyProcessor {
 		return display;
 	}
 
-	public Display createPointDisplay( HVContext context ) {
+	public Display createPointDisplay( HVContext context )
+	{
 		return createPointDisplay( context, null );
-	}
-
-	/**
-	 * Finds the hierarchy node at the specified row.
-	 * 
-	 * @param row
-	 *            the row in the data table at which the node is located.
-	 * @return the node at the specified row, or null if not found.
-	 */
-	public Node findNode( HVContext context, int row ) {
-		Hierarchy h = context.getHierarchy();
-		Node node = h.getRoot();
-
-		if ( row == 0 ) {
-			return node;
-		}
-
-		Queue<Node> stack = new LinkedList<>();
-		for ( Node child : node.getChildren() ) {
-			stack.add( child );
-		}
-
-		int currentRow = 0;
-		while ( !stack.isEmpty() ) {
-			node = stack.remove();
-
-			++currentRow;
-			if ( currentRow == row ) {
-				return node;
-			}
-
-			for ( Node child : node.getChildren() ) {
-				stack.add( child );
-			}
-		}
-
-		return null;
 	}
 }

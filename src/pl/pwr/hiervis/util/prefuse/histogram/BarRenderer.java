@@ -17,7 +17,8 @@ import prefuse.visual.VisualItem;
  * @author <a href="http://webfoot.com/ducky.home.html">Kaitlin Duck Sherwood</a>
  * @author <a href="http://jheer.org">jeffrey heer</a>
  */
-public class BarRenderer extends AbstractShapeRenderer {
+public class BarRenderer extends AbstractShapeRenderer
+{
 	private Rectangle2D m_bounds;
 	private boolean m_isVertical;
 	private int m_orientation = Constants.ORIENT_BOTTOM_TOP;
@@ -26,14 +27,16 @@ public class BarRenderer extends AbstractShapeRenderer {
 	protected HVConfig params;
 
 
-	public BarRenderer( double aWidth, HVConfig params ) {
+	public BarRenderer( double aWidth, HVConfig params )
+	{
 		// super(barWidth);
 		this.params = params;
 		m_barWidth = aWidth;
 		setOrientation( m_orientation );
 	}
 
-	public void setBounds( Rectangle2D bounds ) {
+	public void setBounds( Rectangle2D bounds )
+	{
 		m_bounds = bounds;
 	}
 
@@ -51,22 +54,25 @@ public class BarRenderer extends AbstractShapeRenderer {
 	 *             is not a valid value
 	 */
 
-	public void setOrientation( int orient ) {
+	public void setOrientation( int orient )
+	{
 
 		if ( orient != Constants.ORIENT_TOP_BOTTOM &&
-				orient != Constants.ORIENT_BOTTOM_TOP &&
-				orient != Constants.ORIENT_LEFT_RIGHT &&
-				orient != Constants.ORIENT_RIGHT_LEFT ) {
+			orient != Constants.ORIENT_BOTTOM_TOP &&
+			orient != Constants.ORIENT_LEFT_RIGHT &&
+			orient != Constants.ORIENT_RIGHT_LEFT ) {
 			throw new IllegalArgumentException(
-					"Invalid orientation value: " + orient );
+				"Invalid orientation value: " + orient
+			);
 		}
 		m_orientation = orient;
 		m_isVertical = ( m_orientation == Constants.ORIENT_TOP_BOTTOM ||
-				m_orientation == Constants.ORIENT_BOTTOM_TOP );
+			m_orientation == Constants.ORIENT_BOTTOM_TOP );
 	}
 
 
-	protected Shape getRawShape( VisualItem item ) {
+	protected Shape getRawShape( VisualItem item )
+	{
 		double width, height;
 
 		double x = item.getX();
@@ -114,8 +120,10 @@ public class BarRenderer extends AbstractShapeRenderer {
 		int roleNum = item.getInt( "role" );
 
 		if ( height > 0.0001 && height < 1.0 ) {
-			System.err.println( "Ones' (non-empty) bar height is less than 1 px, so it won't be visible on " +
-					"the output histogram image. Consider increasing the image size of histograms. That bar's role is: " + roleNum + "." );
+			System.err.println(
+				"Ones' (non-empty) bar height is less than 1 px, so it won't be visible on " +
+					"the output histogram image. Consider increasing the image size of histograms. That bar's role is: " + roleNum + "."
+			);
 		}
 
 		if ( roleNum == ElementRole.CURRENT.getNumber() ) {
@@ -126,15 +134,15 @@ public class BarRenderer extends AbstractShapeRenderer {
 		}
 		m_rect.setRect( x, y, width, height );
 		return m_rect;
-
 	}
 
-	public void setBarWidth( double m_barWidth ) {
+	public void setBarWidth( double m_barWidth )
+	{
 		this.m_barWidth = m_barWidth;
 	}
 
-	public double getBarWidth( double m_barWidth ) {
+	public double getBarWidth( double m_barWidth )
+	{
 		return this.m_barWidth;
 	}
-
 }

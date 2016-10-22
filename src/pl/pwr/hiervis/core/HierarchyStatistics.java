@@ -17,7 +17,8 @@ import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 
 
-public class HierarchyStatistics {
+public class HierarchyStatistics
+{
 	private int[] eachLevelNumberOfInstances;
 
 	private LinkedList<Double> numberOfChildPerNode;
@@ -56,11 +57,13 @@ public class HierarchyStatistics {
 	private double stdevPathLength;
 
 
-	public HierarchyStatistics( Hierarchy h, String statisticsFilePath ) {
+	public HierarchyStatistics( Hierarchy h, String statisticsFilePath )
+	{
 		calculate( h, statisticsFilePath );
 	}
 
-	public void calculate( Hierarchy h, String statisticsFilePath ) {
+	public void calculate( Hierarchy h, String statisticsFilePath )
+	{
 		int minimumBranchingFactor = 2;
 		traverseHierarchyAndCalculateMeasures( h, minimumBranchingFactor );
 		calculateEmpiricalMeanAndVariancesOfEachGroup( h );
@@ -68,7 +71,8 @@ public class HierarchyStatistics {
 		saveStatistics( statisticsFilePath, minimumBranchingFactor );
 	}
 
-	private void traverseHierarchyAndCalculateMeasures( Hierarchy h, int minBranchingFactor ) {
+	private void traverseHierarchyAndCalculateMeasures( Hierarchy h, int minBranchingFactor )
+	{
 		int hierarchyHeight = getHierarchyHeight( h );
 		eachLevelNumberOfInstances = new int[hierarchyHeight + 1];
 		overallNumberOfInstances = 0;
@@ -134,7 +138,8 @@ public class HierarchyStatistics {
 		postprocessObtainedData( nodeHeightWithItsChildrenCount );
 	}
 
-	private void postprocessObtainedData( LinkedList<SimpleEntry<Integer, Integer>> nodeHeightWithItsChildrenCount ) {
+	private void postprocessObtainedData( LinkedList<SimpleEntry<Integer, Integer>> nodeHeightWithItsChildrenCount )
+	{
 		StandardDeviation stdev = new StandardDeviation( true );
 		Mean mean = new Mean();
 		double[] primitives;
@@ -151,8 +156,10 @@ public class HierarchyStatistics {
 		avgNumberOfChildPerInternalNode = mean.evaluate( primitives );
 		stdevNumberOfChildPerInternalNode = stdev.evaluate( primitives );
 
-		primitives = ArrayUtils.toPrimitive( numberOfChildPerNodeWithSpecifiedBranchingFactor
-				.toArray( new Double[numberOfChildPerNodeWithSpecifiedBranchingFactor.size()] ) );
+		primitives = ArrayUtils.toPrimitive(
+			numberOfChildPerNodeWithSpecifiedBranchingFactor
+				.toArray( new Double[numberOfChildPerNodeWithSpecifiedBranchingFactor.size()] )
+		);
 		avgNumberOfChildPerNodeWithSpecifiedBranchingFactor = mean.evaluate( primitives );
 		stdevNumberOfChildPerNodeWithSpecifiedBranchingFactor = stdev.evaluate( primitives );
 
@@ -182,7 +189,7 @@ public class HierarchyStatistics {
 			int height = elem.getKey();
 			int count = elem.getValue();
 			stdevNumberOfChildrenPerNodeOnEachHeight[height] += ( count - avgNumberOfChildrenPerNodeOnEachHeight[height] )
-					* ( count - avgNumberOfChildrenPerNodeOnEachHeight[height] );
+				* ( count - avgNumberOfChildrenPerNodeOnEachHeight[height] );
 		}
 
 		for ( int i = 0; i < avgNumberOfChildrenPerNodeOnEachHeight.length; i++ ) {
@@ -191,7 +198,8 @@ public class HierarchyStatistics {
 
 	}
 
-	private void calculateEmpiricalMeanAndVariancesOfEachGroup( Hierarchy h ) {
+	private void calculateEmpiricalMeanAndVariancesOfEachGroup( Hierarchy h )
+	{
 		nodesEstimatedParameters = new LinkedList<GroupWithEmpiricalParameters>();
 
 		LinkedList<Node> s = new LinkedList<>();
@@ -208,7 +216,8 @@ public class HierarchyStatistics {
 		}
 	}
 
-	private void saveStatistics( String statisticsFilePath, int minimumBranchingFactor ) {
+	private void saveStatistics( String statisticsFilePath, int minimumBranchingFactor )
+	{
 		PrintWriter pw;
 		try {
 			pw = new PrintWriter( statisticsFilePath, "UTF-8" );
@@ -220,89 +229,90 @@ public class HierarchyStatistics {
 		}
 	}
 
-	private String getStatisticFileContentBuffered( int minimumBranchingFactor ) {
+	private String getStatisticFileContentBuffered( int minimumBranchingFactor )
+	{
 		StringBuilder buf = new StringBuilder();
 
 		buf.append( "Total num of instances" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( overallNumberOfInstances ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( overallNumberOfInstances ).append( '\n' );
 
 		buf.append( "Avg num of children per node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( avgNumberOfChildPerNode ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( avgNumberOfChildPerNode ).append( '\n' );
 
 		buf.append( "Sample stdev num of children per node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( stdevNumberOfChildPerNode ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( stdevNumberOfChildPerNode ).append( '\n' );
 
 		buf.append( "Avg num of children per INTERNAL node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( avgNumberOfChildPerInternalNode ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( avgNumberOfChildPerInternalNode ).append( '\n' );
 
 		buf.append( "Sample stdev num of children per INTERNAL node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( stdevNumberOfChildPerInternalNode ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( stdevNumberOfChildPerInternalNode ).append( '\n' );
 
 		buf.append( "Avg num of children per INTERNAL node with MIN BRANCHING FACTOR " )
-				.append( minimumBranchingFactor )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( avgNumberOfChildPerNodeWithSpecifiedBranchingFactor ).append( '\n' );
+			.append( minimumBranchingFactor )
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( avgNumberOfChildPerNodeWithSpecifiedBranchingFactor ).append( '\n' );
 
 		buf.append( "Sample stdev num of children per INTERNAL node with MIN BRANCHING FACTOR " )
-				.append( minimumBranchingFactor )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( stdevNumberOfChildPerNodeWithSpecifiedBranchingFactor ).append( '\n' );
+			.append( minimumBranchingFactor )
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( stdevNumberOfChildPerNodeWithSpecifiedBranchingFactor ).append( '\n' );
 
 		buf.append( "Avg num of instances per node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( avgNumberOfInstancesPerNode ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( avgNumberOfInstancesPerNode ).append( '\n' );
 
 		buf.append( "Sample stdev num of instances per node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( stdevNumberOfInstancesPerNode ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( stdevNumberOfInstancesPerNode ).append( '\n' );
 
 		buf.append( "Hierarchy height" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( eachLevelNumberOfInstances.length - 1 ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( eachLevelNumberOfInstances.length - 1 ).append( '\n' );
 
 		buf.append( "Avg hierarchy width" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( avgHierarchyWidth ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( avgHierarchyWidth ).append( '\n' );
 
 		buf.append( "Sample stdev hierarchy width" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( stdevHierarchyWidth ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( stdevHierarchyWidth ).append( '\n' );
 
 		buf.append( "Number of nodes" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( numberOfChildPerNode.size() ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( numberOfChildPerNode.size() ).append( '\n' );
 
 		buf.append( "Number of INTERNAL nodes" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( numberOfChildPerInternalNode.size() ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( numberOfChildPerInternalNode.size() ).append( '\n' );
 
 		buf.append( "Number of INTERNAL nodes with MIN BRANCHING FACTOR " )
-				.append( minimumBranchingFactor )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( numberOfChildPerNodeWithSpecifiedBranchingFactor.size() ).append( '\n' );
+			.append( minimumBranchingFactor )
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( numberOfChildPerNodeWithSpecifiedBranchingFactor.size() ).append( '\n' );
 
 		buf.append( "Number of leaves" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( numberOfLeaves ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( numberOfLeaves ).append( '\n' );
 
 		buf.append( "Avg path length" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( avgPathLength ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( avgPathLength ).append( '\n' );
 
 		buf.append( "Sample stdev path length" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( stdevPathLength ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( stdevPathLength ).append( '\n' );
 
 		buf.append( '\n' ).append( statsToWriteOutInFile ).append( "\n\n" );
 
 		buf.append( "Node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( "Mean vector" );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( "Mean vector" );
 
 		for ( int i = 0; i < nodesEstimatedParameters.getFirst().getEmpiricalMean().length; ++i ) {
 			buf.append( HVConstants.CSV_FILE_SEPARATOR );
@@ -312,7 +322,7 @@ public class HierarchyStatistics {
 
 		for ( GroupWithEmpiricalParameters g : nodesEstimatedParameters ) {
 			buf.append( g.getId() )
-					.append( HVConstants.CSV_FILE_SEPARATOR );
+				.append( HVConstants.CSV_FILE_SEPARATOR );
 
 			for ( int i = 0; i < g.getEmpiricalMean().length; ++i ) {
 				buf.append( g.getEmpiricalMean()[i] );
@@ -352,73 +362,75 @@ public class HierarchyStatistics {
 		return buf.toString();
 	}
 
-	private void createSummaryStatsBuffered() {
+	private void createSummaryStatsBuffered()
+	{
 		StringBuilder bufImg = new StringBuilder();
 		StringBuilder bufFile = new StringBuilder();
 
 		bufImg.append( "Total number of points" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( overallNumberOfInstances ).append( '\n' );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( overallNumberOfInstances ).append( '\n' );
 
 		bufImg.append( "Level" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( "No Inst" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( "% Inst" );
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( "No Inst" )
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( "% Inst" );
 
 		bufFile.append( bufImg ); // TODO: Dodac reszte informacji
 
 		bufFile.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( "Avg num of children per node" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( "Stdev" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( "Hierarchy width" )
-				.append( HVConstants.CSV_FILE_SEPARATOR )
-				.append( "Num of leaves" );
+			.append( "Avg num of children per node" )
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( "Stdev" )
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( "Hierarchy width" )
+			.append( HVConstants.CSV_FILE_SEPARATOR )
+			.append( "Num of leaves" );
 
 		StringBuilder buf = new StringBuilder();
 		for ( int i = 0; i < eachLevelNumberOfInstances.length; ++i ) {
 			buf.append( '\n' )
-					.append( i )
-					.append( HVConstants.CSV_FILE_SEPARATOR )
-					.append( eachLevelNumberOfInstances[i] )
-					.append( HVConstants.CSV_FILE_SEPARATOR )
-					.append( Math.round( ( eachLevelNumberOfInstances[i] / (double)overallNumberOfInstances ) * 10000 ) / 100.0 );
+				.append( i )
+				.append( HVConstants.CSV_FILE_SEPARATOR )
+				.append( eachLevelNumberOfInstances[i] )
+				.append( HVConstants.CSV_FILE_SEPARATOR )
+				.append( Math.round( ( eachLevelNumberOfInstances[i] / (double)overallNumberOfInstances ) * 10000 ) / 100.0 );
 
 			bufImg.append( buf );
 			bufFile.append( buf );
 			buf.setLength( 0 );
 
 			bufFile.append( HVConstants.CSV_FILE_SEPARATOR )
-					.append( avgNumberOfChildrenPerNodeOnEachHeight[i] )
-					.append( HVConstants.CSV_FILE_SEPARATOR )
-					.append( stdevNumberOfChildrenPerNodeOnEachHeight[i] )
-					.append( HVConstants.CSV_FILE_SEPARATOR )
-					.append( hierarchyWidthOnEachHeight[i] )
-					.append( HVConstants.CSV_FILE_SEPARATOR )
-					.append( numberOfLeavesOnEachHeight[i] );
+				.append( avgNumberOfChildrenPerNodeOnEachHeight[i] )
+				.append( HVConstants.CSV_FILE_SEPARATOR )
+				.append( stdevNumberOfChildrenPerNodeOnEachHeight[i] )
+				.append( HVConstants.CSV_FILE_SEPARATOR )
+				.append( hierarchyWidthOnEachHeight[i] )
+				.append( HVConstants.CSV_FILE_SEPARATOR )
+				.append( numberOfLeavesOnEachHeight[i] );
 		}
 
 		int minBranchFactor = Collections.min( nodeBranchFactorAndCountOfNodesWithThatFactor.keySet() );
 		int maxBranchFactor = Collections.max( nodeBranchFactorAndCountOfNodesWithThatFactor.keySet() );
 
 		bufFile.append( "\n\n" ).append( "Branching factor histogram" )
-				.append( '\n' ).append( "Factor:" );
+			.append( '\n' ).append( "Factor:" );
 		for ( int i = minBranchFactor; i <= maxBranchFactor; ++i ) {
 			bufFile.append( HVConstants.CSV_FILE_SEPARATOR ).append( i );
 		}
 		bufFile.append( '\n' ).append( "Count:" );
 		for ( int i = minBranchFactor; i <= maxBranchFactor; ++i ) {
 			bufFile.append( HVConstants.CSV_FILE_SEPARATOR )
-					.append( nodeBranchFactorAndCountOfNodesWithThatFactor.get( i ) );
+				.append( nodeBranchFactorAndCountOfNodesWithThatFactor.get( i ) );
 		}
 
 		statsToVisualiseOnImages = bufImg.toString();
 		statsToWriteOutInFile = bufFile.toString();
 	}
 
-	private String getStatisticFileContent( int minimumBranchingFactor ) {
+	private String getStatisticFileContent( int minimumBranchingFactor )
+	{
 		String content = "";
 
 		content += "Total num of instances" + HVConstants.CSV_FILE_SEPARATOR + overallNumberOfInstances + "\n";
@@ -427,10 +439,10 @@ public class HierarchyStatistics {
 		content += "Avg num of children per INTERNAL node" + HVConstants.CSV_FILE_SEPARATOR + avgNumberOfChildPerInternalNode + "\n";
 		content += "Sample stdev num of children per INTERNAL node" + HVConstants.CSV_FILE_SEPARATOR + stdevNumberOfChildPerInternalNode + "\n";
 		content += "Avg num of children per INTERNAL node with MIN BRANCHING FACTOR " + minimumBranchingFactor + HVConstants.CSV_FILE_SEPARATOR
-				+ avgNumberOfChildPerNodeWithSpecifiedBranchingFactor + "\n";
+			+ avgNumberOfChildPerNodeWithSpecifiedBranchingFactor + "\n";
 		content += "Sample stdev num of children per INTERNAL node with MIN BRANCHING FACTOR " + minimumBranchingFactor
-				+ HVConstants.CSV_FILE_SEPARATOR
-				+ stdevNumberOfChildPerNodeWithSpecifiedBranchingFactor + "\n";
+			+ HVConstants.CSV_FILE_SEPARATOR
+			+ stdevNumberOfChildPerNodeWithSpecifiedBranchingFactor + "\n";
 		content += "Avg num of instances per node" + HVConstants.CSV_FILE_SEPARATOR + avgNumberOfInstancesPerNode + "\n";
 		content += "Sample stdev num of instances per node" + HVConstants.CSV_FILE_SEPARATOR + stdevNumberOfInstancesPerNode + "\n";
 		content += "Hierarchy height" + HVConstants.CSV_FILE_SEPARATOR + ( eachLevelNumberOfInstances.length - 1 ) + "\n";
@@ -439,7 +451,7 @@ public class HierarchyStatistics {
 		content += "Number of nodes" + HVConstants.CSV_FILE_SEPARATOR + numberOfChildPerNode.size() + "\n";
 		content += "Number of INTERNAL nodes" + HVConstants.CSV_FILE_SEPARATOR + numberOfChildPerInternalNode.size() + "\n";
 		content += "Number of INTERNAL nodes with MIN BRANCHING FACTOR " + minimumBranchingFactor + HVConstants.CSV_FILE_SEPARATOR
-				+ numberOfChildPerNodeWithSpecifiedBranchingFactor.size() + "\n";
+			+ numberOfChildPerNodeWithSpecifiedBranchingFactor.size() + "\n";
 		content += "Number of leaves" + HVConstants.CSV_FILE_SEPARATOR + numberOfLeaves + "\n";
 		content += "Avg path length" + HVConstants.CSV_FILE_SEPARATOR + avgPathLength + "\n";
 		content += "Sample stdev path length" + HVConstants.CSV_FILE_SEPARATOR + stdevPathLength + "\n";
@@ -479,23 +491,24 @@ public class HierarchyStatistics {
 		return content;
 	}
 
-	private void createStatsToVisualiseOnOutputImgsAndSummaryFile() {
+	private void createStatsToVisualiseOnOutputImgsAndSummaryFile()
+	{
 		statsToVisualiseOnImages = "";
 
 		statsToVisualiseOnImages += "Total number of points" + HVConstants.CSV_FILE_SEPARATOR + overallNumberOfInstances + "\n";
 		statsToVisualiseOnImages += "Level" + HVConstants.CSV_FILE_SEPARATOR + "No Inst" + HVConstants.CSV_FILE_SEPARATOR + "% Inst";
 		statsToWriteOutInFile = statsToVisualiseOnImages;// TODO: dodac reszte informacji
 		statsToWriteOutInFile += HVConstants.CSV_FILE_SEPARATOR + "Avg. No of Children per node" + HVConstants.CSV_FILE_SEPARATOR + "Stdev"
-				+ HVConstants.CSV_FILE_SEPARATOR + "Hierarchy width" + HVConstants.CSV_FILE_SEPARATOR + "No of leaves";
+			+ HVConstants.CSV_FILE_SEPARATOR + "Hierarchy width" + HVConstants.CSV_FILE_SEPARATOR + "No of leaves";
 
 		for ( int i = 0; i < eachLevelNumberOfInstances.length; i++ ) {
 			String results = "\n" + i + HVConstants.CSV_FILE_SEPARATOR + eachLevelNumberOfInstances[i] + HVConstants.CSV_FILE_SEPARATOR +
-					Math.round( ( eachLevelNumberOfInstances[i] / (double)overallNumberOfInstances ) * 10000 ) / 100.0;
+				Math.round( ( eachLevelNumberOfInstances[i] / (double)overallNumberOfInstances ) * 10000 ) / 100.0;
 			statsToVisualiseOnImages += results;
 			statsToWriteOutInFile += results;// TODO: dodac reszte informacji
 			statsToWriteOutInFile += HVConstants.CSV_FILE_SEPARATOR + avgNumberOfChildrenPerNodeOnEachHeight[i] + HVConstants.CSV_FILE_SEPARATOR
-					+ stdevNumberOfChildrenPerNodeOnEachHeight[i] + HVConstants.CSV_FILE_SEPARATOR + hierarchyWidthOnEachHeight[i]
-					+ HVConstants.CSV_FILE_SEPARATOR + numberOfLeavesOnEachHeight[i];
+				+ stdevNumberOfChildrenPerNodeOnEachHeight[i] + HVConstants.CSV_FILE_SEPARATOR + hierarchyWidthOnEachHeight[i]
+				+ HVConstants.CSV_FILE_SEPARATOR + numberOfLeavesOnEachHeight[i];
 		}
 
 		int minBranchFactor = Collections.min( nodeBranchFactorAndCountOfNodesWithThatFactor.keySet() );
@@ -510,7 +523,8 @@ public class HierarchyStatistics {
 		}
 	}
 
-	private int getHierarchyHeight( Hierarchy h ) {
+	private int getHierarchyHeight( Hierarchy h )
+	{
 		int height = 0;
 		Node root = h.getRoot();
 		Stack<AbstractMap.SimpleEntry<Node, Integer>> s = new Stack<>(); // Node and its height
@@ -528,31 +542,38 @@ public class HierarchyStatistics {
 		return height;
 	}
 
-	public int getHierarchyHeight() {
+	public int getHierarchyHeight()
+	{
 		return eachLevelNumberOfInstances.length - 1;
 	}
 
-	public int getNumberOfInstances( int levelNumber ) {
+	public int getNumberOfInstances( int levelNumber )
+	{
 		return eachLevelNumberOfInstances[levelNumber];
 	}
 
-	public int getPercentageNumberOfInstances( int levelNumber ) {
+	public int getPercentageNumberOfInstances( int levelNumber )
+	{
 		return eachLevelNumberOfInstances[levelNumber] * 100;
 	}
 
-	public String getSummaryString() {
+	public String getSummaryString()
+	{
 		return statsToVisualiseOnImages;
 	}
 
-	public double getAvgNumberOfChildPerNode() {
+	public double getAvgNumberOfChildPerNode()
+	{
 		return avgNumberOfChildPerNode;
 	}
 
-	public double getAvgNumberOfInstancesPerNode() {
+	public double getAvgNumberOfInstancesPerNode()
+	{
 		return avgNumberOfInstancesPerNode;
 	}
 
-	public GroupWithEmpiricalParameters getEstimatedParameters( String nodeId ) {
+	public GroupWithEmpiricalParameters getEstimatedParameters( String nodeId )
+	{
 		for ( GroupWithEmpiricalParameters g : nodesEstimatedParameters ) {
 			if ( g.getId().equals( nodeId ) ) {
 				return g;
@@ -561,7 +582,8 @@ public class HierarchyStatistics {
 		return null;
 	}
 
-	public int getOverallNumberOfInstances() {
+	public int getOverallNumberOfInstances()
+	{
 		return overallNumberOfInstances;
 	}
 }

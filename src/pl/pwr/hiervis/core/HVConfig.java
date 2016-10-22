@@ -34,8 +34,8 @@ import pl.pwr.hiervis.util.CmdLineParser;
  * @author Tomasz Bachmiñski
  *
  */
-public class HVConfig {
-
+public class HVConfig
+{
 	/**
 	 * Default path to the config file
 	 */
@@ -86,7 +86,8 @@ public class HVConfig {
 	/**
 	 * Create a new config with default values.
 	 */
-	public HVConfig() {
+	public HVConfig()
+	{
 		// Setup default values.
 		treeResolutionWidth = 1000;
 		treeResolutionHeight = 1000;
@@ -116,7 +117,8 @@ public class HVConfig {
 	 *            config to copy values from
 	 * @return the new, copied config (shallow copy)
 	 */
-	public static HVConfig from( HVConfig source ) {
+	public static HVConfig from( HVConfig source )
+	{
 		if ( source == null ) {
 			throw new IllegalArgumentException( "Source config must not be null!" );
 		}
@@ -150,7 +152,8 @@ public class HVConfig {
 	 *             if an error occurred while processing the json text
 	 */
 	public static HVConfig from( File file )
-			throws IOException {
+		throws IOException
+	{
 		HVConfig config = new HVConfig();
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -187,7 +190,8 @@ public class HVConfig {
 	 *             if an error occurred while parsing the arguments
 	 */
 	public static HVConfig from( String[] args, HVConfig source )
-			throws Exception {
+		throws Exception
+	{
 		CmdLineParser parser = new CmdLineParser();
 		return parser.parse( args, source );
 	}
@@ -197,7 +201,8 @@ public class HVConfig {
 	 * 
 	 * @see HVConfig#from(HVConfig)
 	 */
-	public HVConfig copy() {
+	public HVConfig copy()
+	{
 		return HVConfig.from( this );
 	}
 
@@ -207,7 +212,8 @@ public class HVConfig {
 	 * @param file
 	 *            the file to save the config to
 	 */
-	public void to( File file ) {
+	public void to( File file )
+	{
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure( JsonParser.Feature.ALLOW_COMMENTS, true );
 		mapper.configure( JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true );
@@ -243,7 +249,8 @@ public class HVConfig {
 	 *            the field to check
 	 * @return true if the field is marked with the SerializableField annnotation.
 	 */
-	private static boolean isValidField( Field f ) {
+	private static boolean isValidField( Field f )
+	{
 		return f.isAnnotationPresent( SerializableField.class );
 	}
 
@@ -263,7 +270,8 @@ public class HVConfig {
 	 *             if the specified field cannot be accessed
 	 */
 	private void setField( Field f, JsonNode node )
-			throws IllegalArgumentException, IllegalAccessException {
+		throws IllegalArgumentException, IllegalAccessException
+	{
 		if ( f.getType().equals( boolean.class ) ) {
 			f.set( this, node.asBoolean() );
 		}
@@ -298,8 +306,11 @@ public class HVConfig {
 					f.set( this, cf.get( null ) );
 				}
 				else {
-					throw new IllegalArgumentException( String.format(
-							"'%s' is not a valid color constant!", input ) );
+					throw new IllegalArgumentException(
+						String.format(
+							"'%s' is not a valid color constant!", input
+						)
+					);
 				}
 			}
 			catch ( Exception e ) {
@@ -313,9 +324,12 @@ public class HVConfig {
 			}
 		}
 		else {
-			throw new IllegalArgumentException( String.format(
+			throw new IllegalArgumentException(
+				String.format(
 					"No case defined for field type %s",
-					f.getType().getSimpleName() ) );
+					f.getType().getSimpleName()
+				)
+			);
 		}
 	}
 
@@ -336,7 +350,8 @@ public class HVConfig {
 	 *             if the specified field cannot be accessed
 	 */
 	private JsonNode serializeField( JsonNodeFactory factory, Field f )
-			throws IllegalArgumentException, IllegalAccessException {
+		throws IllegalArgumentException, IllegalAccessException
+	{
 
 		if ( f.getType().equals( boolean.class ) ) {
 			return factory.booleanNode( f.getBoolean( this ) );
@@ -362,16 +377,22 @@ public class HVConfig {
 		}
 		else if ( f.getType().equals( Color.class ) ) {
 			Color value = (Color)f.get( this );
-			return factory.textNode( String.format(
+			return factory.textNode(
+				String.format(
 					"#%02X%02X%02X", // Format as uppercase hex string.
 					value.getRed(),
 					value.getGreen(),
-					value.getBlue() ) );
+					value.getBlue()
+				)
+			);
 		}
 		else {
-			throw new IllegalArgumentException( String.format(
+			throw new IllegalArgumentException(
+				String.format(
 					"No case defined for field type %s",
-					f.getType().getSimpleName() ) );
+					f.getType().getSimpleName()
+				)
+			);
 		}
 	}
 
@@ -380,155 +401,193 @@ public class HVConfig {
 	 * Config values' getters and setters.
 	 */
 
-	public Color getCurrentLevelColor() {
+	public Color getCurrentLevelColor()
+	{
 		return currentLevelColor;
 	}
 
-	public void setCurrentLevelColor( Color currentLevelColor ) {
+	public void setCurrentLevelColor( Color currentLevelColor )
+	{
 		this.currentLevelColor = currentLevelColor;
 	}
 
-	public Color getChildGroupColor() {
+	public Color getChildGroupColor()
+	{
 		return childGroupColor;
 	}
 
-	public void setChildGroupColor( Color childGroupsColor ) {
+	public void setChildGroupColor( Color childGroupsColor )
+	{
 		this.childGroupColor = childGroupsColor;
 	}
 
-	public Color getParentGroupColor() {
+	public Color getParentGroupColor()
+	{
 		return parentGroupColor;
 	}
 
-	public void setParentGroupColor( Color parentGroupsColor ) {
+	public void setParentGroupColor( Color parentGroupsColor )
+	{
 		this.parentGroupColor = parentGroupsColor;
 	}
 
-	public Color getOtherGroupColor() {
+	public Color getOtherGroupColor()
+	{
 		return otherGroupColor;
 	}
 
-	public void setOtherGroupColor( Color otherGroupsColor ) {
+	public void setOtherGroupColor( Color otherGroupsColor )
+	{
 		this.otherGroupColor = otherGroupsColor;
 	}
 
-	public Color getBackgroundColor() {
+	public Color getBackgroundColor()
+	{
 		return backgroundColor;
 	}
 
-	public void setBackgroundColor( Color backgroudColor ) {
+	public void setBackgroundColor( Color backgroudColor )
+	{
 		this.backgroundColor = backgroudColor;
 	}
 
-	public Color getAncestorGroupColor() {
+	public Color getAncestorGroupColor()
+	{
 		return ancestorGroupColor;
 	}
 
-	public void setAncestorGroupColor( Color ancestorColor ) {
+	public void setAncestorGroupColor( Color ancestorColor )
+	{
 		this.ancestorGroupColor = ancestorColor;
 	}
 
-	public int getTreeWidth() {
+	public int getTreeWidth()
+	{
 		return treeResolutionWidth;
 	}
 
-	public void setTreeWidth( int imageWidth ) {
+	public void setTreeWidth( int imageWidth )
+	{
 		this.treeResolutionWidth = imageWidth;
 	}
 
-	public int getTreeHeight() {
+	public int getTreeHeight()
+	{
 		return treeResolutionHeight;
 	}
 
-	public void setTreeHeight( int imageHeight ) {
+	public void setTreeHeight( int imageHeight )
+	{
 		this.treeResolutionHeight = imageHeight;
 	}
 
-	public int getPointWidth() {
+	public int getPointWidth()
+	{
 		return pointResolutionWidth;
 	}
 
-	public void setPointWidth( int imageWidth ) {
+	public void setPointWidth( int imageWidth )
+	{
 		this.pointResolutionWidth = imageWidth;
 	}
 
-	public int getPointHeight() {
+	public int getPointHeight()
+	{
 		return pointResolutionHeight;
 	}
 
-	public void setPointHeight( int imageHeight ) {
+	public void setPointHeight( int imageHeight )
+	{
 		this.pointResolutionHeight = imageHeight;
 	}
 
-	public double getPointScallingFactor() {
+	public double getPointScallingFactor()
+	{
 		return pointScalingFactor;
 	}
 
-	public void setPointScallingFactor( double pointScallingFactor ) {
+	public void setPointScallingFactor( double pointScallingFactor )
+	{
 		this.pointScalingFactor = pointScallingFactor;
 	}
 
-	public boolean isDisplayAllPoints() {
+	public boolean isDisplayAllPoints()
+	{
 		return displayAllPoints;
 	}
 
-	public void setDisplayAllPoints( boolean displayAllPoints ) {
+	public void setDisplayAllPoints( boolean displayAllPoints )
+	{
 		this.displayAllPoints = displayAllPoints;
 	}
 
-	public Path getInputDataFilePath() {
+	public Path getInputDataFilePath()
+	{
 		return inputDataFilePath;
 	}
 
-	public void setInputDataFilePath( Path path ) {
+	public void setInputDataFilePath( Path path )
+	{
 		this.inputDataFilePath = path;
 	}
 
-	public Path getOutputFolder() {
+	public Path getOutputFolder()
+	{
 		return outputFolder;
 	}
 
-	public void setOutputFolder( Path path ) {
+	public void setOutputFolder( Path path )
+	{
 		this.outputFolder = path;
 	}
 
-	public boolean hasClassAttribute() {
+	public boolean hasClassAttribute()
+	{
 		return classAttribute;
 	}
 
-	public void setClassAttribute( boolean classAttribute ) {
+	public void setClassAttribute( boolean classAttribute )
+	{
 		this.classAttribute = classAttribute;
 	}
 
-	public boolean hasInstanceNameAttribute() {
+	public boolean hasInstanceNameAttribute()
+	{
 		return instanceNameAttribute;
 	}
 
-	public void setInstanceNameAttribute( boolean instanceNameAttribute ) {
+	public void setInstanceNameAttribute( boolean instanceNameAttribute )
+	{
 		this.instanceNameAttribute = instanceNameAttribute;
 	}
 
-	public void setNumberOfHistogramBins( int numberOfHistogramBins ) {
+	public void setNumberOfHistogramBins( int numberOfHistogramBins )
+	{
 		this.numberOfHistogramBins = numberOfHistogramBins;
 	}
 
-	public int getNumberOfHistogramBins() {
+	public int getNumberOfHistogramBins()
+	{
 		return numberOfHistogramBins;
 	}
 
-	public void setSkipVisualisations( boolean skipVisualisations ) {
+	public void setSkipVisualisations( boolean skipVisualisations )
+	{
 		this.skipVisualisations = skipVisualisations;
 	}
 
-	public boolean hasSkipVisualisations() {
+	public boolean hasSkipVisualisations()
+	{
 		return this.skipVisualisations;
 	}
 
-	public void setPreferredLookAndFeel( String lookAndFeel ) {
+	public void setPreferredLookAndFeel( String lookAndFeel )
+	{
 		preferredLookAndFeel = lookAndFeel;
 	}
 
-	public String getPreferredLookAndFeel() {
+	public String getPreferredLookAndFeel()
+	{
 		return preferredLookAndFeel;
 	}
 
@@ -538,7 +597,8 @@ public class HVConfig {
 	 */
 
 	@Override
-	public boolean equals( Object o ) {
+	public boolean equals( Object o )
+	{
 		if ( o == null )
 			return false;
 		if ( o instanceof HVConfig == false )
@@ -546,7 +606,8 @@ public class HVConfig {
 		return equals( (HVConfig)o );
 	}
 
-	public boolean equals( HVConfig o ) {
+	public boolean equals( HVConfig o )
+	{
 		try {
 			for ( Field field : HVConfig.class.getDeclaredFields() ) {
 				if ( isValidField( field ) ) {
@@ -575,6 +636,7 @@ public class HVConfig {
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
-	private @interface SerializableField {
+	private @interface SerializableField
+	{
 	}
 }

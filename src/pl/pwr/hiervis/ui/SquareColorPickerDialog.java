@@ -43,8 +43,8 @@ import pl.pwr.hiervis.util.Utils;
  * @author Tomasz Bachmiñski
  *
  */
-public class SquareColorPickerDialog extends JDialog {
-
+public class SquareColorPickerDialog extends JDialog
+{
 	private static final long serialVersionUID = 3476247193320539039L;
 	private static final Logger log = LogManager.getLogger( SquareColorPickerDialog.class );
 
@@ -60,12 +60,14 @@ public class SquareColorPickerDialog extends JDialog {
 	private JTextField txtG;
 	private JTextField txtB;
 
+	/** Prevents listeners from reacting to events when true. */
 	private boolean selectionUpdating = false;
 	private HSV tempSelection = null;
 	private HSV finalSelection = null;
 
 
-	public SquareColorPickerDialog( Window parent, Color inputColor ) {
+	public SquareColorPickerDialog( Window parent, Color inputColor )
+	{
 		super( parent, "Color Picker" );
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		setModal( true );
@@ -89,14 +91,16 @@ public class SquareColorPickerDialog extends JDialog {
 		setSelection( inputColor );
 	}
 
-	public void setSelection( HSV hsv ) {
+	public void setSelection( HSV hsv )
+	{
 		selectionUpdating = true;
 
 		tempSelection = new HSV( hsv );
 		lblNewColor.setBackground( tempSelection.toColor() );
 		shadePicker.setSelection(
-				tempSelection.getSaturation(),
-				tempSelection.getValue() );
+			tempSelection.getSaturation(),
+			tempSelection.getValue()
+		);
 		shadePicker.setHue( tempSelection.getHue() );
 		huePicker.setSelection( tempSelection.getHue() );
 
@@ -105,15 +109,18 @@ public class SquareColorPickerDialog extends JDialog {
 		updateInputFields();
 	}
 
-	public void setSelection( Color color ) {
+	public void setSelection( Color color )
+	{
 		setSelection( new HSV( color ) );
 	}
 
-	public void setSelection( int r, int g, int b ) {
+	public void setSelection( int r, int g, int b )
+	{
 		setSelection( new Color( r, g, b ) );
 	}
 
-	private void updateInputFields() {
+	private void updateInputFields()
+	{
 		selectionUpdating = true;
 		txtH.setText( "" + (int)( tempSelection.getHue() * 360 ) );
 		txtS.setText( "" + (int)( tempSelection.getSaturation() * 100 ) );
@@ -125,15 +132,18 @@ public class SquareColorPickerDialog extends JDialog {
 		selectionUpdating = false;
 	}
 
-	public Color getSelection() {
+	public Color getSelection()
+	{
 		return finalSelection.toColor();
 	}
 
-	public HSV getSelectionHSV() {
+	public HSV getSelectionHSV()
+	{
 		return new HSV( finalSelection );
 	}
 
-	private void createPickerPanel() {
+	private void createPickerPanel()
+	{
 		shadePicker = new ShadePicker();
 		shadePicker.setBorder( BorderFactory.createLineBorder( Color.lightGray ) );
 
@@ -154,17 +164,22 @@ public class SquareColorPickerDialog extends JDialog {
 		gbc_huePicker.gridy = 0;
 		getContentPane().add( huePicker, gbc_huePicker );
 
-		huePicker.setPreferredSize( new Dimension(
+		huePicker.setPreferredSize(
+			new Dimension(
 				20 + 2 * huePicker.getIndicatorSize(),
-				300 + huePicker.getIndicatorSize() ) );
+				300 + huePicker.getIndicatorSize()
+			)
+		);
 		shadePicker.setPreferredSize( new Dimension( 300, 300 ) );
 
-		huePicker.addPropertyChangeListener( HuePicker.SELECTED_HUE, ( e ) -> {
-			float h = (float)e.getNewValue();
-			shadePicker.setHue( h );
+		huePicker.addPropertyChangeListener(
+			HuePicker.SELECTED_HUE, ( e ) -> {
+				float h = (float)e.getNewValue();
+				shadePicker.setHue( h );
 
-			updateInputFields();
-		} );
+				updateInputFields();
+			}
+		);
 
 		PropertyChangeListener shadeListener = ( e ) -> {
 			if ( !selectionUpdating ) {
@@ -182,7 +197,8 @@ public class SquareColorPickerDialog extends JDialog {
 		shadePicker.addPropertyChangeListener( ShadePicker.SELECTED_VALUE, shadeListener );
 	}
 
-	private void createToolsPanel( Color inputColor ) {
+	private void createToolsPanel( Color inputColor )
+	{
 		int hueInset = 5 + huePicker.getIndicatorSize() / 2;
 
 		JPanel cTools = new JPanel();
@@ -226,19 +242,23 @@ public class SquareColorPickerDialog extends JDialog {
 		lblOldColor.setPreferredSize( new Dimension( 70, 25 ) );
 		lblNewColor.setPreferredSize( new Dimension( 70, 25 ) );
 
-		lblOldColor.addMouseListener( new MouseAdapter() {
-			@Override
-			public void mouseClicked( MouseEvent e ) {
-				if ( SwingUtilities.isLeftMouseButton( e ) ) {
-					setSelection( lblOldColor.getBackground() );
+		lblOldColor.addMouseListener(
+			new MouseAdapter() {
+				@Override
+				public void mouseClicked( MouseEvent e )
+				{
+					if ( SwingUtilities.isLeftMouseButton( e ) ) {
+						setSelection( lblOldColor.getBackground() );
+					}
 				}
 			}
-		} );
+		);
 
 		createInputFields( cTools );
 	}
 
-	private void createInputFields( JPanel container ) {
+	private void createInputFields( JPanel container )
+	{
 		JPanel cInputFields = new JPanel();
 		GridBagConstraints gbc_cInputFields = new GridBagConstraints();
 		gbc_cInputFields.fill = GridBagConstraints.BOTH;
@@ -385,15 +405,18 @@ public class SquareColorPickerDialog extends JDialog {
 		txtB.setDocument( new NumberDocument( 3 ) );
 
 		DocumentListener docListener = new DocumentListener() {
-			public void insertUpdate( DocumentEvent e ) {
+			public void insertUpdate( DocumentEvent e )
+			{
 				update( e );
 			}
 
-			public void removeUpdate( DocumentEvent e ) {
+			public void removeUpdate( DocumentEvent e )
+			{
 				update( e );
 			}
 
-			public void changedUpdate( DocumentEvent e ) {
+			public void changedUpdate( DocumentEvent e )
+			{
 				update( e );
 			}
 		};
@@ -406,7 +429,8 @@ public class SquareColorPickerDialog extends JDialog {
 		txtB.getDocument().addDocumentListener( docListener );
 	}
 
-	private void update( DocumentEvent e ) {
+	private void update( DocumentEvent e )
+	{
 		if ( selectionUpdating ) {
 			return;
 		}
@@ -416,8 +440,8 @@ public class SquareColorPickerDialog extends JDialog {
 			Document d = e.getDocument();
 
 			if ( d.equals( txtH.getDocument() ) ||
-					d.equals( txtS.getDocument() ) ||
-					d.equals( txtV.getDocument() ) ) {
+				d.equals( txtS.getDocument() ) ||
+				d.equals( txtV.getDocument() ) ) {
 
 				float h = Utils.clamp( 0, Float.parseFloat( getText( txtH.getDocument() ) ) / 360f, 1f );
 				float s = Utils.clamp( 0, Float.parseFloat( getText( txtS.getDocument() ) ) / 100f, 1f );
@@ -425,8 +449,8 @@ public class SquareColorPickerDialog extends JDialog {
 				SwingUtilities.invokeLater( () -> setSelection( new HSV( h, s, v ) ) );
 			}
 			else if ( d.equals( txtR.getDocument() ) ||
-					d.equals( txtG.getDocument() ) ||
-					d.equals( txtB.getDocument() ) ) {
+				d.equals( txtG.getDocument() ) ||
+				d.equals( txtB.getDocument() ) ) {
 
 				int r = Utils.clamp( 0, Integer.parseInt( getText( txtR.getDocument() ) ), 255 );
 				int g = Utils.clamp( 0, Integer.parseInt( getText( txtG.getDocument() ) ), 255 );
@@ -442,7 +466,8 @@ public class SquareColorPickerDialog extends JDialog {
 	}
 
 	private String getText( Document d )
-			throws BadLocationException {
+		throws BadLocationException
+	{
 		String result = d.getText( 0, d.getLength() );
 		if ( result == null || result.equals( "" ) ) {
 			result = "0";
@@ -450,7 +475,8 @@ public class SquareColorPickerDialog extends JDialog {
 		return result;
 	}
 
-	private void createButtonsPanel() {
+	private void createButtonsPanel()
+	{
 		JPanel cButtons = new JPanel();
 		GridBagConstraints gbc_cButtons = new GridBagConstraints();
 		gbc_cButtons.anchor = GridBagConstraints.SOUTH;
@@ -479,14 +505,18 @@ public class SquareColorPickerDialog extends JDialog {
 		gbc_btnCancel.gridy = 0;
 		cButtons.add( btnCancel, gbc_btnCancel );
 
-		btnCancel.addActionListener( ( e ) -> {
-			dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
-		} );
+		btnCancel.addActionListener(
+			( e ) -> {
+				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
+			}
+		);
 
-		btnConfirm.addActionListener( ( e ) -> {
-			finalSelection = tempSelection;
-			dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
-		} );
+		btnConfirm.addActionListener(
+			( e ) -> {
+				finalSelection = tempSelection;
+				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
+			}
+		);
 
 		SwingUtilities.invokeLater( () -> btnConfirm.requestFocusInWindow() );
 	}

@@ -21,8 +21,8 @@ import prefuse.visual.VisualItem;
  * @author <a href="http://jheer.org">jeffrey heer</a>
  * @author Tomasz Bachmiñski - modified to ignore only EdgeItems
  */
-public class PanControl extends ControlAdapter {
-
+public class PanControl extends ControlAdapter
+{
 	private boolean m_panOverItem;
 	private int m_xDown, m_yDown;
 	private int m_button;
@@ -31,7 +31,8 @@ public class PanControl extends ControlAdapter {
 	/**
 	 * Create a new PanControl.
 	 */
-	public PanControl() {
+	public PanControl()
+	{
 		this( LEFT_MOUSE_BUTTON, false );
 	}
 
@@ -42,7 +43,8 @@ public class PanControl extends ControlAdapter {
 	 *            if true, the panning control will work even while
 	 *            the mouse is over a visual item.
 	 */
-	public PanControl( boolean panOverItem ) {
+	public PanControl( boolean panOverItem )
+	{
 		this( LEFT_MOUSE_BUTTON, panOverItem );
 	}
 
@@ -54,7 +56,8 @@ public class PanControl extends ControlAdapter {
 	 *            {@link Control#LEFT_MOUSE_BUTTON}, {@link Control#MIDDLE_MOUSE_BUTTON},
 	 *            or {@link Control#RIGHT_MOUSE_BUTTON}.
 	 */
-	public PanControl( int mouseButton ) {
+	public PanControl( int mouseButton )
+	{
 		this( mouseButton, false );
 	}
 
@@ -69,7 +72,8 @@ public class PanControl extends ControlAdapter {
 	 *            if true, the panning control will work even while
 	 *            the mouse is over a visual item.
 	 */
-	public PanControl( int mouseButton, boolean panOverItem ) {
+	public PanControl( int mouseButton, boolean panOverItem )
+	{
 		m_button = mouseButton;
 		m_panOverItem = panOverItem;
 	}
@@ -79,10 +83,10 @@ public class PanControl extends ControlAdapter {
 	/**
 	 * @see MouseListener#mousePressed(MouseEvent)
 	 */
-	public void mousePressed( MouseEvent e ) {
+	public void mousePressed( MouseEvent e )
+	{
 		if ( UILib.isButtonPressed( e, m_button ) ) {
-			e.getComponent().setCursor(
-					Cursor.getPredefinedCursor( Cursor.MOVE_CURSOR ) );
+			e.getComponent().setCursor( Cursor.getPredefinedCursor( Cursor.MOVE_CURSOR ) );
 			m_xDown = e.getX();
 			m_yDown = e.getY();
 		}
@@ -91,7 +95,8 @@ public class PanControl extends ControlAdapter {
 	/**
 	 * @see MouseMotionListener#mouseDragged(MouseEvent)
 	 */
-	public void mouseDragged( MouseEvent e ) {
+	public void mouseDragged( MouseEvent e )
+	{
 		if ( UILib.isButtonPressed( e, m_button ) ) {
 			Display display = (Display)e.getComponent();
 			int x = e.getX(), y = e.getY();
@@ -106,7 +111,8 @@ public class PanControl extends ControlAdapter {
 	/**
 	 * @see MouseListener#mouseReleased(MouseEvent)
 	 */
-	public void mouseReleased( MouseEvent e ) {
+	public void mouseReleased( MouseEvent e )
+	{
 		if ( UILib.isButtonPressed( e, m_button ) ) {
 			e.getComponent().setCursor( Cursor.getDefaultCursor() );
 			m_xDown = -1;
@@ -117,7 +123,8 @@ public class PanControl extends ControlAdapter {
 	/**
 	 * @see Control#itemPressed(VisualItem, MouseEvent)
 	 */
-	public void itemPressed( VisualItem item, MouseEvent e ) {
+	public void itemPressed( VisualItem item, MouseEvent e )
+	{
 		if ( m_panOverItem && item instanceof EdgeItem )
 			mousePressed( e );
 	}
@@ -125,7 +132,8 @@ public class PanControl extends ControlAdapter {
 	/**
 	 * @see Control#itemDragged(VisualItem, MouseEvent)
 	 */
-	public void itemDragged( VisualItem item, MouseEvent e ) {
+	public void itemDragged( VisualItem item, MouseEvent e )
+	{
 		if ( m_panOverItem && item instanceof EdgeItem )
 			mouseDragged( e );
 	}
@@ -133,9 +141,9 @@ public class PanControl extends ControlAdapter {
 	/**
 	 * @see Control#itemReleased(VisualItem, MouseEvent)
 	 */
-	public void itemReleased( VisualItem item, MouseEvent e ) {
+	public void itemReleased( VisualItem item, MouseEvent e )
+	{
 		if ( m_panOverItem && item instanceof EdgeItem )
 			mouseReleased( e );
 	}
-
-} // end of class PanControl
+}

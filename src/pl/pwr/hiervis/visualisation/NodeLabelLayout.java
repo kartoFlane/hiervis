@@ -8,14 +8,16 @@ import prefuse.visual.DecoratorItem;
 import prefuse.visual.VisualItem;
 
 
-public class NodeLabelLayout extends Layout {
-
-	public NodeLabelLayout( String group ) {
+public class NodeLabelLayout extends Layout
+{
+	public NodeLabelLayout( String group )
+	{
 		super( group );
 	}
 
 	@Override
-	public void run( double frac ) {
+	public void run( double frac )
+	{
 		Iterator<?> iter = m_vis.items( m_group );
 
 		while ( iter.hasNext() ) {

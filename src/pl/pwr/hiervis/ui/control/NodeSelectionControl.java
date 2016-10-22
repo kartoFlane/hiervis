@@ -40,19 +40,21 @@ import prefuse.visual.tuple.TableEdgeItem;
  * @author Tomasz Bachmiñski
  *
  */
-public class NodeSelectionControl extends ControlAdapter {
-
+public class NodeSelectionControl extends ControlAdapter
+{
 	protected HVContext context;
 	protected Display pointDisplay;
 
 
-	public NodeSelectionControl( HVContext context, Display pointDisplay ) {
+	public NodeSelectionControl( HVContext context, Display pointDisplay )
+	{
 		this.context = context;
 		this.pointDisplay = pointDisplay;
 	}
 
 	@Override
-	public void itemClicked( VisualItem item, MouseEvent e ) {
+	public void itemClicked( VisualItem item, MouseEvent e )
+	{
 		if ( item instanceof TableEdgeItem ) {
 			// Ignore clicks on edges.
 			return;
@@ -63,16 +65,19 @@ public class NodeSelectionControl extends ControlAdapter {
 	}
 
 	@Override
-	public void itemKeyPressed( VisualItem item, KeyEvent e ) {
+	public void itemKeyPressed( VisualItem item, KeyEvent e )
+	{
 		selectNode( e );
 	}
 
 	@Override
-	public void keyPressed( KeyEvent e ) {
+	public void keyPressed( KeyEvent e )
+	{
 		selectNode( e );
 	}
 
-	private void selectNode( KeyEvent e ) {
+	private void selectNode( KeyEvent e )
+	{
 		if ( isArrowEvent( e ) ) {
 			Display d = (Display)e.getSource();
 
@@ -119,7 +124,8 @@ public class NodeSelectionControl extends ControlAdapter {
 		}
 	}
 
-	private boolean isArrowEvent( KeyEvent e ) {
+	private boolean isArrowEvent( KeyEvent e )
+	{
 		switch ( e.getKeyCode() ) {
 			case KeyEvent.VK_UP:
 			case KeyEvent.VK_DOWN:
@@ -135,7 +141,8 @@ public class NodeSelectionControl extends ControlAdapter {
 		}
 	}
 
-	public static void selectNode( HVContext context, Display treeDisplay, Display pointDisplay, int row ) {
+	public static void selectNode( HVContext context, Display treeDisplay, Display pointDisplay, int row )
+	{
 		context.setSelectedRow( row );
 
 		updateNodeRoles( context, context.getSelectedRow() );
@@ -158,7 +165,8 @@ public class NodeSelectionControl extends ControlAdapter {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void updateNodeRoles( HVContext context, int row ) {
+	private static void updateNodeRoles( HVContext context, int row )
+	{
 		Tree hierarchyTree = context.getTree();
 		HVConfig config = context.getConfig();
 

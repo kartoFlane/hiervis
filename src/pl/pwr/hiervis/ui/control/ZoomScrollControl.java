@@ -18,126 +18,142 @@ import prefuse.visual.VisualItem;
  * @author Tomasz Bachmiñski
  *
  */
-public class ZoomScrollControl extends ControlAdapter {
-
+public class ZoomScrollControl extends ControlAdapter
+{
 	private double zoomMin;
 	private double zoomMax;
 	private double zoomStep;
 
 
-	public ZoomScrollControl() {
+	public ZoomScrollControl()
+	{
 		this( 0.1, 10, 0.1 );
 	}
 
-	public ZoomScrollControl( double min, double max, double step ) {
-		if ( min <= 0 )
-			throw new IllegalArgumentException( String.format(
-					"min must be a positive number (%s)",
-					min ) );
-		if ( max <= 0 )
-			throw new IllegalArgumentException( String.format(
-					"max must be a positive number (%s)",
-					max ) );
-		if ( step <= 0 )
-			throw new IllegalArgumentException( String.format(
-					"step must be a positive number (%s)",
-					step ) );
-		if ( min > max )
-			throw new IllegalArgumentException( String.format(
-					"max must be greater than or equal to min (%s <= %s)",
-					min, max ) );
+	public ZoomScrollControl( double min, double max, double step )
+	{
+		if ( min <= 0 ) {
+			throw new IllegalArgumentException(
+				String.format( "min must be a positive number (%s)", min )
+			);
+		}
+		if ( max <= 0 ) {
+			throw new IllegalArgumentException(
+				String.format( "max must be a positive number (%s)", max )
+			);
+		}
+		if ( step <= 0 ) {
+			throw new IllegalArgumentException(
+				String.format( "step must be a positive number (%s)", step )
+			);
+		}
+		if ( min > max ) {
+			throw new IllegalArgumentException(
+				String.format( "max must be greater than or equal to min (%s <= %s)", min, max )
+			);
+		}
 
 		zoomMin = min;
 		zoomMax = max;
 		zoomStep = step;
 	}
 
-	public double getZoomMin() {
+	public double getZoomMin()
+	{
 		return zoomMin;
 	}
 
-	public void setZoomMin( double min ) {
+	public void setZoomMin( double min )
+	{
 		if ( min <= 0 ) {
-			throw new IllegalArgumentException( String.format(
-					"min must be a positive number (%s)",
-					min ) );
+			throw new IllegalArgumentException(
+				String.format( "min must be a positive number (%s)", min )
+			);
 		}
 		if ( min > zoomMax ) {
-			throw new IllegalArgumentException( String.format(
-					"max must be greater than or equal to min (%s <= %s)",
-					min, zoomMax ) );
+			throw new IllegalArgumentException(
+				String.format( "max must be greater than or equal to min (%s <= %s)", min, zoomMax )
+			);
 		}
 
 		zoomMin = min;
 	}
 
-	public double getZoomMax() {
+	public double getZoomMax()
+	{
 		return zoomMax;
 	}
 
-	public void setZoomMax( double max ) {
+	public void setZoomMax( double max )
+	{
 		if ( max <= 0 ) {
-			throw new IllegalArgumentException( String.format(
-					"max must be a positive number (%s)",
-					max ) );
+			throw new IllegalArgumentException(
+				String.format( "max must be a positive number (%s)", max )
+			);
 		}
 		if ( zoomMin > max ) {
-			throw new IllegalArgumentException( String.format(
-					"max must be greater than or equal to min (%s <= %s)",
-					zoomMin, max ) );
+			throw new IllegalArgumentException(
+				String.format( "max must be greater than or equal to min (%s <= %s)", zoomMin, max )
+			);
 		}
 
 		zoomMax = max;
 	}
 
-	public void setZoomMinMax( double min, double max ) {
+	public void setZoomMinMax( double min, double max )
+	{
 		if ( min <= 0 ) {
-			throw new IllegalArgumentException( String.format(
-					"min must be a positive number (%s)",
-					min ) );
+			throw new IllegalArgumentException(
+				String.format( "min must be a positive number (%s)", min )
+			);
 		}
 		if ( max <= 0 ) {
-			throw new IllegalArgumentException( String.format(
-					"max must be a positive number (%s)",
-					max ) );
+			throw new IllegalArgumentException(
+				String.format( "max must be a positive number (%s)", max )
+			);
 		}
 		if ( min > max ) {
-			throw new IllegalArgumentException( String.format(
-					"max must be greater than or equal to min (%s <= %s)",
-					min, max ) );
+			throw new IllegalArgumentException(
+				String.format( "max must be greater than or equal to min (%s <= %s)", min, max )
+			);
 		}
 
 		zoomMin = min;
 		zoomMax = max;
 	}
 
-	public double getZoomStep() {
+	public double getZoomStep()
+	{
 		return zoomStep;
 	}
 
-	public void setZoomStep( double step ) {
+	public void setZoomStep( double step )
+	{
 		if ( step <= 0 ) {
-			throw new IllegalArgumentException( String.format(
-					"step must be a positive number (%s)",
-					step ) );
+			throw new IllegalArgumentException(
+				String.format( "step must be a positive number (%s)", step )
+			);
 		}
 
 		zoomStep = step;
 	}
 
 	@Override
-	public void itemWheelMoved( VisualItem item, MouseWheelEvent e ) {
+	public void itemWheelMoved( VisualItem item, MouseWheelEvent e )
+	{
 		mouseWheelMoved( e );
 	}
 
 	@Override
-	public void mousePressed( MouseEvent e ) {
+	public void mousePressed( MouseEvent e )
+	{
 		Display d = (Display)e.getSource();
 		d.requestFocus();
 	}
 
 	@Override
-	public void mouseWheelMoved( MouseWheelEvent e ) {
+	public void mouseWheelMoved( MouseWheelEvent e )
+	{
 		Display d = (Display)e.getSource();
 		d.requestFocus();
 
@@ -154,9 +170,9 @@ public class ZoomScrollControl extends ControlAdapter {
 	}
 
 	@Override
-	public void keyPressed( KeyEvent e ) {
-		if ( e.isControlDown() &&
-				( e.getKeyCode() == KeyEvent.VK_NUMPAD0 || e.getKeyCode() == KeyEvent.VK_0 ) ) {
+	public void keyPressed( KeyEvent e )
+	{
+		if ( e.isControlDown() && ( e.getKeyCode() == KeyEvent.VK_NUMPAD0 || e.getKeyCode() == KeyEvent.VK_0 ) ) {
 			Display d = (Display)e.getSource();
 
 			Rectangle2D rect = null;
@@ -170,8 +186,9 @@ public class ZoomScrollControl extends ControlAdapter {
 			}
 
 			Point2D p = new Point2D.Double(
-					rect.getCenterX(),
-					rect.getCenterY() );
+				rect.getCenterX(),
+				rect.getCenterY()
+			);
 
 			d.animatePanAndZoomToAbs( p, 1 / d.getScale(), 500 );
 		}

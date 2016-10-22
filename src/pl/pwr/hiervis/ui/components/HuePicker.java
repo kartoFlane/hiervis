@@ -21,8 +21,8 @@ import pl.pwr.hiervis.util.Utils;
  * @author Tomasz Bachmiñski
  *
  */
-public class HuePicker extends JComponent {
-
+public class HuePicker extends JComponent
+{
 	public static final String SELECTED_HUE = HuePicker.class.getCanonicalName() + ":SELECTED_HUE";
 
 	private static final long serialVersionUID = -614405052134068408L;
@@ -38,17 +38,20 @@ public class HuePicker extends JComponent {
 	private boolean paintHueBorder = true;
 
 
-	public HuePicker() {
+	public HuePicker()
+	{
 		super();
 
 		MouseAdapter ml = new MouseAdapter() {
 			@Override
-			public void mousePressed( MouseEvent e ) {
+			public void mousePressed( MouseEvent e )
+			{
 				setSelection( e );
 			}
 
 			@Override
-			public void mouseDragged( MouseEvent e ) {
+			public void mouseDragged( MouseEvent e )
+			{
 				setSelection( e );
 			}
 		};
@@ -57,14 +60,16 @@ public class HuePicker extends JComponent {
 		this.addMouseMotionListener( ml );
 	}
 
-	public void setIndicatorSize( int size ) {
+	public void setIndicatorSize( int size )
+	{
 		if ( size <= 0 )
 			throw new IllegalArgumentException( "Size must be greater than 0." );
 		indicatorSize = size;
 		repaint();
 	}
 
-	public int getIndicatorSize() {
+	public int getIndicatorSize()
+	{
 		return indicatorSize;
 	}
 
@@ -75,28 +80,33 @@ public class HuePicker extends JComponent {
 	 * This is useful for when the component has very small width compared
 	 * to the selection indicators.
 	 */
-	public void setPaintHuesMaximized( boolean value ) {
+	public void setPaintHuesMaximized( boolean value )
+	{
 		paintHuesMaximized = value;
 		repaint();
 	}
 
-	public boolean getPaintHuesMaximized() {
+	public boolean getPaintHuesMaximized()
+	{
 		return paintHuesMaximized;
 	}
 
 	/**
 	 * If set to true, the hue band will be painted with a 1px border around it.
 	 */
-	public void setPaintHueBorder( boolean value ) {
+	public void setPaintHueBorder( boolean value )
+	{
 		paintHueBorder = value;
 		repaint();
 	}
 
-	public boolean getPaintHueBorder() {
+	public boolean getPaintHueBorder()
+	{
 		return paintHueBorder;
 	}
 
-	public void setSelection( float hue ) {
+	public void setSelection( float hue )
+	{
 		if ( hue < 0 || hue > 1.0f )
 			throw new IllegalArgumentException( "0 < " + hue + " < 1.0" );
 		float o = selectedHue;
@@ -105,15 +115,18 @@ public class HuePicker extends JComponent {
 		firePropertyChange( SELECTED_HUE, o, hue );
 	}
 
-	public void setSelection( Color color ) {
+	public void setSelection( Color color )
+	{
 		setSelection( new HSV( color ).getHue() );
 	}
 
-	public float getSelection() {
+	public float getSelection()
+	{
 		return selectedHue;
 	}
 
-	private void setSelection( MouseEvent e ) {
+	private void setSelection( MouseEvent e )
+	{
 		if ( SwingUtilities.isLeftMouseButton( e ) ) {
 			final int minY = indicatorSize / 2;
 			final int maxY = getHeight() - indicatorSize / 2;
@@ -124,19 +137,22 @@ public class HuePicker extends JComponent {
 	}
 
 	@Override
-	public void paintComponent( Graphics g ) {
+	public void paintComponent( Graphics g )
+	{
 		super.paintComponent( g );
 
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint(
-				RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON );
+			RenderingHints.KEY_ANTIALIASING,
+			RenderingHints.VALUE_ANTIALIAS_ON
+		);
 
 		paintHues( g2 );
 		paintSelectionIndicator( g2 );
 	}
 
-	protected void paintHues( Graphics g ) {
+	protected void paintHues( Graphics g )
+	{
 		final int x;
 		final int w;
 		final int h = getHeight() - indicatorSize;
@@ -169,7 +185,8 @@ public class HuePicker extends JComponent {
 		}
 	}
 
-	protected void paintSelectionIndicator( Graphics g ) {
+	protected void paintSelectionIndicator( Graphics g )
+	{
 		final int w = getWidth();
 		final int h = getHeight() - indicatorSize;
 

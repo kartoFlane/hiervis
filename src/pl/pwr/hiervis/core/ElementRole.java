@@ -1,6 +1,7 @@
 package pl.pwr.hiervis.core;
 
-public enum ElementRole {
+public enum ElementRole
+{
 	CURRENT( 0 ),
 	DIRECT_PARENT( 1 ),
 	INDIRECT_PARENT( 2 ),
@@ -10,11 +11,13 @@ public enum ElementRole {
 	private final int number;
 
 
-	private ElementRole( int number ) {
+	private ElementRole( int number )
+	{
 		this.number = number;
 	}
 
-	public int getNumber() {
+	public int getNumber()
+	{
 		return this.number;
 	}
 }

@@ -46,8 +46,8 @@ import prefuse.visual.expression.VisiblePredicate;
  * @author <a href="http://jheer.org">jeffrey heer</a>
  * @author <a href="http://webfoot.com/ducky.home.html">Kaitlin Duck Sherwood</a>
  */
-public class HistogramGraph extends Display {
-
+public class HistogramGraph extends Display
+{
 	private static final long serialVersionUID = 1L;
 	protected static final String current = "current";
 	protected static final String allData = "allData";
@@ -87,7 +87,8 @@ public class HistogramGraph extends Display {
 	 * @param nodeImgRightBorderWidth
 	 */
 	public HistogramGraph( HistogramTable currentHistoTable, HistogramTable directParentHistoTable,
-			String startingField, int width, int height, HVConfig params, int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth ) {
+		String startingField, int width, int height, HVConfig params, int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
+	{
 		super( new Visualization() );
 
 		m_shapeR = new BarRenderer( 10, params );
@@ -123,8 +124,10 @@ public class HistogramGraph extends Display {
 		// STEP 2: create actions to process the visual data
 		initializeAxes( startingField );
 
-		ColorAction allDataColor = new ColorAction( allData, VisualItem.FILLCOLOR,
-				params.getOtherGroupColor().getRGB() );
+		ColorAction allDataColor = new ColorAction(
+			allData, VisualItem.FILLCOLOR,
+			params.getOtherGroupColor().getRGB()
+		);
 
 		m_vis.putAction( "color", allDataColor );
 
@@ -157,7 +160,8 @@ public class HistogramGraph extends Display {
 	 * @param nodeImgBorderWidth
 	 * @param nodeImgRightBorderWidth
 	 */
-	private void initializeWindowCharacteristics( int width, int height, int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth ) {
+	private void initializeWindowCharacteristics( int width, int height, int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
+	{
 		setBorder( BorderFactory.createEmptyBorder( height / 100, nodeImgLeftBorderWidth, height / 100, /* nodeImgBorderWidth */0 ) );// zamiast prawego marginesu bedzie os OY
 		setSize( width + nodeImgLeftBorderWidth + nodeImgRightBorderWidth, height );
 
@@ -171,16 +175,21 @@ public class HistogramGraph extends Display {
 	 * @param fieldName
 	 *            the name of the field (column) to display
 	 */
-	private void initializeAxes( String fieldName ) {
-		m_xAxis = new AxisLayout( allData, fieldName,
-				Constants.X_AXIS, VisiblePredicate.TRUE );
+	private void initializeAxes( String fieldName )
+	{
+		m_xAxis = new AxisLayout(
+			allData, fieldName,
+			Constants.X_AXIS, VisiblePredicate.TRUE
+		);
 		m_xAxis.setLayoutBounds( m_dataB );
 		m_xAxis.setDataType( Constants.NUMERICAL );
 		m_vis.putAction( "x", m_xAxis );
 
 		String countField = HistogramTable.getCountField( fieldName );
-		m_yAxis = new AxisLayout( allData, countField,
-				Constants.Y_AXIS, VisiblePredicate.TRUE );
+		m_yAxis = new AxisLayout(
+			allData, countField,
+			Constants.Y_AXIS, VisiblePredicate.TRUE
+		);
 
 		m_yAxis.setLayoutBounds( m_dataB );
 		m_vis.putAction( "y", m_yAxis );
@@ -193,29 +202,34 @@ public class HistogramGraph extends Display {
 	}
 
 
-	private void initializeRenderer() {
-		m_vis.setRendererFactory( new RendererFactory() {
-			Renderer yAxisRenderer = new AxisRenderer( Constants.RIGHT, Constants.TOP );
-			Renderer xAxisRenderer = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
-			Renderer barRenderer = new PolygonRenderer( Constants.POLY_TYPE_LINE );
+	private void initializeRenderer()
+	{
+		m_vis.setRendererFactory(
+			new RendererFactory() {
+				Renderer yAxisRenderer = new AxisRenderer( Constants.RIGHT, Constants.TOP );
+				Renderer xAxisRenderer = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
+				Renderer barRenderer = new PolygonRenderer( Constants.POLY_TYPE_LINE );
 
 
-			public Renderer getRenderer( VisualItem item ) {
-				if ( item.isInGroup( "ylabels" ) )
-					return yAxisRenderer;
-				if ( item.isInGroup( "xlabels" ) )
-					return xAxisRenderer;
-				if ( item.isInGroup( "barchart" ) )
-					return barRenderer;
-				return m_shapeR;
+				public Renderer getRenderer( VisualItem item )
+				{
+					if ( item.isInGroup( "ylabels" ) )
+						return yAxisRenderer;
+					if ( item.isInGroup( "xlabels" ) )
+						return xAxisRenderer;
+					if ( item.isInGroup( "barchart" ) )
+						return barRenderer;
+					return m_shapeR;
 
+				}
 			}
-		} );
+		);
 	}
 
 	// This is taken from CongressDemo.displayLayout.
 	// This puts the axes on the right
-	public double initializeLayoutBoundsForDisplay( int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth ) {
+	public double initializeLayoutBoundsForDisplay( int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
+	{
 		Insets i = getInsets();
 		int w = getWidth();
 		int h = getHeight();
@@ -233,8 +247,10 @@ public class HistogramGraph extends Display {
 		m_dataB.setRect( i.left, i.top, finalWidthForBars, h - xAxisHeightWithLabels - insetHeight ); // TODO: when implementing the possibility of chart
 		// orientation change we should get rid of barWidthOnCanvas and add something in height
 
-		m_xlabB.setRect( i.left, h - xAxisHeightWithLabels - i.bottom, w - insetWidth - nodeImgRightBorderWidth,
-				xAxisHeightWithLabels - xAxisLabelsHeight );
+		m_xlabB.setRect(
+			i.left, h - xAxisHeightWithLabels - i.bottom, w - insetWidth - nodeImgRightBorderWidth,
+			xAxisHeightWithLabels - xAxisLabelsHeight
+		);
 		m_ylabB.setRect( i.left, i.top, w - insetWidth, h - insetHeight - xAxisHeightWithLabels );
 
 		m_vis.run( "update" );
@@ -247,7 +263,8 @@ public class HistogramGraph extends Display {
 	 * @param dataField
 	 *            the name of the column in histoTable to display
 	 */
-	public void updateAxes( String dataField ) {
+	public void updateAxes( String dataField )
+	{
 
 		// The extra variable defs are probably unneeded, but
 		// date from the time I was trying to debug the
@@ -269,8 +286,10 @@ public class HistogramGraph extends Display {
 		yaxis.setDataField( countField );
 		// I could set the range model to null as above, but with histograms,
 		// you really want the bars to go from 0 to max, not from min to max. -- KDS
-		NumberRangeModel rangeModel = new NumberRangeModel( 0, m_allDataHistoTable.getCountMax( dataField ), 0,
-				m_allDataHistoTable.getCountMax( dataField ) );
+		NumberRangeModel rangeModel = new NumberRangeModel(
+			0, m_allDataHistoTable.getCountMax( dataField ), 0,
+			m_allDataHistoTable.getCountMax( dataField )
+		);
 		yaxis.setRangeModel( rangeModel );
 		ylabels.setRangeModel( rangeModel );
 
@@ -286,7 +305,8 @@ public class HistogramGraph extends Display {
 	 *         is int, float, or double or if it is not. Note that booleans are
 	 *         treated as non-numerics under this logic.
 	 */
-	private boolean isNumeric( String dataField ) {
+	private boolean isNumeric( String dataField )
+	{
 		return m_currentHistoTable.getColumn( dataField ).canGetDouble();
 	}
 
@@ -297,7 +317,8 @@ public class HistogramGraph extends Display {
 	 *         Note that HistogramGraph hasn't been tested with boolean or derived fields.
 	 *         I believe that HistogramTable treats booleans as strings. -- KDS
 	 */
-	protected int getAxisType( String dataField ) {
+	protected int getAxisType( String dataField )
+	{
 		if ( isNumeric( dataField ) ) {
 			return Constants.NUMERICAL;
 		}
@@ -310,7 +331,8 @@ public class HistogramGraph extends Display {
 	 * @param startingField
 	 * @return either the input or the first field in the data table
 	 */
-	protected String getStartingField( String startingField ) {
+	protected String getStartingField( String startingField )
+	{
 		if ( null == startingField ) {
 			startingField = m_currentHistoTable.getColumnName( 0 );
 		}
@@ -319,32 +341,39 @@ public class HistogramGraph extends Display {
 
 	// These getters were purely for help debugging the axis problem.
 	// As I haven't chased that down completely, I've left them in. -- KDS
-	protected AxisLayout getXAxis() {
+	protected AxisLayout getXAxis()
+	{
 		return m_xAxis;
 	}
 
-	protected AxisLayout getYAxis() {
+	protected AxisLayout getYAxis()
+	{
 		return m_yAxis;
 	}
 
-	protected AxisLabelLayout getXLabels() {
+	protected AxisLabelLayout getXLabels()
+	{
 		return m_xLabels;
 	}
 
-	protected AxisLabelLayout getYLabels() {
+	protected AxisLabelLayout getYLabels()
+	{
 		return m_yLabels;
 	}
 
-	protected HistogramTable getHistoTable() {
+	protected HistogramTable getHistoTable()
+	{
 		return m_currentHistoTable;
 	}
 
 
-	public static int getDefaultBinCount() {
+	public static int getDefaultBinCount()
+	{
 		return DEFAULT_BIN_COUNT;
 	}
 
-	public static void setAllDataHistoTable( HistogramTable m_allDataHistoTable ) {
+	public static void setAllDataHistoTable( HistogramTable m_allDataHistoTable )
+	{
 		HistogramGraph.m_allDataHistoTable = m_allDataHistoTable;
 	}
-} // end of class HistogramGraph
+}

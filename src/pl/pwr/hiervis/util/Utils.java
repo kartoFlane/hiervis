@@ -9,22 +9,24 @@ import java.awt.image.BufferedImage;
 
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
-import pl.pwr.hiervis.core.HVConstants;
 import prefuse.Display;
 import prefuse.activity.ActivityManager;
 
 
-public class Utils {
-
-	private Utils() {
+public class Utils
+{
+	private Utils()
+	{
 		// Static class -- disallow instantiation.
 		throw new RuntimeException( "Attempted to instantiate a static class: " + getClass().getName() );
 	}
 
-	public static void waitUntilActivitiesAreFinished() {
+	public static void waitUntilActivitiesAreFinished()
+	{
 		while ( ActivityManager.activityCount() > 0 ) {
 			try {
-				Thread.sleep( HVConstants.SLEEP_TIME );
+				// Poll every 100ms
+				Thread.sleep( 100 );
 			}
 			catch ( InterruptedException e ) {
 				e.printStackTrace();
@@ -32,19 +34,23 @@ public class Utils {
 		}
 	}
 
-	public static Point2D getDisplayCenter( Display display ) {
+	public static Point2D getDisplayCenter( Display display )
+	{
 		Rectangle2D contentRect = display.getVisibleRect();
 
 		return new Point2D.Double(
-				contentRect.getCenterX(),
-				contentRect.getCenterY() );
+			contentRect.getCenterX(),
+			contentRect.getCenterY()
+		);
 	}
 
-	public static void resetDisplayZoom( Display display ) {
+	public static void resetDisplayZoom( Display display )
+	{
 		display.zoomAbs( getDisplayCenter( display ), 1 / display.getScale() );
 	}
 
-	public static BufferedImage getDisplaySnapshot( Display dis ) {
+	public static BufferedImage getDisplaySnapshot( Display dis )
+	{
 		BufferedImage img = null;
 		try {
 			// get an image to draw into
@@ -60,9 +66,10 @@ public class Utils {
 
 			if ( img == null ) {
 				img = new BufferedImage(
-						dis.getWidth(),
-						dis.getHeight(),
-						BufferedImage.TYPE_INT_RGB );
+					dis.getWidth(),
+					dis.getHeight(),
+					BufferedImage.TYPE_INT_RGB
+				);
 			}
 			Graphics2D g = (Graphics2D)img.getGraphics();
 
@@ -90,7 +97,8 @@ public class Utils {
 	 *            the node for which the extents are to be computed
 	 * @return the smallest bounding rectangle
 	 */
-	public static Rectangle2D calculateBoundingRectForCluster( Node node ) {
+	public static Rectangle2D calculateBoundingRectForCluster( Node node )
+	{
 		double minX = Double.MAX_VALUE;
 		double minY = Double.MAX_VALUE;
 		double maxX = Double.MIN_VALUE;
@@ -109,19 +117,23 @@ public class Utils {
 		return new Rectangle2D.Double( minX, minY, maxX - minX, maxY - minY );
 	}
 
-	public static int clamp( int min, int value, int max ) {
+	public static int clamp( int min, int value, int max )
+	{
 		return Math.min( max, Math.max( min, value ) );
 	}
 
-	public static long clamp( long min, long value, long max ) {
+	public static long clamp( long min, long value, long max )
+	{
 		return Math.min( max, Math.max( min, value ) );
 	}
 
-	public static float clamp( float min, float value, float max ) {
+	public static float clamp( float min, float value, float max )
+	{
 		return Math.min( max, Math.max( min, value ) );
 	}
 
-	public static double clamp( double min, double value, double max ) {
+	public static double clamp( double min, double value, double max )
+	{
 		return Math.min( max, Math.max( min, value ) );
 	}
 }
