@@ -8,8 +8,12 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.nio.file.Paths;
 
@@ -183,6 +187,7 @@ public class VisualizerFrame extends JFrame {
 		mnFile.add( mntmOpenFile );
 
 		mntmOpenFile.addActionListener( ( e ) -> {
+			log.trace( "Clicked open file menu item." );
 			openFileSelectionDialog();
 		} );
 
@@ -193,7 +198,19 @@ public class VisualizerFrame extends JFrame {
 		mnFile.add( mntmConfig );
 
 		mntmConfig.addActionListener( ( e ) -> {
+			log.trace( "Clicked config menu item." );
 			openConfigDialog();
+		} );
+
+		JMenuItem mntmTest = new JMenuItem( "Config non-lambda" );
+		mnFile.add( mntmTest );
+
+		mntmTest.addActionListener( new ActionListener() {
+			@Override
+			public void actionPerformed( ActionEvent e ) {
+				log.trace( "Clicked non-lambda config menu item." );
+				openConfigDialog();
+			}
 		} );
 	}
 
@@ -201,7 +218,9 @@ public class VisualizerFrame extends JFrame {
 	 * Opens a file selection dialog, alowing the user to select a hierarchy file to load.
 	 */
 	private void openFileSelectionDialog() {
+		log.trace( "Creating FileDialog instance..." );
 		FileDialog dialog = new FileDialog( this, "Choose a file", FileDialog.LOAD );
+		log.trace( "Setting selected path..." );
 		dialog.setDirectory( new File( "." ).getAbsolutePath() );
 
 		// NOTE: In order to cover all three major platforms (Windows/Linux/Mac),
@@ -211,17 +230,26 @@ public class VisualizerFrame extends JFrame {
 		dialog.setFilenameFilter( ( dir, name ) -> name.endsWith( ".csv" ) );
 		dialog.setFile( "*.csv" );
 
+		log.trace( "Making the dialog visible..." );
 		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
+		log.trace( "Dialog dismissed." );
 
 		String filename = dialog.getFile();
 		if ( filename != null ) {
+			log.trace( String.format( "Selected file: '%s'", filename ) );
+
+			log.trace( "Enabling prefuse displays..." );
 			treeDisplay.setEnabled( true );
 			pointDisplay.setEnabled( true );
 
+			log.trace( "Loading the file as hierarchy..." );
 			context.load( Paths.get( dialog.getDirectory(), filename ) );
 
+			log.trace( "Reprocessing..." );
 			reprocess();
 		}
+
+		log.trace( "File selection finished." );
 	}
 
 	/**
@@ -231,8 +259,11 @@ public class VisualizerFrame extends JFrame {
 	 * is recreated.
 	 */
 	private void openConfigDialog() {
+		log.trace( "Creating ConfigDialog instance..." );
 		ConfigDialog dialog = new ConfigDialog( context, VisualizerFrame.this );
+		log.trace( "Making the dialog visible..." );
 		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
+		log.trace( "Dialog dismissed." );
 
 		// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
 		if ( !context.isHierarchyDataLoaded() )
@@ -240,9 +271,13 @@ public class VisualizerFrame extends JFrame {
 
 		// If no changes have been made to the config, then we don't need to reprocess anything.
 		if ( dialog.getConfig() != null ) {
+			log.trace( "Updating current config..." );
 			context.setConfig( dialog.getConfig() );
+			log.trace( "Reprocessing..." );
 			reprocess();
 		}
+
+		log.trace( "Config customization finished." );
 	}
 
 	/**
