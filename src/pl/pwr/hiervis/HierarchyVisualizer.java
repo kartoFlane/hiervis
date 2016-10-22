@@ -93,11 +93,12 @@ public final class HierarchyVisualizer {
 
 		HierarchyStatistics stats = new HierarchyStatistics( inputData, statsFilePath );
 
+		// TODO: Visualizations saved to images
 		if ( !config.hasSkipVisualisations() ) {
 			HierarchyProcessor vis = new HierarchyProcessor();
 
 			try {
-				vis.process( context, stats );
+				// vis.process( context, stats );
 			}
 			catch ( Exception e ) {
 				log.error( e );
