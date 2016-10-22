@@ -84,7 +84,7 @@ public class HierarchyProcessor {
 		int nodeImgFinalWidth = (int)( config.getPointWidth() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
 		int nodeImgFinalHeight = (int)( config.getPointHeight() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
 
-		double minAndMaxOfDimension[][] = calculateMinAndMaxValuesOfHierarchy( input.getRoot() );
+		Rectangle2D bounds = calculateBoundingRectForCluster( input.getRoot() );
 
 		LinkedList<Instance> allPoints = null;
 		if ( config.isDisplayAllPoints() ) {
@@ -101,7 +101,7 @@ public class HierarchyProcessor {
 				if ( config.getBackgroundColor() != null )
 					nodeImg = setBackgroud( nodeImg, config.getBackgroundColor() );
 
-				nodeImg = fillImage( nodeImg, n, config, minAndMaxOfDimension, allPoints );
+				nodeImg = fillImage( nodeImg, n, config, bounds, allPoints );
 				nodeImg = addBorder( nodeImg, nodeImgLeftBorderWidth, nodeImgRightBorderWidth, nodeImgTopBorderHeight,
 						nodeImgBottomBorderHeight, Color.black );
 
@@ -531,7 +531,7 @@ public class HierarchyProcessor {
 					HVConstants.NAME_OF_HIERARCHY + ".edges",
 					VisualItem.STROKECOLOR,
 					ColorLib.color( Color.lightGray ) );
-			
+
 			NodeLinkTreeLayout treeLayout = new NodeLinkTreeLayout(
 					HVConstants.NAME_OF_HIERARCHY,
 					treeOrientation,
@@ -587,7 +587,7 @@ public class HierarchyProcessor {
 	}
 
 	public BufferedImage createPointImage( HVContext context, Node node ) {
-		double minAndMaxOfDimension[][] = calculateMinAndMaxValuesOfHierarchy( context.getHierarchy().getRoot() );
+		Rectangle2D bounds = calculateBoundingRectForCluster( node );
 		int nodeImgFinalWidth = (int)( context.getConfig().getPointWidth() +
 				Math.max( 1.0, context.getConfig().getPointScallingFactor() / 2 ) );
 		int nodeImgFinalHeight = (int)( context.getConfig().getPointHeight() +
@@ -603,7 +603,7 @@ public class HierarchyProcessor {
 		if ( context.getConfig().getBackgroundColor() != null )
 			nodeImg = setBackgroud( nodeImg, context.getConfig().getBackgroundColor() );
 
-		nodeImg = fillImage( nodeImg, node, context.getConfig(), minAndMaxOfDimension, allPoints );
+		nodeImg = fillImage( nodeImg, node, context.getConfig(), bounds, allPoints );
 
 		return nodeImg;
 	}
@@ -669,7 +669,7 @@ public class HierarchyProcessor {
 			BufferedImage nodeImg,
 			Node node,
 			HVConfig config,
-			double[][] minAndMaxOfDimension,
+			Rectangle2D bounds,
 			LinkedList<Instance> allPoints ) {
 
 		Graphics2D imgContent = nodeImg.createGraphics();
@@ -682,7 +682,7 @@ public class HierarchyProcessor {
 						config.getOtherGroupColor(),
 						config.getPointScallingFactor(),
 						config.getPointWidth(), config.getPointHeight(),
-						minAndMaxOfDimension );
+						bounds );
 
 				if ( node.getParent() != null ) {
 					drawParentAncestorsPoints(
@@ -691,7 +691,7 @@ public class HierarchyProcessor {
 							config.getAncestorGroupColor(),
 							config.getPointScallingFactor(),
 							config.getPointWidth(), config.getPointHeight(),
-							minAndMaxOfDimension );
+							bounds );
 
 					drawPoints(
 							imgContent,
@@ -699,7 +699,7 @@ public class HierarchyProcessor {
 							config.getParentGroupColor(),
 							config.getPointScallingFactor(),
 							config.getPointWidth(), config.getPointHeight(),
-							minAndMaxOfDimension );
+							bounds );
 				}
 			}
 
@@ -709,14 +709,14 @@ public class HierarchyProcessor {
 					config.getChildGroupColor(),
 					config.getPointScallingFactor(),
 					config.getPointWidth(), config.getPointHeight(),
-					minAndMaxOfDimension );
+					bounds );
 			drawPoints(
 					imgContent,
 					node.getNodeInstances(),
 					config.getCurrentLevelColor(),
 					config.getPointScallingFactor(),
 					config.getPointWidth(), config.getPointHeight(),
-					minAndMaxOfDimension );
+					bounds );
 		}
 
 		imgContent.dispose();
@@ -729,7 +729,7 @@ public class HierarchyProcessor {
 			Color parentAncestorsColor,
 			double pointScallingFactor,
 			int imageWidth, int imageHeight,
-			double[][] minAndMaxOfDimension ) {
+			Rectangle2D bounds ) {
 
 		Node n = parent;
 		while ( n.getParent() != null ) {
@@ -739,7 +739,7 @@ public class HierarchyProcessor {
 					parentAncestorsColor,
 					pointScallingFactor,
 					imageWidth, imageHeight,
-					minAndMaxOfDimension );
+					bounds );
 			n = n.getParent();
 		}
 	}
@@ -750,7 +750,7 @@ public class HierarchyProcessor {
 			Color color,
 			double pointScallingFactor,
 			int imgWidth, int imgHeight,
-			double[][] minAndMaxOfDimension ) {
+			Rectangle2D bounds ) {
 
 		Color oldColor = imgContent.getColor();
 		imgContent.setColor( color );
@@ -762,13 +762,11 @@ public class HierarchyProcessor {
 			double y = i.getData()[1];
 			int pointLeftEdge = rectCoordinateOnImage(
 					x,
-					minAndMaxOfDimension[0][0],
-					minAndMaxOfDimension[0][1],
+					bounds.getMinX(), bounds.getMaxX(),
 					imgWidth, pointSize );
 			int pointTopEdge = rectCoordinateOnImage(
 					y,
-					minAndMaxOfDimension[1][0],
-					minAndMaxOfDimension[1][1],
+					bounds.getMinY(), bounds.getMaxY(),
 					imgHeight, pointSize );
 
 			imgContent.fillRect( pointLeftEdge, pointTopEdge, pointSize + 1, pointSize + 1 ); // 1 px * scallingFactor
@@ -783,44 +781,38 @@ public class HierarchyProcessor {
 		return (int)result;
 	}
 
-	private double[][] calculateMinAndMaxValuesOfHierarchy( Node input ) {
-		double[][] firstTwoDimMinAndMax = new double[2][2];
-		double firstDimMin = Double.MAX_VALUE, secondDimMin = Double.MAX_VALUE;
-		double firstDimMax = ( -1 ) * Double.MAX_VALUE, secondDimMax = ( -1 ) * Double.MAX_VALUE;
+	/**
+	 * Calculates the smallest rectangle containing all points within
+	 * the specified node's cluster.
+	 * 
+	 * @param node
+	 *            the node for which the extents are to be computed
+	 * @return the smallest bounding rectangle
+	 */
+	private Rectangle2D calculateBoundingRectForCluster( Node node ) {
+		double minX = Double.MAX_VALUE;
+		double minY = Double.MAX_VALUE;
+		double maxX = Double.MIN_VALUE;
+		double maxY = Double.MIN_VALUE;
 
-		for ( Instance i : input.getSubtreeInstances() ) {
-			double firstVal = i.getData()[0];
-			double secondVal = i.getData()[1];
+		for ( Instance i : node.getSubtreeInstances() ) {
+			double x = i.getData()[0];
+			double y = i.getData()[1];
 
-			if ( firstDimMax < firstVal )
-				firstDimMax = firstVal;
-
-			if ( firstDimMin > firstVal )
-				firstDimMin = firstVal;
-
-			if ( secondDimMax < secondVal )
-				secondDimMax = secondVal;
-
-			if ( secondDimMin > secondVal )
-				secondDimMin = secondVal;
+			minX = Math.min( minX, x );
+			minY = Math.min( minY, y );
+			maxX = Math.max( maxX, x );
+			maxY = Math.max( maxY, y );
 		}
 
-		firstTwoDimMinAndMax[0][0] = firstDimMin;
-		firstTwoDimMinAndMax[0][1] = firstDimMax;
-
-		firstTwoDimMinAndMax[1][0] = secondDimMin;
-		firstTwoDimMinAndMax[1][1] = secondDimMax;
-
-		return firstTwoDimMinAndMax;
+		return new Rectangle2D.Double( minX, minY, maxX - minX, maxY - minY );
 	}
 
 	public static BufferedImage getDisplaySnapshot( Display dis ) {
 		BufferedImage img = null;
 		try {
 			// get an image to draw into
-			Dimension d = new Dimension(
-					dis.getWidth(),
-					dis.getHeight() );
+			Dimension d = new Dimension( dis.getWidth(), dis.getHeight() );
 			if ( !GraphicsEnvironment.isHeadless() ) {
 				try {
 					img = (BufferedImage)dis.createImage( dis.getWidth(), dis.getHeight() );
@@ -829,6 +821,7 @@ public class HierarchyProcessor {
 					img = null;
 				}
 			}
+
 			if ( img == null ) {
 				img = new BufferedImage(
 						dis.getWidth(),
