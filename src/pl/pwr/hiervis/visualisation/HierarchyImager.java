@@ -11,9 +11,9 @@ import java.util.LinkedList;
 
 import javax.imageio.ImageIO;
 
-import basic_hierarchy.interfaces.Hierarchy;
-import basic_hierarchy.interfaces.Instance;
-import basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.basic_hierarchy.interfaces.Instance;
+import pl.pwr.basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
@@ -140,7 +140,8 @@ public class HierarchyImager
 		HistogramTable directParentHistogramTable,
 		HVConfig config,
 		int nodeImgFinalWidth, int nodeImgFinalHeight,
-		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
+		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth
+	)
 	{
 
 		BufferedImage img = createHistogram(
@@ -157,7 +158,8 @@ public class HierarchyImager
 		String field,
 		HVConfig config,
 		int imgSize,
-		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
+		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth
+	)
 	{
 
 		HistogramGraph histogramGraph = new HistogramGraph(
@@ -179,7 +181,8 @@ public class HierarchyImager
 		HistogramTable directParentHistogramTable,
 		HVConfig config,
 		int nodeImgFinalWidth, int nodeImgFinalHeight,
-		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
+		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth
+	)
 	{
 
 		return createHistogram(
@@ -215,7 +218,8 @@ public class HierarchyImager
 		HVConfig config,
 		String nodeId,
 		HierarchyStatistics stats,
-		int height, int width )
+		int height, int width
+	)
 	{
 		BufferedImage statsImg = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
 		String out = stats.getSummaryString();
@@ -301,7 +305,8 @@ public class HierarchyImager
 		Color color,
 		double pointScallingFactor,
 		int imgWidth, int imgHeight,
-		Rectangle2D bounds )
+		Rectangle2D bounds
+	)
 	{
 
 		Color oldColor = imgContent.getColor();
@@ -335,7 +340,8 @@ public class HierarchyImager
 		Color parentAncestorsColor,
 		double pointScallingFactor,
 		int imageWidth, int imageHeight,
-		Rectangle2D bounds )
+		Rectangle2D bounds
+	)
 	{
 
 		Node n = parent;
@@ -357,7 +363,8 @@ public class HierarchyImager
 		Node node,
 		HVConfig config,
 		Rectangle2D bounds,
-		LinkedList<Instance> allPoints )
+		LinkedList<Instance> allPoints
+	)
 	{
 
 		Graphics2D imgContent = nodeImg.createGraphics();
@@ -418,7 +425,8 @@ public class HierarchyImager
 
 	private static HistogramTable createAllDataHistogramTable(
 		LinkedList<Instance> subtreeInstances,
-		int numberOfHistogramBins )
+		int numberOfHistogramBins
+	)
 	{
 		Table histogramData = new Table();
 		histogramData.addColumn( "x", double.class );
@@ -436,7 +444,8 @@ public class HierarchyImager
 	private static HistogramTable prepareHistogramTableUsingAllDataBins(
 		Node node,
 		HistogramTable allDataHistogramTable,
-		int roleNum )
+		int roleNum
+	)
 	{
 		Table histogramData = new Table();
 		histogramData.addColumn( "x", double.class );
@@ -458,7 +467,8 @@ public class HierarchyImager
 		BufferedImage hierarchyImg,
 		BufferedImage horizontalHistogram,
 		BufferedImage verticalHistogram,
-		BufferedImage statsImg )
+		BufferedImage statsImg
+	)
 	{
 
 		int finalImgWidth = nodeImg.getWidth() + hierarchyImg.getWidth() + verticalHistogram.getWidth();

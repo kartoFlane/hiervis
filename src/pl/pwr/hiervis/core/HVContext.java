@@ -8,9 +8,9 @@ import java.util.Queue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Hierarchy;
-import basic_hierarchy.interfaces.Node;
-import basic_hierarchy.reader.GeneratedCSVReader;
+import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;

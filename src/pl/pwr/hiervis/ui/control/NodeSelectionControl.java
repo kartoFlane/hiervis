@@ -5,7 +5,7 @@ import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;

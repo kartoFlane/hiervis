@@ -3,6 +3,7 @@ package pl.pwr.hiervis.visualisation;
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -10,8 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 
-import basic_hierarchy.interfaces.Instance;
-import basic_hierarchy.interfaces.Node;
+import pl.pwr.basic_hierarchy.interfaces.Instance;
+import pl.pwr.basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
@@ -55,18 +56,18 @@ public class HierarchyProcessor
 	 */
 	private double subtreeGap;
 
-	private double nodeSizeToBetweenLevelSpaceRatio = 2.0;// minimum value
-	private double nodeSizeToBetweenSiblingsSpaceRatio = 4.0;// minimum value
+	private double nodeSizeToBetweenLevelSpaceRatio = 2.0; // minimum value
+	private double nodeSizeToBetweenSiblingsSpaceRatio = 4.0; // minimum value
 
 
 	public Tree createHierarchyTree( Node root, HVConfig config )
 	{
-		Tree hierarchyVisualisation = new Tree();
-		hierarchyVisualisation.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
-		// hierarchyVisualisation.addColumn(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, Integer.class);
-		hierarchyVisualisation.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
+		Tree tree = new Tree();
+		tree.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
+		tree.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
+		// tree.addColumn(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, Integer.class);
 
-		prefuse.data.Node n = hierarchyVisualisation.addRoot();
+		prefuse.data.Node n = tree.addRoot();
 		n.set( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, root.getId() );
 		// n.set(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, root.getNodeInstances().size());
 		n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
@@ -88,7 +89,7 @@ public class HierarchyProcessor
 			Entry<prefuse.data.Node, Node> sourceNodeWithItsParent = stackParentAndChild.remove();
 			Node sourceNode = sourceNodeWithItsParent.getValue();
 
-			n = hierarchyVisualisation.addChild( sourceNodeWithItsParent.getKey() );
+			n = tree.addChild( sourceNodeWithItsParent.getKey() );
 			nodesCounter++;
 			n.set( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, sourceNode.getId() );
 			// n.set(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, sourceNode.getNodeInstances().size());
@@ -113,7 +114,7 @@ public class HierarchyProcessor
 		}
 		System.out.println( "Number of nodes: " + nodesCounter );
 
-		maxTreeWidth = java.util.Collections.max( treeLevelWithWidth.values() );
+		maxTreeWidth = Collections.max( treeLevelWithWidth.values() );
 
 		// predict height and width of hierarchy image
 		finalSizeOfNodes = 0;
@@ -158,7 +159,7 @@ public class HierarchyProcessor
 			subtreeGap = siblingNodeGap;
 		}
 
-		return hierarchyVisualisation;
+		return tree;
 	}
 
 	public Visualization createTreeVisualization( HVContext context )
