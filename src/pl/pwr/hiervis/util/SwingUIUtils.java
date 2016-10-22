@@ -124,6 +124,9 @@ public final class SwingUIUtils {
 		root.getActionMap().put( actionKey, action );
 	}
 
+	/**
+	 * {@linkplain #installOperation(RootPaneContainer, int, KeyStroke, String, Action)}
+	 */
 	public static Action installOperation(
 			final RootPaneContainer frame,
 			final int condition,
@@ -141,6 +144,19 @@ public final class SwingUIUtils {
 		return result;
 	}
 
+	/**
+	 * Removes an operation installed in the specified frame for the specified
+	 * keystroke and condition.
+	 * 
+	 * @param frame
+	 *            The frame from which the keybind is to be uninstalled.
+	 * @param condition
+	 *            When should this keybind be activated.
+	 *            Either {@link JComponent#WHEN_FOCUSED}, {@link JComponent#WHEN_IN_FOCUSED_WINDOW}, or
+	 *            {@link JComponent#WHEN_ANCESTOR_OF_FOCUSED_COMPONENT}.
+	 * @param keyStroke
+	 *            The keystroke used to activate the keybind
+	 */
 	public static void uninstallOperation(
 			final RootPaneContainer frame,
 			final int condition,

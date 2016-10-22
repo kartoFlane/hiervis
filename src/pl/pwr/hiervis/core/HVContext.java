@@ -1,6 +1,5 @@
 package pl.pwr.hiervis.core;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.AbstractMap;
@@ -108,10 +107,6 @@ public class HVContext {
 
 	public Visualization createHierarchyVisualization() {
 		return processor.createTreeVisualization( this );
-	}
-
-	public BufferedImage createPointImage( Node node ) {
-		return processor.createPointImage( this, node );
 	}
 
 	public Display createPointDisplay() {
