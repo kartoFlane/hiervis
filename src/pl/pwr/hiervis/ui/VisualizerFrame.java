@@ -32,6 +32,7 @@ import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.SubtreeDragControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
 import pl.pwr.hiervis.util.SwingUIUtils;
+import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;
@@ -39,17 +40,19 @@ import prefuse.controls.Control;
 
 
 public class VisualizerFrame extends JFrame {
-
 	private static final Logger log = LogManager.getLogger( VisualizerFrame.class );
 	private static final long serialVersionUID = 1L;
 
-	private static final int defaultFrameWidth = 900;
-	private static final int defaultFrameHeight = 600;
+	private static final int defaultFrameWidth = 1200;
+	private static final int defaultFrameHeight = 900;
 
 	private HVContext context;
 
-	private Display pointDisplay;
 	private Display treeDisplay;
+	private Display pointDisplay;
+
+	private ZoomScrollControl treeZoomControl;
+	private ZoomScrollControl pointZoomControl;
 
 
 	public VisualizerFrame( HVContext context ) {
@@ -105,11 +108,13 @@ public class VisualizerFrame extends JFrame {
 		treeDisplay.addControlListener( new NodeSelectionControl( context, pointDisplay ) );
 		treeDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
 		treeDisplay.addControlListener( new PanControl( true ) );
-		treeDisplay.addControlListener( new ZoomScrollControl() );
+		treeZoomControl = new ZoomScrollControl();
+		treeDisplay.addControlListener( treeZoomControl );
 		treeDisplay.setEnabled( false );
 
 		pointDisplay.addControlListener( new PanControl() );
-		pointDisplay.addControlListener( new ZoomScrollControl() );
+		pointZoomControl = new ZoomScrollControl();
+		pointDisplay.addControlListener( pointZoomControl );
 		pointDisplay.setBackground( Color.lightGray );
 		pointDisplay.setEnabled( false );
 
@@ -253,10 +258,30 @@ public class VisualizerFrame extends JFrame {
 
 		Visualization vis = context.createHierarchyVisualization();
 		treeDisplay.setBackground( context.getConfig().getBackgroundColor() );
-		treeDisplay.setVisualization( null );
 		treeDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
 		NodeSelectionControl.selectNode( context, treeDisplay, pointDisplay, context.getSelectedRow() );
+
+		Rectangle2D contentRect = treeDisplay.getVisibleRect();
+
+		Point2D p = new Point2D.Double(
+				contentRect.getCenterX(),
+				contentRect.getCenterY() );
+
+		double zoom = -1;
+
+		if ( treeDisplay.getWidth() > treeDisplay.getHeight() ) {
+			zoom = contentRect.getHeight() / treeDisplay.getHeight();
+		}
+		else {
+			zoom = contentRect.getWidth() / treeDisplay.getWidth();
+		}
+
+		Utils.resetDisplayZoom( treeDisplay );
+
+		treeDisplay.zoomAbs( p, zoom * 0.5 );
+
+		// treeDisplay.animatePanAndZoomToAbs( p, zoom, 500 );
 	}
 }

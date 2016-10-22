@@ -1,14 +1,17 @@
 package pl.pwr.hiervis.util;
 
 import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import pl.pwr.hiervis.core.HVConstants;
+import prefuse.Display;
 import prefuse.activity.ActivityManager;
 
 
 public class Utils {
-	
+
 	/**
 	 * Returns a rotated copy of the image passed in argument.
 	 * 
@@ -64,5 +67,17 @@ public class Utils {
 
 	public static double clamp( double min, double value, double max ) {
 		return Math.min( max, Math.max( min, value ) );
+	}
+
+	public static Point2D getDisplayCenter( Display display ) {
+		Rectangle2D contentRect = display.getVisibleRect();
+
+		return new Point2D.Double(
+				contentRect.getCenterX(),
+				contentRect.getCenterY() );
+	}
+
+	public static void resetDisplayZoom( Display display ) {
+		display.zoomAbs( getDisplayCenter( display ), 1 / display.getScale() );
 	}
 }
