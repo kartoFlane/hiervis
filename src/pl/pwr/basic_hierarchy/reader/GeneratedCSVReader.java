@@ -9,16 +9,15 @@ import java.util.Scanner;
 
 import pl.pwr.basic_hierarchy.common.Constants;
 import pl.pwr.basic_hierarchy.common.HierarchyFiller;
+import pl.pwr.basic_hierarchy.implementation.BasicGroup;
 import pl.pwr.basic_hierarchy.implementation.BasicHierarchy;
 import pl.pwr.basic_hierarchy.implementation.BasicInstance;
-import pl.pwr.basic_hierarchy.implementation.BasicGroup;
 import pl.pwr.basic_hierarchy.interfaces.DataReader;
+import pl.pwr.basic_hierarchy.interfaces.Group;
 import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
 import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Group;
 
 
-// REFACTOR maybe create a factory pattern to generate nodes
 public class GeneratedCSVReader implements DataReader
 {
 	/**
@@ -31,10 +30,10 @@ public class GeneratedCSVReader implements DataReader
 	 * @see interfaces.DataReader#load(java.lang.String)
 	 */
 	@Override
-	public Hierarchy load( String filePath, boolean withInstancesNameAttribute, boolean withClassAttribute, boolean fillBreadthGaps )
+	public Hierarchy load( String filePath, boolean withInstancesNameAttribute, boolean withClassAttribute, boolean fixBreadthGaps )
 	{
-		// REFACTOR instead of nodes and AdditionalNodes data structures we could use one or more hash maps
-		// REFACTOR skip nodes' elements containing "gen" prefix and assume that every ID prefix always begins with "gen"
+		// REFACTOR: Could create a factory class to generate nodes.
+		// REFACTOR: Skip nodes' elements containing "gen" prefix and assume that every ID prefix always begins with "gen"
 		File inputFile = new File( filePath );
 		if ( !inputFile.exists() && inputFile.isDirectory() ) {
 			throw new RuntimeException(
@@ -47,60 +46,57 @@ public class GeneratedCSVReader implements DataReader
 
 		BasicGroup root = null;
 		ArrayList<BasicGroup> groups = new ArrayList<BasicGroup>();
-		int rootIndexInGroups = -1;
 		HashMap<String, Integer> eachClassAndItsCount = new HashMap<String, Integer>();
 
 		try ( Scanner scanner = new Scanner( inputFile ) ) {
-			int numberOfDataDimensions = Integer.MIN_VALUE;
+			final int optionalColumns = ( withClassAttribute ? 1 : 0 ) + ( withInstancesNameAttribute ? 1 : 0 );
+			final int expectedMinimumColumnCount = 1 + optionalColumns;
+			int dataColumnCount = -1;
+			int totalColumnCount = -1;
+
 			while ( scanner.hasNextLine() ) {
 				String inputLine = scanner.nextLine();
 				String[] lineValues = inputLine.split( Constants.DELIMITER );
 
-				if ( numberOfDataDimensions == Integer.MIN_VALUE ) {
-					if ( lineValues.length < 2 + ( withClassAttribute ? 1 : 0 ) + ( withInstancesNameAttribute ? 1 : 0 ) ) {
+				if ( dataColumnCount == -1 ) {
+					// First line encountered.
+
+					// Make sure that the file is valid -- it needs to have a node ID column,
+					// at most 2 optional columns, and at least one data column.
+					if ( lineValues.length <= expectedMinimumColumnCount ) {
 						throw new RuntimeException(
 							String.format(
-								"Input data is not formatted correctly, each line should contain at least a node ID and a value " +
+								"Input data is not formatted correctly. Each line should contain at least a node ID columm and a value column " +
 									"(and optionally class attribute and/or instance name).%nLine: %s",
 								inputLine
 							)
 						);
 					}
-					numberOfDataDimensions = lineValues.length - 1 - ( withClassAttribute ? 1 : 0 ) - ( withInstancesNameAttribute ? 1 : 0 );
+					else {
+						// File seems to be valid -- compute column counts for all the other rows.
+						dataColumnCount = lineValues.length - 1 - optionalColumns;
+						totalColumnCount = expectedMinimumColumnCount + dataColumnCount;
+					}
 				}
 
-				if ( lineValues.length != numberOfDataDimensions + 1 + ( withClassAttribute ? 1 : 0 ) + ( withInstancesNameAttribute ? 1 : 0 ) ) {
+				// Assert that the row has the expected number of columns.
+				if ( lineValues.length != totalColumnCount ) {
 					throw new RuntimeException(
 						String.format(
-							"Input data not formatted corectly, each line should contain a node id and %s data values.%nLine: %s",
-							numberOfDataDimensions, inputLine
+							"Input data not formatted corectly - each line should contain a total of %s columns.%nLine: %s",
+							totalColumnCount, inputLine
 						)
 					);
 				}
 
-				double[] values = new double[lineValues.length - 1 - ( withClassAttribute ? 1 : 0 ) - ( withInstancesNameAttribute ? 1 : 0 )];
-				for ( int j = 0; j < lineValues.length - 1 - ( withClassAttribute ? 1 : 0 ) - ( withInstancesNameAttribute ? 1 : 0 ); j++ ) {
-					try {
-						values[j] = Double.parseDouble( lineValues[j + 1 + ( withClassAttribute ? 1 : 0 ) + ( withInstancesNameAttribute ? 1 : 0 )] );
-					}
-					catch ( NumberFormatException e ) {
-						throw new RuntimeException(
-							String.format(
-								"Cannot parse %sth value of line: %s. All instance features should be valid floating point numbers.",
-								j, inputLine
-							)
-						);
-					}
-				}
-
-				String classAttr = null;
+				String trueClassAttr = null;
 				if ( withClassAttribute ) {
-					classAttr = lineValues[1];
-					if ( eachClassAndItsCount.containsKey( classAttr ) ) {
-						eachClassAndItsCount.put( classAttr, eachClassAndItsCount.get( classAttr ) + 1 );
+					trueClassAttr = lineValues[1];
+					if ( eachClassAndItsCount.containsKey( trueClassAttr ) ) {
+						eachClassAndItsCount.put( trueClassAttr, eachClassAndItsCount.get( trueClassAttr ) + 1 );
 					}
 					else {
-						eachClassAndItsCount.put( classAttr, 1 );
+						eachClassAndItsCount.put( trueClassAttr, 1 );
 					}
 				}
 
@@ -109,41 +105,55 @@ public class GeneratedCSVReader implements DataReader
 					instanceNameAttr = lineValues[1 + ( withClassAttribute ? 1 : 0 )];
 				}
 
-				// assuming that node's instances are grouped in input file
-				// REFACTOR: below could the binary-search be utilized with sorting by ID-comparator
-				// boolean nodeExist = !nodes.isEmpty() && nodes.get(nodes.size()-1).getId().equalsIgnoreCase(lineValues[0]);
-				boolean groupExists = false;
+				double[] values = new double[dataColumnCount];
+				for ( int j = 0; j < values.length; j++ ) {
+					try {
+						// Data columns are always last.
+						values[j] = Double.parseDouble( lineValues[j + 1 + optionalColumns] );
+					}
+					catch ( NumberFormatException e ) {
+						throw new RuntimeException(
+							String.format(
+								"Cannot parse %sth data value of line: %s. All instance features should be valid floating point numbers.",
+								j, inputLine
+							)
+						);
+					}
+				}
+
+				// Assuming that nodes instances are grouped in input file
+				// REFACTOR: could sort groups by ID, and then use binary search to find the group quicker.
 				int groupIndex = -1;
-				for ( int i = 0; i < groups.size() && !groupExists; ++i ) {
+				for ( int i = 0; i < groups.size() && groupIndex == -1; ++i ) {
 					if ( groups.get( i ).getId().equalsIgnoreCase( lineValues[0] ) ) {
-						groupExists = true;
 						groupIndex = i;
 					}
 				}
 
-				if ( groupExists ) {
-					// nodes.get(nodes.size()-1).addInstance(new BasicInstance(nodes.get(nodes.size()-1).getId(), values, classAttrib));
-					groups.get( groupIndex )
-						.addInstance( new BasicInstance( instanceNameAttr, groups.get( groupIndex ).getId(), values, classAttr ) );
+				if ( groupIndex == -1 ) {
+					// Group for this id doesn't exist yet. Create it.
+					BasicGroup newGroup = new BasicGroup( lineValues[0], null, new LinkedList<Group>(), new LinkedList<Instance>() );
+					groups.add( newGroup );
+
+					newGroup.addInstance( new BasicInstance( instanceNameAttr, newGroup.getId(), values, trueClassAttr ) );
+
+					if ( root == null && lineValues[0].equalsIgnoreCase( Constants.ROOT_ID ) ) {
+						root = newGroup;
+					}
 				}
 				else {
-					BasicGroup newGroup = new BasicGroup( lineValues[0], null, new LinkedList<Group>(), new LinkedList<Instance>() );
-					newGroup.addInstance( new BasicInstance( instanceNameAttr, newGroup.getId(), values, classAttr ) );
-
-					groups.add( newGroup );
-					if ( root == null && lineValues[0].equalsIgnoreCase( Constants.ROOT_ID ) ) {
-						root = groups.get( groups.size() - 1 );
-						rootIndexInGroups = groups.size() - 1;
-					}
+					groups.get( groupIndex ).addInstance(
+						new BasicInstance( instanceNameAttr, groups.get( groupIndex ).getId(), values, trueClassAttr )
+					);
 				}
 			}
 		}
 		catch ( IOException e ) {
-			System.err.println( "While reading input file: " + filePath + "\n" );
+			System.err.println( "Error while reading input file: " + filePath + "\n" );
 			e.printStackTrace();
 		}
 
-		LinkedList<Group> allNodes = HierarchyFiller.addMissingEmptyNodes( root, groups, rootIndexInGroups, fillBreadthGaps );
+		LinkedList<Group> allNodes = HierarchyFiller.buildCompleteGroupHierarchy( root, groups, fixBreadthGaps );
 		return new BasicHierarchy( root, allNodes, eachClassAndItsCount );
 	}
 }

@@ -1,194 +1,310 @@
 package pl.pwr.basic_hierarchy.common;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
 import pl.pwr.basic_hierarchy.implementation.BasicGroup;
-import pl.pwr.basic_hierarchy.interfaces.Instance;
 import pl.pwr.basic_hierarchy.interfaces.Group;
+import pl.pwr.basic_hierarchy.interfaces.Instance;
 
 
+/**
+ * This class exposes methods which fix gaps in raw hierarchies.
+ */
 public class HierarchyFiller
 {
-	@SuppressWarnings("unchecked")
-	public static LinkedList<Group> addMissingEmptyNodes(
-		BasicGroup root,
-		ArrayList<BasicGroup> nodes,
-		int rootIndexInNodes,
-		boolean fillBreadthGaps
-	)
+	private HierarchyFiller()
 	{
-		LinkedList<Group> allNodes;
-		// hierarchy build
+		// Static class -- disallow instantiation.
+		throw new RuntimeException( "Attempted to instantiate a static class: " + getClass().getName() );
+	}
 
-		// search for parent
-		boolean[] nodeHasParent = new boolean[nodes.size()];
-		for ( int i = 0; i < nodes.size(); i++ ) {
-			BasicGroup parentNode = nodes.get( i );
-			String[] parentBranchId = parentNode.getId().split( Constants.HIERARCHY_BRANCH_SEPARATOR_REGEX );
-			int parentHeightNum = parentBranchId.length;
-			// REFACTOR if we have a map of nodes then below search could be quicker
-			for ( int j = 0/* i+1 */; j < nodes.size(); j++ )// assume that nodes are in DFS order in input file
-			{
-				BasicGroup elem = nodes.get( j );
-				String[] elemBranchId = elem.getId().split( Constants.HIERARCHY_BRANCH_SEPARATOR_REGEX );
-				int elemHeightNum = elemBranchId.length;
-				if ( elemHeightNum == parentHeightNum + 1 )// if elem is a DIRECT child to parent
-				{
-					boolean equalBranchIds = true;
-					for ( int k = 0; k < parentHeightNum && equalBranchIds; k++ ) {
-						if ( !parentBranchId[k].equals( elemBranchId[k] ) ) {
-							equalBranchIds = false;
-						}
-					}
+	/**
+	 * Builds a complete hierarchy of groups, while also patching up holes in the original hierarchy by inserting empty groups
+	 * for missing IDs.
+	 * 
+	 * @param root
+	 *            the root group
+	 * @param groups
+	 *            the original collection of groups
+	 * @param fixBreadthGaps
+	 *            whether the hierarchy fixing algorithm should also fix gaps in breadth, not just depth.
+	 * @return the complete 'fixed' collection of groups, filled with artificial groups
+	 */
+	public static LinkedList<Group> buildCompleteGroupHierarchy( BasicGroup root, ArrayList<BasicGroup> groups, boolean fixBreadthGaps )
+	{
+		buildGroupHierarchy( groups );
+		return addArtificialGroups( root, groups, fixBreadthGaps );
+	}
 
-					if ( equalBranchIds )// there is DIRECT link parent->child
-					{
-						nodeHasParent[j] = true;
-						elem.setParent( parentNode );
-						parentNode.addChild( elem );
-					}
+	/**
+	 * Builds a hierarchy of groups, based solely on the groups present in the specified collection.
+	 * <p>
+	 * If a group's ID implies it has a parent, but that parent is not present in the collection, then
+	 * that group will not have its parent set.
+	 * </p>
+	 * <p>
+	 * This means that this method DOES NOT GUARANTEE that the hierarchy it creates will be contiguous.
+	 * To fix this, follow-up this method with {@link #addArtificialGroups(BasicGroup, ArrayList, boolean)}
+	 * </p>
+	 * 
+	 * @param groups
+	 *            collection of all groups to build the hierarchy from
+	 */
+	private static void buildGroupHierarchy( ArrayList<BasicGroup> groups )
+	{
+		for ( int i = 0; i < groups.size(); ++i ) {
+			BasicGroup parentGroup = groups.get( i );
+			String[] parentBranchIds = getGroupBranchIds( parentGroup );
+
+			for ( int j = 0; j < groups.size(); ++j ) {
+				if ( i == j ) { // Can't become a parent unto itself.
+					continue;
+				}
+
+				BasicGroup childGroup = groups.get( j );
+				String[] childBranchIds = getGroupBranchIds( childGroup );
+
+				if ( areGroupsDirectlyRelated( parentBranchIds, childBranchIds ) ) {
+					childGroup.setParent( parentGroup );
+					parentGroup.addChild( childGroup );
 				}
 			}
 		}
+	}
 
-		// add additional nodes which weren't in input file, but are needed
-		// first consider HEIGHT gaps between nodes
-		LinkedList<BasicGroup> additionalNodes = new LinkedList<BasicGroup>();
-		if ( rootIndexInNodes >= 0 ) {
-			nodeHasParent[0] = nodes.get( rootIndexInNodes ).equals( root );// skip root from consideration
-		}
-		for ( int i = 0; i < nodeHasParent.length; i++ ) {
-			if ( !nodeHasParent[i] )// no direct parent
-			{
-				BasicGroup elem = nodes.get( i );
-				String[] elemBranchId = elem.getId().split( Constants.HIERARCHY_BRANCH_SEPARATOR_REGEX );
-				int elemHeightNum = elemBranchId.length;
-				// REFACTOR below defined two loops have duplicated code
-				// find nearest parent
+	/**
+	 * Add artificial groups which weren't present in the input file, but are needed in order to create a contiguous hierarchy.
+	 * 
+	 * @param root
+	 *            the root group
+	 * @param groups
+	 *            the original collection of groups
+	 * @param fixBreadthGaps
+	 *            whether the hierarchy fixing algorithm should also fix gaps in breadth, not just depth.
+	 * @return the complete 'fixed' collection of groups, filled with artificial groups
+	 */
+	private static LinkedList<Group> addArtificialGroups( BasicGroup root, ArrayList<BasicGroup> groups, boolean fixBreadthGaps )
+	{
+		LinkedList<BasicGroup> artificialGroups = new LinkedList<BasicGroup>();
+
+		// Fix gaps in depth -- missing ancestors.
+		for ( int i = 0; i < groups.size(); ++i ) {
+			BasicGroup group = groups.get( i );
+
+			if ( group == root ) {
+				continue; // Don't consider the root group.
+			}
+
+			if ( group.getParent() == null ) {
+				String[] groupBranchIds = getGroupBranchIds( group );
+
 				BasicGroup nearestParent = null;
-				int nearestParentHeightNum = Integer.MIN_VALUE;
-				// REFACTOR below defined loop could be quicker when there will be a flag of nodes
-				for ( int j = 0; j < i; j++ ) {
-					BasicGroup parentNode = nodes.get( j );
-					String[] parentBranchId = parentNode.getId().split( Constants.HIERARCHY_BRANCH_SEPARATOR_REGEX );
-					int parentHeightNum = parentBranchId.length;
+				int nearestParentHeight = -1;
 
-					if ( parentHeightNum > nearestParentHeightNum && elemHeightNum > parentHeightNum ) {
-						boolean equalBranchIds = true;
-						for ( int k = 0; k < parentHeightNum && equalBranchIds; k++ )// we need to search until the end and choose the longest prefix, not
-						{// the first that was found
-							if ( !parentBranchId[k].equals( elemBranchId[k] ) ) {
-								equalBranchIds = false;
-							}
-						}
-
-						if ( equalBranchIds ) {
-							nearestParent = parentNode;
-							nearestParentHeightNum = parentHeightNum;
-						}
-					}
-				}
-				// maybe, we recently added useful node
-				// REFACTOR below loop is almost the same as the upper one
-				for ( int j = 0; j < additionalNodes.size(); j++ ) {
-					BasicGroup potentialParentNode = additionalNodes.get( j );
-					String[] potentialParentBranchId = potentialParentNode.getId().split( Constants.HIERARCHY_BRANCH_SEPARATOR_REGEX );
-					int potentialParentHeightNum = potentialParentBranchId.length;
-
-					if ( potentialParentHeightNum > nearestParentHeightNum && elemHeightNum > potentialParentHeightNum ) {
-						boolean equalBranchIds = true;
-						for ( int k = 0; k < potentialParentHeightNum && equalBranchIds; k++ )// look for the longest prefix
-						{
-							if ( !potentialParentBranchId[k].equals( elemBranchId[k] ) ) {
-								equalBranchIds = false;
-							}
-						}
-
-						if ( equalBranchIds ) {
-							nearestParent = potentialParentNode;
-							nearestParentHeightNum = potentialParentHeightNum;
-						}
-					}
+				// Try to find nearest parent in 'real' groups
+				BasicGroup tempGroup = findNearestParent( groups, groupBranchIds, -1, i );
+				if ( tempGroup != null ) {
+					nearestParent = tempGroup;
+					nearestParentHeight = getGroupBranchIds( tempGroup ).length;
 				}
 
-				if ( nearestParent != null )// nearest parent found
-				{
+				// Try to find nearest parent in artificial groups
+				tempGroup = findNearestParent( groups, groupBranchIds, nearestParentHeight );
+				if ( tempGroup != null ) {
+					nearestParent = tempGroup;
+					nearestParentHeight = getGroupBranchIds( tempGroup ).length;
+				}
+
+				if ( nearestParent != null ) {
 					BasicGroup newParent = nearestParent;
-					for ( int k = nearestParentHeightNum; k < elemHeightNum - 1; k++ ) {
-						String nodeToAddIdPostfix = elemBranchId[k];
-						String nodeToAddId = newParent.getId().concat( Constants.HIERARCHY_BRANCH_SEPARATOR ).concat( nodeToAddIdPostfix );
 
-						// add empty node
-						BasicGroup nodeToAdd = new BasicGroup(
-							nodeToAddId, newParent,
+					for ( int j = nearestParentHeight; j < groupBranchIds.length - 1; ++j ) {
+						String newGroupIdPostfix = groupBranchIds[j];
+						String newGroupId = newParent.getId().concat( Constants.HIERARCHY_BRANCH_SEPARATOR ).concat( newGroupIdPostfix );
+
+						// Add empty group
+						BasicGroup newGroup = new BasicGroup(
+							newGroupId, newParent,
 							new LinkedList<Group>(), new LinkedList<Instance>()
 						);
-						additionalNodes.add( nodeToAdd );
-						// create proper parent relation
-						newParent.addChild( nodeToAdd );
-						newParent = nodeToAdd;
+
+						// Create proper parent relation
+						newParent.addChild( newGroup );
+						newGroup.setParent( newParent );
+
+						artificialGroups.add( newGroup );
+
+						newParent = newGroup;
 					}
+
 					// Add missing links
-					newParent.addChild( elem );
-					elem.setParent( newParent );
-					nodeHasParent[i] = true;
+					newParent.addChild( group );
+					group.setParent( newParent );
 				}
 				else {
-					System.out.println( "There is no nearest paret for " + elem.getId() + " it means that something goes really bad." );
-					System.exit( 1 );
+					throw new RuntimeException(
+						String.format(
+							"Could not find nearest parent for '%s'. This means that something went seriously wrong.",
+							group.getId()
+						)
+					);
 				}
 			}
 		}
 
-		// then consider BREADTH gaps between nodes
-		if ( fillBreadthGaps ) {
-			// consider gaps for each node's children
-			LinkedList<BasicGroup> nodesToCheck = new LinkedList<BasicGroup>();
-			nodesToCheck.add( root );
-			while ( !nodesToCheck.isEmpty() ) {
-				BasicGroup currentNode = nodesToCheck.removeFirst();
-				String currentNodeId = currentNode.getId();
-				int lengthOfCurrentId = currentNode.getId().length();
+		// Fix gaps in breadth -- missing siblings.
+		if ( fixBreadthGaps ) {
+			// TODO: This seems to be a somewhat roundabout way of filling the gaps. Rework this?
+
+			LinkedList<BasicGroup> groupsToCheck = new LinkedList<BasicGroup>();
+			groupsToCheck.add( root );
+
+			while ( !groupsToCheck.isEmpty() ) {
+				BasicGroup currentGroup = groupsToCheck.removeFirst();
+				String currentGroupId = currentGroup.getId();
+
+				int lengthOfCurrentId = currentGroupId.length();
 				int maxId = Integer.MIN_VALUE;
+
+				// Collect existing IDs
 				HashSet<Integer> existingIds = new HashSet<Integer>();
-				for ( Group child : currentNode.getChildren() ) // collect existing ids
-				{
-					if ( child.getId().startsWith( currentNodeId + Constants.HIERARCHY_BRANCH_SEPARATOR ) ) {
-						String childNumberStr = child.getId().substring( lengthOfCurrentId + 1 );
-						int childNumber = Integer.parseInt( childNumberStr );
+				for ( Group childGroup : currentGroup.getChildren() ) {
+					if ( areGroupsRelated( currentGroup, childGroup ) ) {
+						int childNumber = Integer.parseInt( childGroup.getId().substring( lengthOfCurrentId + 1 ) );
 						maxId = Math.max( maxId, childNumber );
 						existingIds.add( childNumber );
-						nodesToCheck.add( (BasicGroup)child );
+						groupsToCheck.add( (BasicGroup)childGroup );
 					}
 					else {
-						System.err.println(
-							"Fatal error! in filling breth gaps. " + currentNodeId + " is NOT a prepend of " +
-								child.getId() + " but " + child.getId() + " is a CHILD of " + currentNodeId
+						throw new RuntimeException(
+							String.format(
+								"Fatal error while filling breadth gaps! '%s' IS NOT an ancestor of '%s', " +
+									"but '%s' IS a child of '%s'!",
+								currentGroupId, childGroup.getId(), childGroup.getId(), currentGroupId
+							)
 						);
 					}
 				}
 
-				for ( int i = 0; i <= maxId; i++ ) // fill gaps
-				{
+				// Fill gaps between IDs
+				for ( int i = 0; i <= maxId; i++ ) {
 					if ( !existingIds.contains( i ) ) {
-						BasicGroup nodeToAdd = new BasicGroup(
-							currentNode.getId().concat( Constants.HIERARCHY_BRANCH_SEPARATOR + i ),
-							currentNode, new LinkedList<Group>(), new LinkedList<Instance>()
+						BasicGroup newGroup = new BasicGroup(
+							currentGroup.getId().concat( Constants.HIERARCHY_BRANCH_SEPARATOR + i ),
+							currentGroup, new LinkedList<Group>(), new LinkedList<Instance>()
 						);
-						additionalNodes.add( nodeToAdd );
-						currentNode.addChild( nodeToAdd );
+
+						currentGroup.addChild( newGroup );
+						newGroup.setParent( currentGroup );
+
+						artificialGroups.add( newGroup );
 					}
 				}
-				Collections.sort( currentNode.getChildren(), new NodeComparator() );
+
+				currentGroup.getChildren().sort( new NodeComparator() );
 			}
 		}
 
-		allNodes = (LinkedList<Group>)additionalNodes.clone();
-		allNodes.addAll( nodes );
+		LinkedList<Group> allGroups = new LinkedList<Group>( artificialGroups );
+		allGroups.addAll( groups );
 
-		return allNodes;
+		return allGroups;
+	}
+
+	private static BasicGroup findNearestParent( List<BasicGroup> groups, String[] childBranchIds, int nearestHeight )
+	{
+		return findNearestParent( groups, childBranchIds, nearestHeight, -1 );
+	}
+
+	private static BasicGroup findNearestParent( List<BasicGroup> groups, String[] childBranchIds, int nearestHeight, int maxIndex )
+	{
+		if ( maxIndex < 0 ) {
+			maxIndex = groups.size();
+		}
+
+		BasicGroup result = null;
+
+		for ( int i = 0; i < maxIndex; ++i ) {
+			BasicGroup parentGroup = groups.get( i );
+			String[] parentBranchIds = getGroupBranchIds( parentGroup );
+
+			if ( parentBranchIds.length > nearestHeight ) {
+				if ( areGroupsRelated( parentBranchIds, childBranchIds ) ) {
+					result = parentGroup;
+					nearestHeight = parentBranchIds.length;
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Convenience method to split a group's IDs into segments for easier processing.
+	 */
+	private static String[] getGroupBranchIds( Group g )
+	{
+		return g.getId().split( Constants.HIERARCHY_BRANCH_SEPARATOR_REGEX );
+	}
+
+	private static boolean areGroupsDirectlyRelated( Group parent, Group child )
+	{
+		return areGroupsDirectlyRelated( getGroupBranchIds( parent ), getGroupBranchIds( child ) );
+	}
+
+	/**
+	 * Checks whether the two groups are directly related (parent-child).
+	 * 
+	 * @param parentIds
+	 *            ID segments of the group acting as parent
+	 * @param childIds
+	 *            ID segments of the group as child
+	 * @return whether the two groups are in fact in a direct parent-child relationship.
+	 */
+	private static boolean areGroupsDirectlyRelated( String[] parentIds, String[] childIds )
+	{
+		// Check that the child is exactly one level 'deeper' than the parent.
+
+		if ( parentIds.length + 1 == childIds.length ) {
+			// Compare the group IDs to verify that they are related.
+			return areGroupsRelated( parentIds, childIds );
+		}
+		else {
+			return false;
+		}
+	}
+
+	private static boolean areGroupsRelated( Group parent, Group child )
+	{
+		return areGroupsRelated( getGroupBranchIds( parent ), getGroupBranchIds( child ) );
+	}
+
+	/**
+	 * Checks whether the two groups are indirectly related (ancestor-descendant).
+	 * 
+	 * @param parentIds
+	 *            ID segments of the group acting as parent
+	 * @param childIds
+	 *            ID segments of the group as child
+	 * @return whether the two groups are in fact in a ancestor-descendant relationship.
+	 */
+	private static boolean areGroupsRelated( String[] parentIds, String[] childIds )
+	{
+		if ( parentIds.length <= childIds.length ) {
+			boolean result = true;
+			for ( int i = 0; i < parentIds.length && result; ++i ) {
+				if ( !parentIds[i].equals( childIds[i] ) ) {
+					result = false;
+				}
+			}
+
+			return result;
+		}
+		else {
+			return false;
+		}
 	}
 }
