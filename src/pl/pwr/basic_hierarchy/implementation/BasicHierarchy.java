@@ -1,9 +1,9 @@
 package pl.pwr.basic_hierarchy.implementation;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import pl.pwr.basic_hierarchy.common.Constants;
 import pl.pwr.basic_hierarchy.common.StringIdComparator;
@@ -21,8 +21,8 @@ public class BasicHierarchy implements Hierarchy
 
 
 	public BasicHierarchy(
-		Group root, List<Group> groups,
-		HashMap<String, Integer> eachClassWithCount
+		Group root, List<? extends Group> groups,
+		Map<String, Integer> eachClassWithCount
 	)
 	{
 		if ( root == null ) {
@@ -42,11 +42,10 @@ public class BasicHierarchy implements Hierarchy
 		LinkedList<String> sortedKeys = new LinkedList<String>( eachClassWithCount.keySet() );
 		sortedKeys.sort( new StringIdComparator() );
 
-		int index = 0;
-		for ( String key : sortedKeys ) {
+		for ( int index = 0; index < sortedKeys.size(); ++index ) {
+			String key = sortedKeys.get( index );
 			classes[index] = key;
 			classCounts[index] = eachClassWithCount.get( key );
-			++index;
 		}
 	}
 

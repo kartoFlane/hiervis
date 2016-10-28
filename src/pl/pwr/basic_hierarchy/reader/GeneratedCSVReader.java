@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 import pl.pwr.basic_hierarchy.common.Constants;
@@ -153,7 +154,7 @@ public class GeneratedCSVReader implements DataReader
 			e.printStackTrace();
 		}
 
-		LinkedList<Group> allNodes = HierarchyFiller.buildCompleteGroupHierarchy( root, groups, fixBreadthGaps );
+		List<? extends Group> allNodes = HierarchyFiller.buildCompleteGroupHierarchy( root, groups, fixBreadthGaps );
 		return new BasicHierarchy( root, allNodes, eachClassAndItsCount );
 	}
 }
