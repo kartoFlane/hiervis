@@ -6,12 +6,12 @@ import pl.pwr.basic_hierarchy.interfaces.Group;
 
 
 /**
- * Compares two nodes.
+ * Compares two groups.
  * <p>
- * Implementation compares the two nodes' ids using {@linkplain StringIdComparator}.
+ * Implementation compares the two groups' IDs using {@linkplain StringIdComparator}.
  * </p>
  */
-public class NodeComparator implements Comparator<Group>
+public class GroupComparator implements Comparator<Group>
 {
 	private StringIdComparator idComparator = new StringIdComparator();
 
