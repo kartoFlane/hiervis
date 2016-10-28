@@ -27,6 +27,11 @@ public class BasicGroup implements Group
 		this.instances = instances;
 	}
 
+	public BasicGroup( String id, Group parent )
+	{
+		this( id, parent, new LinkedList<Group>(), new LinkedList<Instance>() );
+	}
+
 	public void setParent( Group parent )
 	{
 		this.parent = parent;
