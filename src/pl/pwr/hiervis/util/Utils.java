@@ -7,8 +7,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
-import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Instance;
 import prefuse.Display;
 import prefuse.activity.ActivityManager;
 

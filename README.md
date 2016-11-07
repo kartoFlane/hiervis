@@ -10,6 +10,7 @@ This project utilizes the following third-party libraries (distribution jars inc
     * [Math](https://commons.apache.org/proper/commons-math/) (version 3.6)
 * [Apache Log4j 2](http://logging.apache.org/log4j/2.x/) - logging library
 * [Jackson](https://github.com/FasterXML/jackson) - JSON parser for Java
+* [Basic Hierarchy](https://github.com/kartoFlane/basic_hierarchy/) - contains common data structures used to represent HoCs, as well as logic to create them.
 
 ## Requirements
 * [Java](http://www.java.com/en/download/) (1.8 or higher)

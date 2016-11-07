@@ -12,8 +12,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
-import pl.pwr.basic_hierarchy.reader.GeneratedCSVReader;
+import basic_hierarchy.interfaces.Hierarchy;
+import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.HierarchyStatistics;

@@ -1,7 +1,7 @@
 package pl.pwr.hiervis.core;
 
-import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Instance;
 
 
 public class GroupWithEmpiricalParameters

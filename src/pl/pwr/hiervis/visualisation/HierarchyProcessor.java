@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 
-import pl.pwr.basic_hierarchy.interfaces.Group;
-import pl.pwr.basic_hierarchy.interfaces.Instance;
+import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Instance;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;

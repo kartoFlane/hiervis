@@ -46,7 +46,6 @@ import prefuse.controls.Control;
 public class VisualizerFrame extends JFrame
 {
 	private static final Logger log = LogManager.getLogger( VisualizerFrame.class );
-	private static final long serialVersionUID = 1L;
 
 	private static final int defaultFrameWidth = 1200;
 	private static final int defaultFrameHeight = 900;

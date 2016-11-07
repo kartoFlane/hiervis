@@ -11,9 +11,9 @@ import java.util.LinkedList;
 
 import javax.imageio.ImageIO;
 
-import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
-import pl.pwr.basic_hierarchy.interfaces.Instance;
-import pl.pwr.basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Hierarchy;
+import basic_hierarchy.interfaces.Instance;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;

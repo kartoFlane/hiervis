@@ -13,8 +13,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-import pl.pwr.basic_hierarchy.interfaces.Hierarchy;
-import pl.pwr.basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Hierarchy;
 
 
 public class HierarchyStatistics
