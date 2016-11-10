@@ -1,6 +1,7 @@
 package pl.pwr.hiervis.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -44,14 +45,14 @@ public class HVContext
 	}
 
 	/**
-	 * Loads the specified *.csv file and uses its data to visualize the hierarchy.
+	 * Loads the specified CSV file and uses its data to visualize the hierarchy.
 	 * 
 	 * @param path
-	 *            path to the *.csv file to load.
+	 *            path to the CSV file to load.
 	 */
-	public void load( Path path )
+	public void load( Path path ) throws IOException
 	{
-		setHierarchy( loadHierarchy( path, config.hasInstanceNameAttribute(), config.hasClassAttribute() ) );
+		setHierarchy( loadHierarchy( path, config.hasInstanceNameAttribute(), config.hasClassAttribute(), config.hasDataNamesRow() ) );
 		setTree( createHierarchyTree( this ) );
 
 		selectedRow = 0;
@@ -149,9 +150,9 @@ public class HVContext
 		return config;
 	}
 
-	private static Hierarchy loadHierarchy( Path path, boolean hasInstanceName, boolean hasClass )
+	private static Hierarchy loadHierarchy( Path path, boolean hasInstanceName, boolean hasClass, boolean hasNames ) throws IOException
 	{
-		return new GeneratedCSVReader().load( path.toString(), hasInstanceName, hasClass, false );
+		return new GeneratedCSVReader().load( path.toString(), hasInstanceName, hasClass, hasNames, false );
 	}
 
 	private static Tree createHierarchyTree( HVContext context )

@@ -2,6 +2,7 @@ package pl.pwr.hiervis;
 
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 
 import javax.swing.SwingUtilities;
@@ -78,12 +79,19 @@ public final class HierarchyVisualizer
 		Hierarchy inputData = null;
 
 		if ( config.getInputDataFilePath().getFileName().endsWith( ".csv" ) ) {
-			inputData = new GeneratedCSVReader().load(
-				config.getInputDataFilePath().toString(),
-				config.hasInstanceNameAttribute(),
-				config.hasClassAttribute(),
-				false
-			);
+			try {
+				inputData = new GeneratedCSVReader().load(
+					config.getInputDataFilePath().toString(),
+					config.hasInstanceNameAttribute(),
+					config.hasClassAttribute(),
+					config.hasDataNamesRow(),
+					false
+				);
+			}
+			catch ( IOException e ) {
+				System.err.println( "Error while reading input file:" );
+				e.printStackTrace();
+			}
 		}
 		else {
 			log.error(

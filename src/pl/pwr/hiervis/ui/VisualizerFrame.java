@@ -15,6 +15,7 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 import javax.swing.JFrame;
@@ -252,17 +253,22 @@ public class VisualizerFrame extends JFrame
 
 		String filename = dialog.getFile();
 		if ( filename != null ) {
-			log.trace( String.format( "Selected file: '%s'", filename ) );
+			try {
+				log.trace( String.format( "Selected file: '%s'", filename ) );
 
-			log.trace( "Enabling prefuse displays..." );
-			treeDisplay.setEnabled( true );
-			pointDisplay.setEnabled( true );
+				log.trace( "Enabling prefuse displays..." );
+				treeDisplay.setEnabled( true );
+				pointDisplay.setEnabled( true );
 
-			log.trace( "Loading the file as hierarchy..." );
-			context.load( Paths.get( dialog.getDirectory(), filename ) );
+				log.trace( "Loading the file as hierarchy..." );
+				context.load( Paths.get( dialog.getDirectory(), filename ) );
 
-			log.trace( "Reprocessing..." );
-			reprocess();
+				log.trace( "Reprocessing..." );
+				reprocess();
+			}
+			catch ( IOException e ) {
+				log.error( "Error while loading hierarchy file: " + filename, e );
+			}
 		}
 
 		log.trace( "File selection finished." );

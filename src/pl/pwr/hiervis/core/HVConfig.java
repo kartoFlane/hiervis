@@ -78,6 +78,8 @@ public class HVConfig
 	@SerializableField
 	private boolean instanceNameAttribute;
 	@SerializableField
+	private boolean dataNamesRow;
+	@SerializableField
 	private boolean skipVisualisations;
 	@SerializableField
 	private String preferredLookAndFeel;
@@ -559,6 +561,16 @@ public class HVConfig
 	public void setInstanceNameAttribute( boolean instanceNameAttribute )
 	{
 		this.instanceNameAttribute = instanceNameAttribute;
+	}
+
+	public void setDataNamesRow( boolean dataNames )
+	{
+		this.dataNamesRow = dataNames;
+	}
+
+	public boolean hasDataNamesRow()
+	{
+		return dataNamesRow;
 	}
 
 	public void setNumberOfHistogramBins( int numberOfHistogramBins )
