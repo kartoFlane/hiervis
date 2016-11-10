@@ -44,6 +44,7 @@ import prefuse.Visualization;
 import prefuse.controls.Control;
 
 
+@SuppressWarnings("serial")
 public class VisualizerFrame extends JFrame
 {
 	private static final Logger log = LogManager.getLogger( VisualizerFrame.class );
@@ -172,16 +173,6 @@ public class VisualizerFrame extends JFrame
 
 		JLabel lblHistH = new JLabel( "TODO: Histogram" );
 		cHistogramHorizontal.add( lblHistH );
-
-		JPanel cStatistics = new JPanel();
-		GridBagConstraints gbc_cStatistics = new GridBagConstraints();
-		gbc_cStatistics.fill = GridBagConstraints.BOTH;
-		gbc_cStatistics.gridx = 1;
-		gbc_cStatistics.gridy = 1;
-		cNodeDetail.add( cStatistics, gbc_cStatistics );
-
-		JLabel lblStats = new JLabel( SwingUIUtils.toHTML( "TODO:\nStats" ) );
-		cStatistics.add( lblStats );
 	}
 
 	private void createMenu()
@@ -236,32 +227,37 @@ public class VisualizerFrame extends JFrame
 	private void openFileSelectionDialog()
 	{
 		log.trace( "Creating FileDialog instance..." );
-		FileDialog dialog = new FileDialog( this, "Choose a file", FileDialog.LOAD );
+		FileDialog fileDialog = new FileDialog( this, "Choose a file", FileDialog.LOAD );
 		log.trace( "Setting selected path..." );
-		dialog.setDirectory( new File( "." ).getAbsolutePath() );
+		fileDialog.setDirectory( new File( "." ).getAbsolutePath() );
 
 		// NOTE: In order to cover all three major platforms (Windows/Linux/Mac),
 		// we need to set *both* filename filter (which works on Linux and Mac, but
 		// not on Windows), as well as file name (which works on Windows, but not on
 		// Linux and Mac...)
-		dialog.setFilenameFilter( ( dir, name ) -> name.endsWith( ".csv" ) );
-		dialog.setFile( "*.csv" );
+		fileDialog.setFilenameFilter( ( dir, name ) -> name.endsWith( ".csv" ) );
+		fileDialog.setFile( "*.csv" );
 
-		log.trace( "Making the dialog visible..." );
-		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
+		log.trace( "Making the file dialog visible..." );
+		fileDialog.setVisible( true ); // Blocks until the dialog is dismissed.
 		log.trace( "Dialog dismissed." );
 
-		String filename = dialog.getFile();
+		String filename = fileDialog.getFile();
 		if ( filename != null ) {
 			try {
 				log.trace( String.format( "Selected file: '%s'", filename ) );
+
+				log.trace( "Creating and showing options dialog..." );
+				FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
+				optionsDialog.setVisible( true );
+				log.trace( "Dialog dismissed." );
 
 				log.trace( "Enabling prefuse displays..." );
 				treeDisplay.setEnabled( true );
 				pointDisplay.setEnabled( true );
 
 				log.trace( "Loading the file as hierarchy..." );
-				context.load( Paths.get( dialog.getDirectory(), filename ) );
+				context.load( Paths.get( fileDialog.getDirectory(), filename ) );
 
 				log.trace( "Reprocessing..." );
 				reprocess();
