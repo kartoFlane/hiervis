@@ -74,11 +74,13 @@ public class HVConfig
 	@SerializableField
 	private boolean displayAllPoints;
 	@SerializableField
-	private boolean classAttribute;
+	private boolean trueClassAttribute;
 	@SerializableField
 	private boolean instanceNameAttribute;
 	@SerializableField
 	private boolean dataNamesRow;
+	@SerializableField
+	private boolean fillBreadthGaps;
 	@SerializableField
 	private boolean skipVisualisations;
 	@SerializableField
@@ -106,7 +108,7 @@ public class HVConfig
 		backgroundColor = new Color( -1 );
 
 		displayAllPoints = true;
-		classAttribute = false;
+		trueClassAttribute = false;
 		instanceNameAttribute = false;
 		skipVisualisations = false;
 		preferredLookAndFeel = "";
@@ -543,14 +545,14 @@ public class HVConfig
 		this.outputFolder = path;
 	}
 
-	public boolean hasClassAttribute()
+	public boolean hasTrueClassAttribute()
 	{
-		return classAttribute;
+		return trueClassAttribute;
 	}
 
-	public void setClassAttribute( boolean classAttribute )
+	public void setTrueClassAttribute( boolean classAttribute )
 	{
-		this.classAttribute = classAttribute;
+		this.trueClassAttribute = classAttribute;
 	}
 
 	public boolean hasInstanceNameAttribute()
@@ -563,14 +565,24 @@ public class HVConfig
 		this.instanceNameAttribute = instanceNameAttribute;
 	}
 
+	public boolean hasDataNamesRow()
+	{
+		return dataNamesRow;
+	}
+
 	public void setDataNamesRow( boolean dataNames )
 	{
 		this.dataNamesRow = dataNames;
 	}
 
-	public boolean hasDataNamesRow()
+	public boolean isFillBreadthGaps()
 	{
-		return dataNamesRow;
+		return fillBreadthGaps;
+	}
+
+	public void setFillBreadthGaps( boolean fillBreadthGaps )
+	{
+		this.fillBreadthGaps = fillBreadthGaps;
 	}
 
 	public void setNumberOfHistogramBins( int numberOfHistogramBins )

@@ -52,7 +52,7 @@ public class HVContext
 	 */
 	public void load( Path path ) throws IOException
 	{
-		setHierarchy( loadHierarchy( path, config.hasInstanceNameAttribute(), config.hasClassAttribute(), config.hasDataNamesRow() ) );
+		setHierarchy( loadHierarchy( path, config.hasInstanceNameAttribute(), config.hasTrueClassAttribute(), config.hasDataNamesRow() ) );
 		setTree( createHierarchyTree( this ) );
 
 		selectedRow = 0;

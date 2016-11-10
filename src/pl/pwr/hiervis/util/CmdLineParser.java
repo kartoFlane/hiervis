@@ -281,7 +281,7 @@ public class CmdLineParser
 		);
 
 		config.setDisplayAllPoints( cmd.hasOption( "da" ) );
-		config.setClassAttribute( cmd.hasOption( "c" ) );
+		config.setTrueClassAttribute( cmd.hasOption( "c" ) );
 		config.setSkipVisualisations( cmd.hasOption( "sv" ) );
 	}
 

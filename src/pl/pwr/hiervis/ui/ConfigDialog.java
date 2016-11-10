@@ -478,8 +478,6 @@ public class ConfigDialog extends JDialog
 		newConfig.setTreeHeight( Integer.parseInt( getText( txtTreeHeight ) ) );
 		newConfig.setPointWidth( Integer.parseInt( getText( txtPointWidth ) ) );
 		newConfig.setPointHeight( Integer.parseInt( getText( txtPointHeight ) ) );
-
-		// cfg.setClassAttribute( ... ); // TODO
 	}
 
 	/**
