@@ -1,11 +1,14 @@
 package pl.pwr.hiervis.visualisation;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
+import prefuse.Constants;
 import prefuse.render.AbstractShapeRenderer;
 import prefuse.visual.VisualItem;
 
@@ -17,11 +20,17 @@ public class PointRenderer extends AbstractShapeRenderer
 	protected Ellipse2D ellipse = new Ellipse2D.Double();
 	protected int pointSize;
 
+	private StringRenderer stringRenderer;
+
 
 	public PointRenderer( int pointSize, HVConfig config )
 	{
 		this.config = config;
 		this.pointSize = pointSize;
+
+		this.stringRenderer = new StringRenderer();
+		this.stringRenderer.setHorizontalAlignment( Constants.LEFT );
+		this.stringRenderer.setVerticalAlignment( Constants.BOTTOM );
 	}
 
 	@Override
@@ -36,6 +45,7 @@ public class PointRenderer extends AbstractShapeRenderer
 		// int role = item.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
 		int role = 0;
 
+		item.setTextColor( Color.black.getRGB() );
 		// item.setStrokeColor( Color.black.getRGB() );
 		item.setFillColor( Color.red.getRGB() );
 
@@ -55,6 +65,22 @@ public class PointRenderer extends AbstractShapeRenderer
 			item.setFillColor( config.getOtherGroupColor().getRGB() );
 		}
 
-		return ellipse;
+		if ( stringRenderer.getText( item ) == null ) {
+			return ellipse;
+		}
+		else {
+			Area a = new Area( stringRenderer.getRawShape( item ) );
+			a.add( new Area( ellipse ) );
+			return a;
+		}
+	}
+
+	/**
+	 * @see prefuse.render.Renderer#render(java.awt.Graphics2D, prefuse.visual.VisualItem)
+	 */
+	public void render( Graphics2D g, VisualItem item )
+	{
+		super.render( g, item );
+		stringRenderer.render( g, item );
 	}
 }

@@ -315,6 +315,7 @@ public class HierarchyProcessor
 		table.addColumn( xField, int.class );
 		table.addColumn( yField, int.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
+		table.addColumn( "label", String.class );
 
 		Group root = context.getHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root );
@@ -337,6 +338,7 @@ public class HierarchyProcessor
 			int row = table.addRow();
 			table.set( row, 0, pointLeftEdge );
 			table.set( row, 1, pointImageHeight - pointTopEdge );
+			table.setString( row, "label", i.getInstanceName() );
 		}
 
 		vis.addTable( datasetName, table );
