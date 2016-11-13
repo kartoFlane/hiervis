@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,6 +14,7 @@ import basic_hierarchy.interfaces.Group;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
+import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.data.Tree;
@@ -30,17 +32,15 @@ public class HVContext
 	private static final Logger log = LogManager.getLogger( HVContext.class );
 
 	private HVConfig config = null;
-	private HierarchyProcessor processor = null;
 	private Hierarchy inputHierarchy = null;
 	private Tree hierarchyTree = null;
+	private TreeLayoutData hierarchyTreeLayout = null;
 
 	private int selectedRow = 0;
 
 
 	public HVContext()
 	{
-		processor = new HierarchyProcessor();
-
 		setConfig( loadConfig() );
 	}
 
@@ -52,8 +52,22 @@ public class HVContext
 	 */
 	public void load( Path path ) throws IOException
 	{
-		setHierarchy( loadHierarchy( path, config.hasInstanceNameAttribute(), config.hasTrueClassAttribute(), config.hasDataNamesRow() ) );
-		setTree( createHierarchyTree( this ) );
+		setHierarchy(
+			loadHierarchy(
+				path,
+				config.hasInstanceNameAttribute(),
+				config.hasTrueClassAttribute(),
+				config.hasDataNamesRow()
+			)
+		);
+
+		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
+			config,
+			inputHierarchy.getRoot()
+		);
+
+		setTree( treeData.getLeft() );
+		setTreeLayoutData( treeData.getRight() );
 
 		selectedRow = 0;
 	}
@@ -97,6 +111,16 @@ public class HVContext
 		return hierarchyTree;
 	}
 
+	public void setTreeLayoutData( TreeLayoutData layoutData )
+	{
+		hierarchyTreeLayout = layoutData;
+	}
+
+	public TreeLayoutData getTreeLayoutData()
+	{
+		return hierarchyTreeLayout;
+	}
+
 	public void setSelectedRow( int i )
 	{
 		selectedRow = i;
@@ -112,22 +136,22 @@ public class HVContext
 
 	public Display createHierarchyDisplay()
 	{
-		return processor.createTreeDisplay( this );
+		return HierarchyProcessor.createTreeDisplay( this );
 	}
 
 	public Visualization createHierarchyVisualization()
 	{
-		return processor.createTreeVisualization( this );
+		return HierarchyProcessor.createTreeVisualization( this );
 	}
 
 	public Display createPointDisplay()
 	{
-		return processor.createPointDisplay( this );
+		return HierarchyProcessor.createInstanceDisplay( this );
 	}
 
-	public Visualization createPointVisualization( Group group )
+	public Visualization createInstanceVisualization( Group group )
 	{
-		return processor.createPointVisualization( this, group );
+		return HierarchyProcessor.createInstanceVisualization( this, group );
 	}
 
 	private static HVConfig loadConfig()
@@ -150,17 +174,13 @@ public class HVContext
 		return config;
 	}
 
-	private static Hierarchy loadHierarchy( Path path, boolean hasInstanceName, boolean hasClass, boolean hasNames ) throws IOException
+	private static Hierarchy loadHierarchy(
+		Path path,
+		boolean hasInstanceName,
+		boolean hasClass,
+		boolean hasNames ) throws IOException
 	{
 		return new GeneratedCSVReader().load( path.toString(), hasInstanceName, hasClass, hasNames, false );
-	}
-
-	private static Tree createHierarchyTree( HVContext context )
-	{
-		return context.processor.createHierarchyTree(
-			context.inputHierarchy.getRoot(),
-			context.getConfig()
-		);
 	}
 
 	/**

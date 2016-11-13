@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import basic_hierarchy.interfaces.Group;
 import basic_hierarchy.interfaces.Instance;
 import pl.pwr.hiervis.core.ElementRole;
@@ -40,140 +42,134 @@ import prefuse.visual.expression.VisiblePredicate;
 // Previously called 'Visualisation'
 public class HierarchyProcessor
 {
-	private int finalSizeOfNodes;
-	private int treeOrientation;
-
-	/**
-	 * The spacing to maintain between depth levels of the tree.
-	 */
-	private double levelGap;
-
-	/**
-	 * The spacing to maintain between sibling nodes.
-	 */
-	private double siblingNodeGap;
-	/**
-	 * The spacing to maintain between neighboring subtrees.
-	 */
-	private double subtreeGap;
-
-	private double nodeSizeToBetweenLevelSpaceRatio = 2.0; // minimum value
-	private double nodeSizeToBetweenSiblingsSpaceRatio = 4.0; // minimum value
-
-
-	public Tree createHierarchyTree( Group root, HVConfig config )
+	public static Pair<Tree, TreeLayoutData> buildHierarchyTree( HVConfig config, Group sourceRoot )
 	{
 		Tree tree = new Tree();
 		tree.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
 		tree.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
-		// tree.addColumn(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, Integer.class);
 
-		Node n = tree.addRoot();
-		n.set( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, root.getId() );
-		// n.set(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, root.getNodeInstances().size());
-		n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
+		Node treeRoot = tree.addRoot();
+		treeRoot.setString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, sourceRoot.getId() );
+		treeRoot.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 
-		int maxTreeDepth = 0; // path from node to root
+		// path from node to root
+		int maxTreeDepth = 0;
 		int maxTreeWidth = 0;
-		HashMap<Integer, Integer> treeLevelWithWidth = new HashMap<>();// FIXME: in case of better performance it would be better to change it to LinkedList
-		// because HashMap is quick only when it is built, but the building process could be slow
-		treeLevelWithWidth.put( 0, 1 );
+		// TODO: In order to improve performance, it might be better to change this to a LinkedList, because
+		// HashMap is only quick once it is already built, but the building process itself could be slow.
+		HashMap<Integer, Integer> treeLevelToWidth = new HashMap<>();
+		treeLevelToWidth.put( 0, 1 );
 
-		int nodesCounter = 1;
-
-		Queue<Map.Entry<Node, Group>> stackParentAndChild = new LinkedList<>(); // FIFO
-		for ( Group child : root.getChildren() ) {
-			stackParentAndChild.add( new AbstractMap.SimpleEntry<Node, Group>( n, child ) );
+		Queue<Map.Entry<Node, Group>> treeParentToSourceChild = new LinkedList<>();
+		for ( Group sourceChild : sourceRoot.getChildren() ) {
+			treeParentToSourceChild.add( new AbstractMap.SimpleEntry<Node, Group>( treeRoot, sourceChild ) );
 		}
 
-		while ( !stackParentAndChild.isEmpty() ) {
-			Entry<Node, Group> sourceNodeWithItsParent = stackParentAndChild.remove();
-			Group sourceNode = sourceNodeWithItsParent.getValue();
+		while ( !treeParentToSourceChild.isEmpty() ) {
+			Entry<Node, Group> treeParentAndSourceChild = treeParentToSourceChild.remove();
+			Group sourceGroup = treeParentAndSourceChild.getValue();
 
-			n = tree.addChild( sourceNodeWithItsParent.getKey() );
-			nodesCounter++;
-			n.set( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, sourceNode.getId() );
-			// n.set(HVConstants.PREFUSE_NUMBER_OF_INSTANCES_COLUMN_NAME, sourceNode.getNodeInstances().size());
-			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
+			// Create a new tree node based on the source group
+			Node newNode = tree.addChild( treeParentAndSourceChild.getKey() );
+			newNode.setString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, sourceGroup.getId() );
+			newNode.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 
-			int nodeDepth = n.getDepth();
-			if ( nodeDepth > maxTreeDepth ) {
-				maxTreeDepth = nodeDepth;
-			}
+			// Compute new max tree depth
+			int currentNodeDepth = newNode.getDepth();
+			maxTreeDepth = Math.max( maxTreeDepth, currentNodeDepth );
 
-			Integer depthCount = treeLevelWithWidth.get( nodeDepth );
-			if ( depthCount == null ) {
-				treeLevelWithWidth.put( nodeDepth, 1 );
+			// Update the number of nodes on this tree level, for later processing
+			Integer treeLevelWidth = treeLevelToWidth.get( currentNodeDepth );
+			if ( treeLevelWidth == null ) {
+				treeLevelToWidth.put( currentNodeDepth, 1 );
 			}
 			else {
-				treeLevelWithWidth.put( nodeDepth, depthCount + 1 );
+				treeLevelToWidth.put( currentNodeDepth, treeLevelWidth + 1 );
 			}
 
-			for ( Group child : sourceNode.getChildren() ) {
-				stackParentAndChild.add( new AbstractMap.SimpleEntry<Node, Group>( n, child ) );
+			// Enqueue this group's children for processing
+			for ( Group child : sourceGroup.getChildren() ) {
+				treeParentToSourceChild.add( new AbstractMap.SimpleEntry<Node, Group>( newNode, child ) );
 			}
 		}
-		System.out.println( "Number of nodes: " + nodesCounter );
 
-		maxTreeWidth = Collections.max( treeLevelWithWidth.values() );
+		// Tree is complete, now find the max tree width
+		maxTreeWidth = Collections.max( treeLevelToWidth.values() );
 
-		// predict height and width of hierarchy image
-		finalSizeOfNodes = 0;
-		int widthBasedSizeOfNodes = 0;
-		int heightBasedSizeOfNodes = 0;
-		treeOrientation = prefuse.Constants.ORIENT_TOP_BOTTOM; // TODO: the orientation of charts could be set automatically depending on the
-		// size of hierarchy
-		levelGap = 0.0; // the spacing to maintain between depth levels of the tree
-		siblingNodeGap = 0.0; // the spacing to maintain between sibling nodes
-		subtreeGap = 0.0; // the spacing to maintain between neighboring subtrees
-		int hierarchyImageWidth = config.getTreeWidth();
-		int hierarchyImageHeight = config.getTreeHeight();
+		TreeLayoutData layoutData = new TreeLayoutData( config, tree, maxTreeDepth, maxTreeWidth );
 
-		levelGap = hierarchyImageHeight
-			/ (double)( nodeSizeToBetweenLevelSpaceRatio * maxTreeDepth + nodeSizeToBetweenLevelSpaceRatio + maxTreeDepth );
-		levelGap = Math.max( 1.0, levelGap );
-
-		// based on above calculation - compute "optimal" size of each node on image
-		heightBasedSizeOfNodes = (int)( nodeSizeToBetweenLevelSpaceRatio * levelGap );
-
-		System.out.println( "Between level space: " + levelGap + " node size: " + heightBasedSizeOfNodes );
-
-		siblingNodeGap = ( hierarchyImageWidth ) / ( maxTreeWidth * nodeSizeToBetweenSiblingsSpaceRatio + maxTreeWidth - 1.0 );
-		siblingNodeGap = Math.max( 1.0, siblingNodeGap );
-
-		subtreeGap = siblingNodeGap;
-		widthBasedSizeOfNodes = (int)( nodeSizeToBetweenSiblingsSpaceRatio * siblingNodeGap );
-		System.out.println( "Between siblings space: " + siblingNodeGap + " node size: " + widthBasedSizeOfNodes );
-
-		// below use MAXIMUM height/width
-		if ( widthBasedSizeOfNodes < heightBasedSizeOfNodes ) {
-			finalSizeOfNodes = widthBasedSizeOfNodes;
-			// assume maximum possible size
-			levelGap = ( hierarchyImageHeight - maxTreeDepth * finalSizeOfNodes - finalSizeOfNodes ) / (double)maxTreeDepth;
-			levelGap = Math.max( 1.0, levelGap );
-		}
-		else {
-			finalSizeOfNodes = heightBasedSizeOfNodes;
-			// assume maximum possible size
-			siblingNodeGap = ( hierarchyImageWidth - maxTreeWidth * finalSizeOfNodes ) / ( maxTreeWidth - 1.0 );
-			siblingNodeGap = Math.max( 1.0, siblingNodeGap );
-			subtreeGap = siblingNodeGap;
-		}
-
-		return tree;
+		return Pair.of( tree, layoutData );
 	}
 
-	public Visualization createTreeVisualization( HVContext context )
+	@SuppressWarnings("unchecked")
+	public static void updateTreeNodeRoles( HVContext context, String currentGroupId )
+	{
+		Tree hierarchyTree = context.getTree();
+		HVConfig config = context.getConfig();
+
+		if ( context.isHierarchyDataLoaded() ) {
+			boolean found = false;
+
+			for ( int i = 0; i < hierarchyTree.getNodeCount(); ++i ) {
+				Node n = hierarchyTree.getNode( i );
+
+				// Reset node role to 'other'
+				n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
+
+				if ( !found && n.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME ).equals( currentGroupId ) ) {
+					found = true;
+
+					n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CURRENT.getNumber() );
+
+					// Color child groups
+					LinkedList<Node> stack = new LinkedList<>();
+					stack.add( n );
+
+					while ( !stack.isEmpty() ) {
+						Node current = stack.removeFirst();
+						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
+
+						for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
+							Node child = children.next();
+							stack.add( child );
+						}
+					}
+
+					if ( config.isDisplayAllPoints() && n.getParent() != null ) {
+						stack.clear();
+
+						// IF the parent is empty, then we need to search up in the hierarchy because empty
+						// parents are skipped, but displayed on output images
+						Node directParent = n.getParent();
+						stack.add( directParent );
+
+						while ( !stack.isEmpty() ) {
+							Node current = stack.removeFirst();
+							current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
+
+							if ( current.getParent() != null ) {
+								stack.add( current.getParent() );
+							}
+						}
+
+						directParent.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.DIRECT_PARENT.getNumber() );
+					}
+				}
+			}
+		}
+	}
+
+	public static Visualization createTreeVisualization( HVContext context )
 	{
 		return createTreeVisualization( context, null );
 	}
 
-	@SuppressWarnings("unchecked")
-	public Visualization createTreeVisualization( HVContext context, String currentGroupId )
+	public static Visualization createTreeVisualization( HVContext context, String currentGroupId )
 	{
-		boolean isFound = false;
+		updateTreeNodeRoles( context, currentGroupId );
 
 		Tree hierarchyTree = context.getTree();
+		TreeLayoutData layoutData = context.getTreeLayoutData();
 		HVConfig config = context.getConfig();
 
 		int hierarchyImageWidth = config.getTreeWidth();
@@ -182,48 +178,10 @@ public class HierarchyProcessor
 		Visualization vis = new Visualization();
 
 		if ( context.isHierarchyDataLoaded() ) {
-			for ( int i = 0; i < hierarchyTree.getNodeCount(); i++ ) {
-				Node n = hierarchyTree.getNode( i );
-				n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
-			}
-
-			for ( int i = 0; i < hierarchyTree.getNodeCount() && !isFound; i++ ) {
-				Node n = hierarchyTree.getNode( i );
-				if ( n.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME ).equals( currentGroupId ) ) {
-					isFound = true;
-					// colour child groups
-					LinkedList<Node> stack = new LinkedList<>();
-					stack.add( n );
-					while ( !stack.isEmpty() ) {
-						Node current = stack.removeFirst();
-						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
-						for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
-							Node child = children.next();
-							stack.add( child );
-						}
-					}
-
-					if ( config.isDisplayAllPoints() && n.getParent() != null ) {
-						stack = new LinkedList<>();
-						Node directParent = n.getParent();// when the parent is empty, then we need to search up in the hierarchy because empty
-						// parents are skipped,but displayed on output images
-						stack.add( directParent );
-						while ( !stack.isEmpty() ) {
-							Node current = stack.removeFirst();
-							current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
-							if ( current.getParent() != null ) {
-								stack.add( current.getParent() );
-							}
-						}
-						directParent.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.DIRECT_PARENT.getNumber() );
-					}
-					n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CURRENT.getNumber() );
-				}
-			}
 
 			vis.add( HVConstants.NAME_OF_HIERARCHY, hierarchyTree );
 
-			NodeRenderer r = new NodeRenderer( finalSizeOfNodes, config );
+			NodeRenderer r = new NodeRenderer( layoutData.getNodeSize(), config );
 			DefaultRendererFactory drf = new DefaultRendererFactory( r );
 			EdgeRenderer edgeRenderer = new EdgeRenderer( prefuse.Constants.EDGE_TYPE_LINE );
 			drf.setDefaultEdgeRenderer( edgeRenderer );
@@ -237,10 +195,10 @@ public class HierarchyProcessor
 
 			NodeLinkTreeLayout treeLayout = new NodeLinkTreeLayout(
 				HVConstants.NAME_OF_HIERARCHY,
-				treeOrientation,
-				levelGap,
-				siblingNodeGap,
-				subtreeGap
+				layoutData.getTreeOrientation(),
+				layoutData.getDepthSpace(),
+				layoutData.getSiblingSpace(),
+				layoutData.getSubtreeSpace()
 			);
 			treeLayout.setLayoutBounds( new Rectangle2D.Float( 0, 0, hierarchyImageWidth, hierarchyImageHeight ) );
 			treeLayout.setRootNodeOffset( 0 );// 0.5*finalSizeOfNodes);//offset is set in order to show all nodes on images
@@ -269,7 +227,7 @@ public class HierarchyProcessor
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	private Display createTreeDisplay( HVContext context, String currentNodeId )
+	private static Display createTreeDisplay( HVContext context, String currentNodeId )
 	{
 		Visualization vis = createTreeVisualization( context, currentNodeId );
 
@@ -288,12 +246,12 @@ public class HierarchyProcessor
 		return display;
 	}
 
-	public Display createTreeDisplay( HVContext context )
+	public static Display createTreeDisplay( HVContext context )
 	{
 		return createTreeDisplay( context, null );
 	}
 
-	public Visualization createPointVisualization( HVContext context, Group group )
+	public static Visualization createInstanceVisualization( HVContext context, Group group )
 	{
 		HVConfig config = context.getConfig();
 		int pointImageWidth = config.getPointWidth();
@@ -315,7 +273,7 @@ public class HierarchyProcessor
 		table.addColumn( xField, int.class );
 		table.addColumn( yField, int.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
-		table.addColumn( "label", String.class );
+		table.addColumn( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, String.class );
 
 		Group root = context.getHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root );
@@ -338,7 +296,8 @@ public class HierarchyProcessor
 			int row = table.addRow();
 			table.set( row, 0, pointLeftEdge );
 			table.set( row, 1, pointImageHeight - pointTopEdge );
-			table.setString( row, "label", i.getInstanceName() );
+			table.set( row, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, 0 );
+			table.setString( row, HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, i.getInstanceName() );
 		}
 
 		vis.addTable( datasetName, table );
@@ -372,7 +331,7 @@ public class HierarchyProcessor
 		return (int)result;
 	}
 
-	private Display createPointDisplay( HVContext context, Group group )
+	private static Display createInstanceDisplay( HVContext context, Group group )
 	{
 		if ( group == null )
 			group = context.getHierarchy().getRoot();
@@ -382,7 +341,7 @@ public class HierarchyProcessor
 		int pointImageWidth = config.getPointWidth();
 		int pointImageHeight = config.getPointHeight();
 
-		Visualization vis = createPointVisualization( context, group );
+		Visualization vis = createInstanceVisualization( context, group );
 
 		Display display = new Display( vis );
 		display.setBackground( config.getBackgroundColor() );
@@ -395,8 +354,8 @@ public class HierarchyProcessor
 		return display;
 	}
 
-	public Display createPointDisplay( HVContext context )
+	public static Display createInstanceDisplay( HVContext context )
 	{
-		return createPointDisplay( context, null );
+		return createInstanceDisplay( context, null );
 	}
 }
