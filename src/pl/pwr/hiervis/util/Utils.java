@@ -1,5 +1,6 @@
 package pl.pwr.hiervis.util;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
@@ -11,6 +12,7 @@ import basic_hierarchy.interfaces.Group;
 import basic_hierarchy.interfaces.Instance;
 import prefuse.Display;
 import prefuse.activity.ActivityManager;
+import prefuse.util.ColorLib;
 
 
 public class Utils
@@ -87,6 +89,11 @@ public class Utils
 		}
 
 		return img;
+	}
+
+	public static int rgba( Color c )
+	{
+		return ColorLib.rgba( c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha() );
 	}
 
 	/**

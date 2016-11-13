@@ -8,6 +8,7 @@ import java.awt.geom.Ellipse2D;
 
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
+import pl.pwr.hiervis.core.HVConstants;
 import prefuse.Constants;
 import prefuse.render.AbstractShapeRenderer;
 import prefuse.visual.VisualItem;
@@ -31,6 +32,7 @@ public class PointRenderer extends AbstractShapeRenderer
 		this.stringRenderer = new StringRenderer();
 		this.stringRenderer.setHorizontalAlignment( Constants.LEFT );
 		this.stringRenderer.setVerticalAlignment( Constants.BOTTOM );
+		this.stringRenderer.setTextField( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME );
 	}
 
 	@Override
@@ -42,12 +44,8 @@ public class PointRenderer extends AbstractShapeRenderer
 			pointSize, pointSize
 		);
 
-		// int role = item.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
-		int role = 0;
-
+		int role = item.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
 		item.setTextColor( Color.black.getRGB() );
-		// item.setStrokeColor( Color.black.getRGB() );
-		item.setFillColor( Color.red.getRGB() );
 
 		if ( role == ElementRole.CURRENT.getNumber() ) {
 			item.setFillColor( config.getCurrentGroupColor().getRGB() );
