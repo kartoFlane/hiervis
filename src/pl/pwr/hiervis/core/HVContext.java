@@ -57,7 +57,8 @@ public class HVContext
 				path,
 				config.hasInstanceNameAttribute(),
 				config.hasTrueClassAttribute(),
-				config.hasDataNamesRow()
+				config.hasDataNamesRow(),
+				config.isFillBreadthGaps()
 			)
 		);
 
@@ -178,9 +179,10 @@ public class HVContext
 		Path path,
 		boolean hasInstanceName,
 		boolean hasClass,
-		boolean hasNames ) throws IOException
+		boolean hasNames,
+		boolean fixGaps ) throws IOException
 	{
-		return new GeneratedCSVReader().load( path.toString(), hasInstanceName, hasClass, hasNames, false );
+		return new GeneratedCSVReader().load( path.toString(), hasInstanceName, hasClass, hasNames, fixGaps );
 	}
 
 	/**
