@@ -50,7 +50,7 @@ public class PointRenderer extends AbstractShapeRenderer
 		item.setFillColor( Color.red.getRGB() );
 
 		if ( role == ElementRole.CURRENT.getNumber() ) {
-			item.setFillColor( config.getCurrentLevelColor().getRGB() );
+			item.setFillColor( config.getCurrentGroupColor().getRGB() );
 		}
 		else if ( role == ElementRole.DIRECT_PARENT.getNumber() ) {
 			item.setFillColor( config.getParentGroupColor().getRGB() );

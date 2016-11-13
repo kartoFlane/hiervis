@@ -1,5 +1,6 @@
 package pl.pwr.hiervis.ui.control;
 
+import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
@@ -142,7 +143,7 @@ public class NodeSelectionControl extends ControlAdapter
 		}
 	}
 
-	public static void selectNode( HVContext context, Display treeDisplay, Display pointDisplay, int row )
+	public static void selectNode( HVContext context, Display treeDisplay, Display instanceDisplay, int row )
 	{
 		context.setSelectedRow( row );
 
@@ -150,19 +151,19 @@ public class NodeSelectionControl extends ControlAdapter
 		treeDisplay.damageReport();
 		treeDisplay.repaint();
 
-		Group node = context.findNode( context.getSelectedRow() );
-		Visualization vis = context.createPointVisualization( node );
+		Group group = context.findGroup( context.getSelectedRow() );
+		Visualization vis = context.createInstanceVisualization( group );
 
-		Utils.resetDisplayZoom( pointDisplay );
+		Utils.resetDisplayZoom( instanceDisplay );
 
-		pointDisplay.setVisualization( vis );
+		instanceDisplay.setVisualization( vis );
 
 		vis.run( "draw" );
 		Utils.waitUntilActivitiesAreFinished();
 
 		// Set the entire display area as dirty, so that it is redrawn.
-		pointDisplay.damageReport();
-		pointDisplay.repaint();
+		instanceDisplay.damageReport();
+		instanceDisplay.repaint();
 	}
 
 	@SuppressWarnings("unchecked")

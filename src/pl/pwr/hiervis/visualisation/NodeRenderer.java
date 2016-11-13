@@ -39,7 +39,7 @@ public class NodeRenderer extends AbstractShapeRenderer
 		// item.setStrokeColor( Color.black.getRGB() );
 
 		if ( role == ElementRole.CURRENT.getNumber() ) {
-			item.setFillColor( params.getCurrentLevelColor().getRGB() );
+			item.setFillColor( params.getCurrentGroupColor().getRGB() );
 		}
 		else if ( role == ElementRole.DIRECT_PARENT.getNumber() ) {
 			item.setFillColor( params.getParentGroupColor().getRGB() );

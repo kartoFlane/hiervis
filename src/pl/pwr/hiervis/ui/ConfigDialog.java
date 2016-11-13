@@ -414,7 +414,7 @@ public class ConfigDialog extends JDialog
 
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
-		lblColorSelectedNode.setBackground( cfg.getCurrentLevelColor() );
+		lblColorSelectedNode.setBackground( cfg.getCurrentGroupColor() );
 		lblColorChildGroup.setBackground( cfg.getChildGroupColor() );
 		lblColorParentGroup.setBackground( cfg.getParentGroupColor() );
 		lblColorAncestorGroup.setBackground( cfg.getAncestorGroupColor() );

@@ -164,36 +164,36 @@ public class HVContext
 	}
 
 	/**
-	 * Finds the hierarchy node at the specified row.
+	 * Finds the hierarchy group at the specified row.
 	 * 
 	 * @param row
-	 *            the row in the data table at which the node is located.
-	 * @return the node at the specified row, or null if not found.
+	 *            the row in the data table at which the group is located.
+	 * @return the group at the specified row, or null if not found.
 	 */
-	public Group findNode( int row )
+	public Group findGroup( int row )
 	{
 		Hierarchy h = getHierarchy();
-		Group node = h.getRoot();
+		Group group = h.getRoot();
 
 		if ( row == 0 ) {
-			return node;
+			return group;
 		}
 
 		Queue<Group> stack = new LinkedList<>();
-		for ( Group child : node.getChildren() ) {
+		for ( Group child : group.getChildren() ) {
 			stack.add( child );
 		}
 
 		int currentRow = 0;
 		while ( !stack.isEmpty() ) {
-			node = stack.remove();
+			group = stack.remove();
 
 			++currentRow;
 			if ( currentRow == row ) {
-				return node;
+				return group;
 			}
 
-			for ( Group child : node.getChildren() ) {
+			for ( Group child : group.getChildren() ) {
 				stack.add( child );
 			}
 		}

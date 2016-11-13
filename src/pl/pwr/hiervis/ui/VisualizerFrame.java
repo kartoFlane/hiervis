@@ -54,8 +54,8 @@ public class VisualizerFrame extends JFrame
 
 	private HVContext context;
 
-	private Display treeDisplay;
-	private Display pointDisplay;
+	private Display hierarchyDisplay;
+	private Display instanceDisplay;
 
 	private ZoomScrollControl treeZoomControl;
 	private ZoomScrollControl pointZoomControl;
@@ -113,23 +113,24 @@ public class VisualizerFrame extends JFrame
 		gbc_cTreeViewer.gridy = 0;
 		getContentPane().add( cTreeViewer, gbc_cTreeViewer );
 
-		treeDisplay = context.createHierarchyDisplay();
-		cTreeViewer.add( treeDisplay );
+		hierarchyDisplay = context.createHierarchyDisplay();
+		cTreeViewer.add( hierarchyDisplay );
 
-		pointDisplay = new Display( new Visualization() );
+		instanceDisplay = new Display( new Visualization() );
+		instanceDisplay.setBackground( context.getConfig().getBackgroundColor() );
 
-		treeDisplay.addControlListener( new NodeSelectionControl( context, pointDisplay ) );
-		treeDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
-		treeDisplay.addControlListener( new PanControl( true ) );
+		hierarchyDisplay.addControlListener( new NodeSelectionControl( context, instanceDisplay ) );
+		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
+		hierarchyDisplay.addControlListener( new PanControl( true ) );
 		treeZoomControl = new ZoomScrollControl();
-		treeDisplay.addControlListener( treeZoomControl );
-		treeDisplay.setEnabled( false );
+		hierarchyDisplay.addControlListener( treeZoomControl );
+		hierarchyDisplay.setEnabled( false );
 
-		pointDisplay.addControlListener( new PanControl() );
+		instanceDisplay.addControlListener( new PanControl() );
 		pointZoomControl = new ZoomScrollControl();
-		pointDisplay.addControlListener( pointZoomControl );
-		pointDisplay.setBackground( Color.lightGray );
-		pointDisplay.setEnabled( false );
+		instanceDisplay.addControlListener( pointZoomControl );
+		instanceDisplay.setBackground( Color.lightGray );
+		instanceDisplay.setEnabled( false );
 
 		JPanel cNodeDetail = new JPanel();
 		GridBagConstraints gbc_cNodeDetail = new GridBagConstraints();
@@ -150,7 +151,7 @@ public class VisualizerFrame extends JFrame
 		gbc_cNodeViewer.gridy = 0;
 		cNodeDetail.add( cNodeViewer, gbc_cNodeViewer );
 		cNodeViewer.setLayout( new BorderLayout( 0, 0 ) );
-		cNodeViewer.add( pointDisplay );
+		cNodeViewer.add( instanceDisplay );
 
 		JPanel cHistogramVertical = new JPanel();
 		GridBagConstraints gbc_cHistogramVertical = new GridBagConstraints();
@@ -253,8 +254,8 @@ public class VisualizerFrame extends JFrame
 				log.trace( "Dialog dismissed." );
 
 				log.trace( "Enabling prefuse displays..." );
-				treeDisplay.setEnabled( true );
-				pointDisplay.setEnabled( true );
+				hierarchyDisplay.setEnabled( true );
+				instanceDisplay.setEnabled( true );
 
 				log.trace( "Loading the file as hierarchy..." );
 				context.load( Paths.get( fileDialog.getDirectory(), filename ) );
@@ -312,15 +313,15 @@ public class VisualizerFrame extends JFrame
 		}
 
 		Visualization vis = context.createHierarchyVisualization();
-		treeDisplay.setBackground( context.getConfig().getBackgroundColor() );
-		treeDisplay.setVisualization( vis );
+		hierarchyDisplay.setBackground( context.getConfig().getBackgroundColor() );
+		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
-		pointDisplay = context.createPointDisplay();
+		instanceDisplay = context.createPointDisplay();
 
-		NodeSelectionControl.selectNode( context, treeDisplay, pointDisplay, context.getSelectedRow() );
+		NodeSelectionControl.selectNode( context, hierarchyDisplay, instanceDisplay, context.getSelectedRow() );
 
-		Rectangle2D contentRect = treeDisplay.getVisibleRect();
+		Rectangle2D contentRect = hierarchyDisplay.getVisibleRect();
 
 		Point2D p = new Point2D.Double(
 			contentRect.getCenterX(),
@@ -329,16 +330,16 @@ public class VisualizerFrame extends JFrame
 
 		double zoom = -1;
 
-		if ( treeDisplay.getWidth() > treeDisplay.getHeight() ) {
-			zoom = contentRect.getHeight() / treeDisplay.getHeight();
+		if ( hierarchyDisplay.getWidth() > hierarchyDisplay.getHeight() ) {
+			zoom = contentRect.getHeight() / hierarchyDisplay.getHeight();
 		}
 		else {
-			zoom = contentRect.getWidth() / treeDisplay.getWidth();
+			zoom = contentRect.getWidth() / hierarchyDisplay.getWidth();
 		}
 
-		Utils.resetDisplayZoom( treeDisplay );
+		Utils.resetDisplayZoom( hierarchyDisplay );
 
-		treeDisplay.zoomAbs( p, zoom * 0.5 );
+		hierarchyDisplay.zoomAbs( p, zoom * 0.5 );
 
 		// treeDisplay.animatePanAndZoomToAbs( p, zoom, 500 );
 	}

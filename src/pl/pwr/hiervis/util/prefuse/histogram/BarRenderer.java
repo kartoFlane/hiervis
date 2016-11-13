@@ -127,7 +127,7 @@ public class BarRenderer extends AbstractShapeRenderer
 		}
 
 		if ( roleNum == ElementRole.CURRENT.getNumber() ) {
-			item.setFillColor( params.getCurrentLevelColor().getRGB() );
+			item.setFillColor( params.getCurrentGroupColor().getRGB() );
 		}
 		else if ( roleNum == ElementRole.DIRECT_PARENT.getNumber() ) {
 			item.setFillColor( params.getParentGroupColor().getRGB() );

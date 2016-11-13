@@ -48,7 +48,7 @@ public class HVConfig
 	@SerializableField
 	private Path outputFolder;
 	@SerializableField
-	private Color currentLevelColor;
+	private Color currentGroupColor;
 	@SerializableField
 	private Color childGroupColor;
 	@SerializableField
@@ -100,7 +100,7 @@ public class HVConfig
 		numberOfHistogramBins = 5;
 		pointScalingFactor = 1;
 
-		currentLevelColor = Color.red;
+		currentGroupColor = Color.red;
 		childGroupColor = Color.green;
 		parentGroupColor = Color.black;
 		ancestorGroupColor = Color.blue.brighter();
@@ -405,14 +405,14 @@ public class HVConfig
 	 * Config values' getters and setters.
 	 */
 
-	public Color getCurrentLevelColor()
+	public Color getCurrentGroupColor()
 	{
-		return currentLevelColor;
+		return currentGroupColor;
 	}
 
-	public void setCurrentLevelColor( Color currentLevelColor )
+	public void setCurrentLevelColor( Color currentGroupColor )
 	{
-		this.currentLevelColor = currentLevelColor;
+		this.currentGroupColor = currentGroupColor;
 	}
 
 	public Color getChildGroupColor()

@@ -285,7 +285,7 @@ public class HierarchyImager
 				Font normalF = g2d.getFont();
 				Color normalC = g2d.getColor();
 				g2d.setFont( new Font( null, Font.BOLD, (int)fontSize ) );
-				g2d.setColor( config.getCurrentLevelColor() );
+				g2d.setColor( config.getCurrentGroupColor() );
 				g2d.drawString( outputStrings[i], horizontalBorder, yCord );
 				g2d.setFont( normalF );
 				g2d.setColor( normalC );
@@ -412,7 +412,7 @@ public class HierarchyImager
 			drawPoints(
 				imgContent,
 				node.getInstances(),
-				config.getCurrentLevelColor(),
+				config.getCurrentGroupColor(),
 				config.getPointScallingFactor(),
 				config.getPointWidth(), config.getPointHeight(),
 				bounds
