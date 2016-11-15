@@ -42,6 +42,7 @@ import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.Control;
+import prefuse.visual.NodeItem;
 
 
 @SuppressWarnings("serial")
@@ -119,12 +120,12 @@ public class VisualizerFrame extends JFrame
 
 		hierarchyDisplay.addControlListener( new NodeSelectionControl( context, instanceDisplay ) );
 		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
-		hierarchyDisplay.addControlListener( new PanControl( true ) );
+		hierarchyDisplay.addControlListener( new PanControl( new Class[] { NodeItem.class } ) );
 		hierarchyZoomControl = new ZoomScrollControl();
 		hierarchyDisplay.addControlListener( hierarchyZoomControl );
 		hierarchyDisplay.setEnabled( false );
 
-		instanceDisplay.addControlListener( new PanControl() );
+		instanceDisplay.addControlListener( new PanControl( true ) );
 		instanceZoomControl = new ZoomScrollControl();
 		instanceDisplay.addControlListener( instanceZoomControl );
 		instanceDisplay.setBackground( Color.lightGray );

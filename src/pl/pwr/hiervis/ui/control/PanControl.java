@@ -9,7 +9,6 @@ import prefuse.Display;
 import prefuse.controls.Control;
 import prefuse.controls.ControlAdapter;
 import prefuse.util.ui.UILib;
-import prefuse.visual.EdgeItem;
 import prefuse.visual.VisualItem;
 
 
@@ -19,13 +18,14 @@ import prefuse.visual.VisualItem;
  * visualization with the left mouse button and then dragging.
  *
  * @author <a href="http://jheer.org">jeffrey heer</a>
- * @author Tomasz Bachmiñski - modified to ignore only EdgeItems
+ * @author Tomasz Bachmiñski - modified to add filtering by VisualItem class
  */
 public class PanControl extends ControlAdapter
 {
 	private boolean m_panOverItem;
 	private int m_xDown, m_yDown;
 	private int m_button;
+	private Class<?>[] m_classes = null;
 
 
 	/**
@@ -78,6 +78,34 @@ public class PanControl extends ControlAdapter
 		m_panOverItem = panOverItem;
 	}
 
+	/**
+	 * Create a new PanControl. Using this constructor sets panOverItem to true.
+	 * 
+	 * @param classes
+	 *            array of {@link VisualItem} classes that can be panned over.
+	 */
+	public PanControl( Class<?>[] classes )
+	{
+		this( LEFT_MOUSE_BUTTON, classes );
+	}
+
+	/**
+	 * Create a new PanControl. Using this constructor sets panOverItem to true.
+	 * 
+	 * @param mouseButton
+	 *            the mouse button that should initiate a pan. One of
+	 *            {@link Control#LEFT_MOUSE_BUTTON}, {@link Control#MIDDLE_MOUSE_BUTTON},
+	 *            or {@link Control#RIGHT_MOUSE_BUTTON}.
+	 * @param classes
+	 *            array of {@link VisualItem} classes that can be panned over.
+	 */
+	public PanControl( int mouseButton, Class<?>[] classes )
+	{
+		m_button = mouseButton;
+		m_panOverItem = true;
+		m_classes = classes;
+	}
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -125,7 +153,7 @@ public class PanControl extends ControlAdapter
 	 */
 	public void itemPressed( VisualItem item, MouseEvent e )
 	{
-		if ( m_panOverItem && item instanceof EdgeItem )
+		if ( m_panOverItem && !instanceofAny( item, m_classes ) )
 			mousePressed( e );
 	}
 
@@ -134,7 +162,7 @@ public class PanControl extends ControlAdapter
 	 */
 	public void itemDragged( VisualItem item, MouseEvent e )
 	{
-		if ( m_panOverItem && item instanceof EdgeItem )
+		if ( m_panOverItem && !instanceofAny( item, m_classes ) )
 			mouseDragged( e );
 	}
 
@@ -143,7 +171,18 @@ public class PanControl extends ControlAdapter
 	 */
 	public void itemReleased( VisualItem item, MouseEvent e )
 	{
-		if ( m_panOverItem && item instanceof EdgeItem )
+		if ( m_panOverItem && !instanceofAny( item, m_classes ) )
 			mouseReleased( e );
+	}
+
+	private static boolean instanceofAny( Object o, Class<?>[] classes )
+	{
+		if ( classes != null && o != null ) {
+			for ( Class<?> c : classes ) {
+				if ( c.isInstance( o ) )
+					return true;
+			}
+		}
+		return false;
 	}
 }
