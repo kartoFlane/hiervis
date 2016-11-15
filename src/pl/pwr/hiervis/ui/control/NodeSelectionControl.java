@@ -24,8 +24,7 @@ import prefuse.visual.tuple.TableEdgeItem;
 
 /**
  * <p>
- * Allows selection of node visual items, changing their role and role
- * of their family nodes:
+ * Allows selection of node visual items, changing their role and role of their family nodes:
  * </p>
  * - {@link ElementRole#CURRENT} for the selected node;<br/>
  * - {@link ElementRole#DIRECT_PARENT} for the direct parent of the selected node;</br>
@@ -57,7 +56,7 @@ public class NodeSelectionControl extends ControlAdapter
 	@Override
 	public void itemClicked( VisualItem item, MouseEvent e )
 	{
-		if ( item instanceof TableEdgeItem ) {
+		if ( item instanceof EdgeItem ) {
 			// Ignore clicks on edges.
 			return;
 		}

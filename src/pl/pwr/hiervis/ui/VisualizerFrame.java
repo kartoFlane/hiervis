@@ -75,9 +75,6 @@ public class VisualizerFrame extends JFrame
 		setSize( defaultFrameWidth, defaultFrameHeight );
 		setMinimumSize( new Dimension( defaultFrameWidth, defaultFrameHeight / 2 ) );
 
-		// Make the frame appear at the center of the screen
-		setLocationRelativeTo( null );
-
 		addWindowListener(
 			new WindowAdapter() {
 				@Override
@@ -180,6 +177,12 @@ public class VisualizerFrame extends JFrame
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar( menuBar );
 
+		createFileMenu( menuBar );
+		createViewMenu( menuBar );
+	}
+
+	private void createFileMenu( JMenuBar menuBar )
+	{
 		JMenu mnFile = new JMenu( "File" );
 		menuBar.add( mnFile );
 
@@ -217,6 +220,24 @@ public class VisualizerFrame extends JFrame
 					log.trace( "Clicked non-lambda config menu item." );
 					openConfigDialog();
 				}
+			}
+		);
+	}
+
+	private void createViewMenu( JMenuBar menuBar )
+	{
+		JMenu mnView = new JMenu( "View" );
+		menuBar.add( mnView );
+
+		JMenuItem mntmStats = new JMenuItem( "Hierarchy Statistics" );
+		mnView.add( mntmStats );
+
+		mntmStats.addActionListener(
+			( e ) -> {
+				// TODO: Register event listeners for stuff like new data file loaded, selection changed, etc.
+				JFrame statsFrame = new HierarchyStatisticsFrame( context, this );
+				statsFrame.setVisible( true );
+				statsFrame.setLocationRelativeTo( null );
 			}
 		);
 	}
@@ -280,6 +301,10 @@ public class VisualizerFrame extends JFrame
 	{
 		log.trace( "Creating ConfigDialog instance..." );
 		ConfigDialog dialog = new ConfigDialog( context, VisualizerFrame.this );
+
+		// Make the dialog appear at the center of the screen
+		dialog.setLocationRelativeTo( null );
+
 		log.trace( "Making the dialog visible..." );
 		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
 		log.trace( "Dialog dismissed." );

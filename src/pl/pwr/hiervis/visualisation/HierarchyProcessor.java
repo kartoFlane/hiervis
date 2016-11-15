@@ -257,6 +257,7 @@ public class HierarchyProcessor
 		int pointImageWidth = config.getPointWidth();
 		int pointImageHeight = config.getPointHeight();
 
+		// TODO: Make this a config property?
 		int pointSize = 2;
 
 		Visualization vis = new Visualization();

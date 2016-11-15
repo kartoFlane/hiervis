@@ -53,6 +53,8 @@ public final class HierarchyVisualizer
 			System.exit( 0 );
 		}
 
+		context.setConfig( loadConfig() );
+
 		if ( args != null && args.length > 0 ) {
 			log.info( "Args list is not empty -- running in CLI mode." );
 
@@ -63,6 +65,26 @@ public final class HierarchyVisualizer
 
 			executeGUI( context );
 		}
+	}
+
+	private static HVConfig loadConfig()
+	{
+		File configFile = new File( HVConfig.FILE_PATH );
+		HVConfig config = null;
+
+		if ( configFile.exists() ) {
+			try {
+				config = HVConfig.from( configFile );
+			}
+			catch ( Exception e ) {
+				log.error( "Error while loading config file: ", e );
+			}
+		}
+		else {
+			config = new HVConfig();
+		}
+
+		return config;
 	}
 
 	private static void executeCLI( HVContext context, String[] args )
@@ -221,6 +243,9 @@ public final class HierarchyVisualizer
 	private static void initGUI( HVContext ctx )
 	{
 		VisualizerFrame frame = new VisualizerFrame( ctx );
+		// Make the frame appear at the center of the screen
+		frame.setLocationRelativeTo( null );
+
 		frame.setVisible( true );
 	}
 }

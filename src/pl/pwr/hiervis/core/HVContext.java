@@ -1,6 +1,5 @@
 package pl.pwr.hiervis.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedList;
@@ -41,7 +40,7 @@ public class HVContext
 
 	public HVContext()
 	{
-		setConfig( loadConfig() );
+		setConfig( new HVConfig() );
 	}
 
 	/**
@@ -153,26 +152,6 @@ public class HVContext
 	public Visualization createInstanceVisualization( Group group )
 	{
 		return HierarchyProcessor.createInstanceVisualization( this, group );
-	}
-
-	private static HVConfig loadConfig()
-	{
-		File configFile = new File( HVConfig.FILE_PATH );
-		HVConfig config = null;
-
-		if ( configFile.exists() ) {
-			try {
-				config = HVConfig.from( configFile );
-			}
-			catch ( Exception e ) {
-				log.error( "Error while loading config file: ", e );
-			}
-		}
-		else {
-			config = new HVConfig();
-		}
-
-		return config;
 	}
 
 	private static Hierarchy loadHierarchy(

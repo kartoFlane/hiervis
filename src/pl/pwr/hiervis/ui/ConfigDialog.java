@@ -59,12 +59,12 @@ public class ConfigDialog extends JDialog
 		setModal( true );
 		setResizable( false );
 
+		SwingUIUtils.installEscapeCloseOperation( this );
+
 		createConfigTabPanel( context );
 		createButtonPanel( context );
 
 		pack();
-		setLocationRelativeTo( null );
-		SwingUIUtils.installEscapeCloseOperation( this );
 	}
 
 	private void createConfigTabPanel( HVContext context )
