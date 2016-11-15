@@ -316,8 +316,6 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
-		instanceDisplay = context.createPointDisplay();
-
 		NodeSelectionControl.selectNode( context, hierarchyDisplay, instanceDisplay, context.getSelectedRow() );
 
 		Rectangle2D contentRect = hierarchyDisplay.getVisibleRect();

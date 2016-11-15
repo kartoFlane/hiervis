@@ -143,13 +143,13 @@ public class NodeSelectionControl extends ControlAdapter
 		}
 	}
 
-	public static void selectNode( HVContext context, Display treeDisplay, Display instanceDisplay, int row )
+	public static void selectNode( HVContext context, Display hierarchyDisplay, Display instanceDisplay, int row )
 	{
 		context.setSelectedRow( row );
 
 		updateNodeRoles( context, context.getSelectedRow() );
-		treeDisplay.damageReport();
-		treeDisplay.repaint();
+		hierarchyDisplay.damageReport();
+		hierarchyDisplay.repaint();
 
 		Group group = context.findGroup( context.getSelectedRow() );
 		Visualization vis = context.createInstanceVisualization( group );
