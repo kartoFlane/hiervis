@@ -50,7 +50,7 @@ public class HierarchyImager
 		int nodeImgFinalWidth = (int)( config.getPointWidth() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
 		int nodeImgFinalHeight = (int)( config.getPointHeight() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
 
-		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( input.getRoot() );
+		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( input.getRoot(), 0, 1 );
 
 		LinkedList<Instance> allPoints = null;
 		if ( config.isDisplayAllPoints() ) {
@@ -140,8 +140,7 @@ public class HierarchyImager
 		HistogramTable directParentHistogramTable,
 		HVConfig config,
 		int nodeImgFinalWidth, int nodeImgFinalHeight,
-		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth
-	)
+		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
 	{
 
 		BufferedImage img = createHistogram(
@@ -158,8 +157,7 @@ public class HierarchyImager
 		String field,
 		HVConfig config,
 		int imgSize,
-		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth
-	)
+		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
 	{
 
 		HistogramGraph histogramGraph = new HistogramGraph(
@@ -181,8 +179,7 @@ public class HierarchyImager
 		HistogramTable directParentHistogramTable,
 		HVConfig config,
 		int nodeImgFinalWidth, int nodeImgFinalHeight,
-		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth
-	)
+		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
 	{
 
 		return createHistogram(
@@ -193,7 +190,7 @@ public class HierarchyImager
 
 	private static BufferedImage createPointImage( HVContext context, Group node )
 	{
-		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( node );
+		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( node, 0, 1 );
 		int nodeImgFinalWidth = (int)( context.getConfig().getPointWidth() +
 			Math.max( 1.0, context.getConfig().getPointScallingFactor() / 2 ) );
 		int nodeImgFinalHeight = (int)( context.getConfig().getPointHeight() +
@@ -218,8 +215,7 @@ public class HierarchyImager
 		HVConfig config,
 		String nodeId,
 		HierarchyStatistics stats,
-		int height, int width
-	)
+		int height, int width )
 	{
 		BufferedImage statsImg = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
 		String out = stats.getSummaryString();
@@ -305,8 +301,7 @@ public class HierarchyImager
 		Color color,
 		double pointScallingFactor,
 		int imgWidth, int imgHeight,
-		Rectangle2D bounds
-	)
+		Rectangle2D bounds )
 	{
 
 		Color oldColor = imgContent.getColor();
@@ -340,8 +335,7 @@ public class HierarchyImager
 		Color parentAncestorsColor,
 		double pointScallingFactor,
 		int imageWidth, int imageHeight,
-		Rectangle2D bounds
-	)
+		Rectangle2D bounds )
 	{
 
 		Group n = parent;
@@ -363,8 +357,7 @@ public class HierarchyImager
 		Group node,
 		HVConfig config,
 		Rectangle2D bounds,
-		LinkedList<Instance> allPoints
-	)
+		LinkedList<Instance> allPoints )
 	{
 
 		Graphics2D imgContent = nodeImg.createGraphics();
@@ -425,8 +418,7 @@ public class HierarchyImager
 
 	private static HistogramTable createAllDataHistogramTable(
 		LinkedList<Instance> subtreeInstances,
-		int numberOfHistogramBins
-	)
+		int numberOfHistogramBins )
 	{
 		Table histogramData = new Table();
 		histogramData.addColumn( "x", double.class );
@@ -444,8 +436,7 @@ public class HierarchyImager
 	private static HistogramTable prepareHistogramTableUsingAllDataBins(
 		Group node,
 		HistogramTable allDataHistogramTable,
-		int roleNum
-	)
+		int roleNum )
 	{
 		Table histogramData = new Table();
 		histogramData.addColumn( "x", double.class );
@@ -467,8 +458,7 @@ public class HierarchyImager
 		BufferedImage hierarchyImg,
 		BufferedImage horizontalHistogram,
 		BufferedImage verticalHistogram,
-		BufferedImage statsImg
-	)
+		BufferedImage statsImg )
 	{
 
 		int finalImgWidth = nodeImg.getWidth() + hierarchyImg.getWidth() + verticalHistogram.getWidth();

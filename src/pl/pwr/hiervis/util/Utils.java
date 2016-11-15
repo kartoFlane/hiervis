@@ -98,22 +98,26 @@ public class Utils
 
 	/**
 	 * Calculates the smallest rectangle containing all points within
-	 * the specified node's cluster.
+	 * the specified group.
 	 * 
-	 * @param node
-	 *            the node for which the extents are to be computed
+	 * @param group
+	 *            the group for which the extents are to be computed
+	 * @param dimX
+	 *            index of the data dimension imaged on the X axis
+	 * @param dimY
+	 *            index of the data dimension imaged on the Y axis
 	 * @return the smallest bounding rectangle
 	 */
-	public static Rectangle2D calculateBoundingRectForCluster( Group node )
+	public static Rectangle2D calculateBoundingRectForCluster( Group group, int dimX, int dimY )
 	{
 		double minX = Double.MAX_VALUE;
 		double minY = Double.MAX_VALUE;
 		double maxX = Double.MIN_VALUE;
 		double maxY = Double.MIN_VALUE;
 
-		for ( Instance i : node.getSubgroupInstances() ) {
-			double x = i.getData()[0];
-			double y = i.getData()[1];
+		for ( Instance i : group.getSubgroupInstances() ) {
+			double x = i.getData()[dimX];
+			double y = i.getData()[dimY];
 
 			minX = Math.min( minX, x );
 			minY = Math.min( minY, y );
@@ -122,6 +126,32 @@ public class Utils
 		}
 
 		return new Rectangle2D.Double( minX, minY, maxX - minX, maxY - minY );
+	}
+
+	/**
+	 * Normalize the specified source value from its source range into target range.
+	 * 
+	 * @param sourceValue
+	 *            the source value
+	 * @param sourceMin
+	 *            the minimum source value
+	 * @param sourceMax
+	 *            the maximum source value
+	 * @param targetMin
+	 *            the minimum target value
+	 * @param targetMax
+	 *            the maximum target value
+	 * @return
+	 * 		the source value mapped to the target range
+	 */
+	public static double normalize(
+		double sourceValue,
+		double sourceMin, double sourceMax,
+		double targetMin, double targetMax )
+	{
+		// Use linear interpolation to map from the source range to target range.
+		double t = ( sourceValue - sourceMin ) / ( sourceMax - sourceMin );
+		return targetMin + t * ( targetMax - targetMin );
 	}
 
 	public static int clamp( int min, int value, int max )

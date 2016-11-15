@@ -31,6 +31,7 @@ import prefuse.action.layout.graph.NodeLinkTreeLayout;
 import prefuse.data.Node;
 import prefuse.data.Table;
 import prefuse.data.Tree;
+import prefuse.data.query.NumberRangeModel;
 import prefuse.render.AbstractShapeRenderer;
 import prefuse.render.DefaultRendererFactory;
 import prefuse.render.EdgeRenderer;
@@ -39,7 +40,6 @@ import prefuse.visual.VisualItem;
 import prefuse.visual.expression.VisiblePredicate;
 
 
-// Previously called 'Visualisation'
 public class HierarchyProcessor
 {
 	public static Pair<Tree, TreeLayoutData> buildHierarchyTree( HVConfig config, Group sourceRoot )
@@ -270,65 +270,66 @@ public class HierarchyProcessor
 		String yField = "y";
 
 		Table table = new Table();
-		table.addColumn( xField, int.class );
-		table.addColumn( yField, int.class );
+		table.addColumn( xField, double.class );
+		table.addColumn( yField, double.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, String.class );
 
+		// TODO: Make this a parameter
+		int dimX = 0;
+		int dimY = 1;
+
 		Group root = context.getHierarchy().getRoot();
-		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root );
+		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root, dimX, dimY );
 
 		for ( Instance i : group.getSubgroupInstances() ) {
-			double x = i.getData()[0];
-			double y = i.getData()[1];
+			double sourceX = i.getData()[dimX];
+			double sourceY = i.getData()[dimY];
 
-			int pointLeftEdge = rectCoordinateOnImage(
-				x,
+			double normalizedX = Utils.normalize(
+				sourceX,
 				bounds.getMinX(), bounds.getMaxX(),
-				pointImageWidth, pointSize
+				0, pointImageWidth
 			);
-			int pointTopEdge = rectCoordinateOnImage(
-				y,
+			double normalizedY = Utils.normalize(
+				sourceY,
 				bounds.getMinY(), bounds.getMaxY(),
-				pointImageHeight, pointSize
+				0, pointImageHeight
 			);
 
 			int row = table.addRow();
-			table.set( row, 0, pointLeftEdge );
-			table.set( row, 1, pointImageHeight - pointTopEdge );
+			// NOTE: Prefuse shows (0, 0) in bottom-left corner.
+			// Might want to provide the option to invert Y for convenience?
+			table.set( row, 0, normalizedX );
+			table.set( row, 1, normalizedY );
 			table.set( row, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, 0 );
 			table.setString( row, HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, i.getInstanceName() );
 		}
 
 		vis.addTable( datasetName, table );
 
-		AxisLayout x_axis = new AxisLayout(
+		AxisLayout axisX = new AxisLayout(
 			datasetName, xField,
 			Constants.X_AXIS, VisiblePredicate.TRUE
 		);
-		vis.putAction( "x", x_axis );
+		axisX.setRangeModel( new NumberRangeModel( 0, pointImageWidth, 0, pointImageWidth ) );
+		vis.putAction( "x", axisX );
 
-		AxisLayout y_axis = new AxisLayout(
+		AxisLayout axisY = new AxisLayout(
 			datasetName, yField,
 			Constants.Y_AXIS, VisiblePredicate.TRUE
 		);
-		vis.putAction( "y", y_axis );
+		axisY.setRangeModel( new NumberRangeModel( 0, pointImageHeight, 0, pointImageHeight ) );
+		vis.putAction( "y", axisY );
 
 		ActionList actions = new ActionList();
-		actions.add( x_axis );
-		actions.add( y_axis );
+		actions.add( axisX );
+		actions.add( axisY );
 		actions.add( new RepaintAction() );
 
 		vis.putAction( "draw", actions );
 
 		return vis;
-	}
-
-	private static int rectCoordinateOnImage( double sourceValue, double min, double max, int dimSize, int pointSize )
-	{
-		double result = dimSize * ( sourceValue - min ) / ( max - min );
-		result -= pointSize / 2.0;
-		return (int)result;
 	}
 
 	private static Display createInstanceDisplay( HVContext context, Group group )
