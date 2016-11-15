@@ -57,15 +57,13 @@ public class VisualizerFrame extends JFrame
 	private Display hierarchyDisplay;
 	private Display instanceDisplay;
 
-	private ZoomScrollControl treeZoomControl;
-	private ZoomScrollControl pointZoomControl;
+	private ZoomScrollControl hierarchyZoomControl;
+	private ZoomScrollControl instanceZoomControl;
 
 
 	public VisualizerFrame( HVContext context )
 	{
-		super(
-			HierarchyVisualizer.APP_NAME
-		);
+		super( HierarchyVisualizer.APP_NAME );
 
 		if ( context == null )
 			throw new RuntimeException( "Context must not be null!" );
@@ -122,13 +120,13 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.addControlListener( new NodeSelectionControl( context, instanceDisplay ) );
 		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
 		hierarchyDisplay.addControlListener( new PanControl( true ) );
-		treeZoomControl = new ZoomScrollControl();
-		hierarchyDisplay.addControlListener( treeZoomControl );
+		hierarchyZoomControl = new ZoomScrollControl();
+		hierarchyDisplay.addControlListener( hierarchyZoomControl );
 		hierarchyDisplay.setEnabled( false );
 
 		instanceDisplay.addControlListener( new PanControl() );
-		pointZoomControl = new ZoomScrollControl();
-		instanceDisplay.addControlListener( pointZoomControl );
+		instanceZoomControl = new ZoomScrollControl();
+		instanceDisplay.addControlListener( instanceZoomControl );
 		instanceDisplay.setBackground( Color.lightGray );
 		instanceDisplay.setEnabled( false );
 

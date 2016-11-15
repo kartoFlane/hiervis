@@ -450,6 +450,8 @@ public class ConfigDialog extends JDialog
 
 		btnCancel.addActionListener(
 			( e ) -> {
+				// Dispatch closing event instead of calling dispose() directly,
+				// so that event listeners are notified.
 				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
 			}
 		);
@@ -457,6 +459,8 @@ public class ConfigDialog extends JDialog
 		btnConfirm.addActionListener(
 			( e ) -> {
 				updateConfig( context );
+				// Dispatch closing event instead of calling dispose() directly,
+				// so that event listeners are notified.
 				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
 			}
 		);
