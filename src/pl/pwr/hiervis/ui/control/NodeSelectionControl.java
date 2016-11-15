@@ -1,25 +1,16 @@
 package pl.pwr.hiervis.ui.control;
 
-import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
-import java.util.LinkedList;
 
-import basic_hierarchy.interfaces.Group;
 import pl.pwr.hiervis.core.ElementRole;
-import pl.pwr.hiervis.core.HVConfig;
-import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.NodeRenderer;
-import prefuse.Display;
-import prefuse.Visualization;
 import prefuse.controls.ControlAdapter;
 import prefuse.data.Node;
 import prefuse.data.Tree;
+import prefuse.visual.EdgeItem;
 import prefuse.visual.VisualItem;
-import prefuse.visual.tuple.TableEdgeItem;
 
 
 /**
@@ -44,13 +35,11 @@ import prefuse.visual.tuple.TableEdgeItem;
 public class NodeSelectionControl extends ControlAdapter
 {
 	protected HVContext context;
-	protected Display pointDisplay;
 
 
-	public NodeSelectionControl( HVContext context, Display pointDisplay )
+	public NodeSelectionControl( HVContext context )
 	{
 		this.context = context;
-		this.pointDisplay = pointDisplay;
 	}
 
 	@Override
@@ -61,8 +50,7 @@ public class NodeSelectionControl extends ControlAdapter
 			return;
 		}
 
-		Display d = (Display)e.getSource();
-		selectNode( context, d, pointDisplay, item.getRow() );
+		context.selectNode( item.getRow() );
 	}
 
 	@Override
@@ -80,8 +68,6 @@ public class NodeSelectionControl extends ControlAdapter
 	private void selectNode( KeyEvent e )
 	{
 		if ( isArrowEvent( e ) ) {
-			Display d = (Display)e.getSource();
-
 			Tree hierarchyTree = context.getTree();
 			Node n = hierarchyTree.getNode( context.getSelectedRow() );
 
@@ -120,7 +106,7 @@ public class NodeSelectionControl extends ControlAdapter
 			}
 
 			if ( n != null ) {
-				selectNode( context, d, pointDisplay, n.getRow() );
+				context.selectNode( n.getRow() );
 			}
 		}
 	}
@@ -139,85 +125,6 @@ public class NodeSelectionControl extends ControlAdapter
 				return true;
 			default:
 				return false;
-		}
-	}
-
-	public static void selectNode( HVContext context, Display hierarchyDisplay, Display instanceDisplay, int row )
-	{
-		context.setSelectedRow( row );
-
-		updateNodeRoles( context, context.getSelectedRow() );
-		hierarchyDisplay.damageReport();
-		hierarchyDisplay.repaint();
-
-		Group group = context.findGroup( context.getSelectedRow() );
-		Visualization vis = context.createInstanceVisualization( group );
-
-		Utils.resetDisplayZoom( instanceDisplay );
-
-		instanceDisplay.setVisualization( vis );
-
-		vis.run( "draw" );
-		Utils.waitUntilActivitiesAreFinished();
-
-		// Set the entire display area as dirty, so that it is redrawn.
-		instanceDisplay.damageReport();
-		instanceDisplay.repaint();
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void updateNodeRoles( HVContext context, int row )
-	{
-		Tree hierarchyTree = context.getTree();
-		HVConfig config = context.getConfig();
-
-		boolean isFound = false;
-
-		// Reset all nodes back to 'other'
-		for ( int i = 0; i < hierarchyTree.getNodeCount(); i++ ) {
-			Node n = hierarchyTree.getNode( i );
-			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
-		}
-
-		// If no node is selected, then there's no point in trying to recategorize nodes, since
-		// all will be classified as 'other' anyway.
-		if ( row < 0 )
-			return;
-
-		// Recategorize nodes based on the currently selected node
-		for ( int i = 0; i < hierarchyTree.getNodeCount() && !isFound; i++ ) {
-			Node n = hierarchyTree.getNode( i );
-			if ( n.getRow() == row ) {
-				isFound = true;
-				// colour child groups
-				LinkedList<Node> stack = new LinkedList<>();
-				stack.add( n );
-				while ( !stack.isEmpty() ) {
-					Node current = stack.removeFirst();
-					current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
-					for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
-						Node child = children.next();
-						stack.add( child );
-					}
-				}
-
-				if ( config.isDisplayAllPoints() && n.getParent() != null ) {
-					stack = new LinkedList<>();
-					// when the parent is empty, then we need to search up in the hierarchy because empty
-					// parents are skipped, but displayed on output images
-					Node directParent = n.getParent();
-					stack.add( directParent );
-					while ( !stack.isEmpty() ) {
-						Node current = stack.removeFirst();
-						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
-						if ( current.getParent() != null ) {
-							stack.add( current.getParent() );
-						}
-					}
-					directParent.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.DIRECT_PARENT.getNumber() );
-				}
-				n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CURRENT.getNumber() );
-			}
 		}
 	}
 }

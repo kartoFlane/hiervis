@@ -1,10 +1,8 @@
 package pl.pwr.hiervis.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FileDialog;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -16,32 +14,42 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Hierarchy;
+import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.HierarchyVisualizer;
+import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
+import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.ui.control.NodeSelectionControl;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.SubtreeDragControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
-import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
+import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.Control;
+import prefuse.data.Node;
+import prefuse.data.Tree;
 import prefuse.visual.NodeItem;
 
 
@@ -88,6 +96,8 @@ public class VisualizerFrame extends JFrame
 
 		createMenu();
 		createGUI();
+
+		context.rowSelected.addListener( this::onRowSelected );
 	}
 
 	private void createGUI()
@@ -98,78 +108,55 @@ public class VisualizerFrame extends JFrame
 		getContentPane().setLayout( gridBagLayout );
 
 		JPanel cTreeViewer = new JPanel();
-		FlowLayout flowLayout = (FlowLayout)cTreeViewer.getLayout();
-		flowLayout.setVgap( 0 );
-		flowLayout.setHgap( 0 );
 
 		GridBagConstraints gbc_cTreeViewer = new GridBagConstraints();
-		gbc_cTreeViewer.insets = new Insets( 5, 5, 5, 5 );
+		gbc_cTreeViewer.insets = new Insets( 0, 0, 2, 0 );
 		gbc_cTreeViewer.fill = GridBagConstraints.BOTH;
 		gbc_cTreeViewer.gridx = 0;
 		gbc_cTreeViewer.gridy = 0;
 		getContentPane().add( cTreeViewer, gbc_cTreeViewer );
 
-		hierarchyDisplay = context.createHierarchyDisplay();
-		cTreeViewer.add( hierarchyDisplay );
+		hierarchyDisplay = new Display( new Visualization() );
 
-		instanceDisplay = new Display( new Visualization() );
-		instanceDisplay.setBackground( context.getConfig().getBackgroundColor() );
+		hierarchyDisplay.setEnabled( false );
+		hierarchyDisplay.setHighQuality( true );
+		hierarchyDisplay.setBackground( context.getConfig().getBackgroundColor() );
+		hierarchyDisplay.setSize(
+			context.getConfig().getTreeWidth(),
+			context.getConfig().getTreeHeight()
+		);
 
-		hierarchyDisplay.addControlListener( new NodeSelectionControl( context, instanceDisplay ) );
+		hierarchyDisplay.addControlListener( new NodeSelectionControl( context ) );
 		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
 		hierarchyDisplay.addControlListener( new PanControl( new Class[] { NodeItem.class } ) );
 		hierarchyZoomControl = new ZoomScrollControl();
 		hierarchyDisplay.addControlListener( hierarchyZoomControl );
-		hierarchyDisplay.setEnabled( false );
+		cTreeViewer.setLayout( new BorderLayout( 0, 0 ) );
+		cTreeViewer.add( hierarchyDisplay );
+
+		JPanel cNodeViewer = new JPanel();
+		GridBagConstraints gbc_cNodeViewer = new GridBagConstraints();
+		gbc_cNodeViewer.insets = new Insets( 0, 2, 0, 0 );
+		gbc_cNodeViewer.fill = GridBagConstraints.BOTH;
+		gbc_cNodeViewer.gridx = 1;
+		gbc_cNodeViewer.gridy = 0;
+		getContentPane().add( cNodeViewer, gbc_cNodeViewer );
+		cNodeViewer.setLayout( new BorderLayout( 0, 0 ) );
+
+		instanceDisplay = new Display( new Visualization() );
+
+		instanceDisplay.setEnabled( false );
+		instanceDisplay.setHighQuality( true );
+		instanceDisplay.setBackground( context.getConfig().getBackgroundColor() );
+		instanceDisplay.setSize(
+			context.getConfig().getInstanceWidth(),
+			context.getConfig().getInstanceHeight()
+		);
 
 		instanceDisplay.addControlListener( new PanControl( true ) );
 		instanceZoomControl = new ZoomScrollControl();
 		instanceDisplay.addControlListener( instanceZoomControl );
-		instanceDisplay.setBackground( Color.lightGray );
-		instanceDisplay.setEnabled( false );
-
-		JPanel cNodeDetail = new JPanel();
-		GridBagConstraints gbc_cNodeDetail = new GridBagConstraints();
-		gbc_cNodeDetail.insets = new Insets( 5, 0, 5, 5 );
-		gbc_cNodeDetail.fill = GridBagConstraints.BOTH;
-		gbc_cNodeDetail.gridx = 1;
-		gbc_cNodeDetail.gridy = 0;
-		getContentPane().add( cNodeDetail, gbc_cNodeDetail );
-		GridBagLayout gbl_cNodeDetail = new GridBagLayout();
-		gbl_cNodeDetail.columnWeights = new double[] { 1.0, 0.0 };
-		gbl_cNodeDetail.rowWeights = new double[] { 1.0, 0.0 };
-		cNodeDetail.setLayout( gbl_cNodeDetail );
-
-		JPanel cNodeViewer = new JPanel();
-		GridBagConstraints gbc_cNodeViewer = new GridBagConstraints();
-		gbc_cNodeViewer.fill = GridBagConstraints.BOTH;
-		gbc_cNodeViewer.gridx = 0;
-		gbc_cNodeViewer.gridy = 0;
-		cNodeDetail.add( cNodeViewer, gbc_cNodeViewer );
-		cNodeViewer.setLayout( new BorderLayout( 0, 0 ) );
 		cNodeViewer.add( instanceDisplay );
-
-		JPanel cHistogramVertical = new JPanel();
-		GridBagConstraints gbc_cHistogramVertical = new GridBagConstraints();
-		gbc_cHistogramVertical.insets = new Insets( 0, 0, 5, 0 );
-		gbc_cHistogramVertical.fill = GridBagConstraints.BOTH;
-		gbc_cHistogramVertical.gridx = 1;
-		gbc_cHistogramVertical.gridy = 0;
-		cNodeDetail.add( cHistogramVertical, gbc_cHistogramVertical );
-
-		JLabel lblHistV = new JLabel( SwingUIUtils.toHTML( "TODO:\nHistogram" ) );
-		cHistogramVertical.add( lblHistV );
-
-		JPanel cHistogramHorizontal = new JPanel();
-		GridBagConstraints gbc_cHistogramHorizontal = new GridBagConstraints();
-		gbc_cHistogramHorizontal.insets = new Insets( 0, 0, 0, 5 );
-		gbc_cHistogramHorizontal.fill = GridBagConstraints.BOTH;
-		gbc_cHistogramHorizontal.gridx = 0;
-		gbc_cHistogramHorizontal.gridy = 1;
-		cNodeDetail.add( cHistogramHorizontal, gbc_cHistogramHorizontal );
-
-		JLabel lblHistH = new JLabel( "TODO: Histogram" );
-		cHistogramHorizontal.add( lblHistH );
 	}
 
 	private void createMenu()
@@ -273,22 +260,49 @@ public class VisualizerFrame extends JFrame
 				optionsDialog.setVisible( true );
 				log.trace( "Dialog dismissed." );
 
-				log.trace( "Enabling prefuse displays..." );
-				hierarchyDisplay.setEnabled( true );
-				instanceDisplay.setEnabled( true );
+				if ( optionsDialog.getConfig() != null ) {
+					context.setConfig( optionsDialog.getConfig() );
 
-				log.trace( "Loading the file as hierarchy..." );
-				context.load( Paths.get( fileDialog.getDirectory(), filename ) );
+					log.trace( "Enabling prefuse displays..." );
+					hierarchyDisplay.setEnabled( true );
+					instanceDisplay.setEnabled( true );
 
-				log.trace( "Reprocessing..." );
-				reprocess();
+					log.trace( "Loading the file as hierarchy..." );
+					Path path = Paths.get( fileDialog.getDirectory(), filename );
+
+					Hierarchy hierarchy = new GeneratedCSVReader().load(
+						path.toString(),
+						context.getConfig().hasInstanceNameAttribute(),
+						context.getConfig().hasTrueClassAttribute(),
+						context.getConfig().hasDataNamesRow(),
+						context.getConfig().isFillBreadthGaps()
+					);
+
+					Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
+						context.getConfig(),
+						hierarchy.getRoot()
+					);
+
+					context.setHierarchy( hierarchy );
+					context.setTree( treeData.getLeft() );
+					context.setTreeLayoutData( treeData.getRight() );
+
+					log.trace( "Reprocessing..." );
+					reprocess();
+
+					log.trace( "File selection finished." );
+				}
+				else {
+					log.trace( "Loading aborted." );
+				}
 			}
 			catch ( IOException e ) {
 				log.error( "Error while loading hierarchy file: " + filename, e );
 			}
 		}
-
-		log.trace( "File selection finished." );
+		else {
+			log.trace( "Loading aborted." );
+		}
 	}
 
 	/**
@@ -341,8 +355,6 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
-		NodeSelectionControl.selectNode( context, hierarchyDisplay, instanceDisplay, context.getSelectedRow() );
-
 		Rectangle2D contentRect = hierarchyDisplay.getVisibleRect();
 
 		Point2D p = new Point2D.Double(
@@ -360,9 +372,82 @@ public class VisualizerFrame extends JFrame
 		}
 
 		Utils.resetDisplayZoom( hierarchyDisplay );
-
 		hierarchyDisplay.zoomAbs( p, zoom * 0.5 );
 
-		// treeDisplay.animatePanAndZoomToAbs( p, zoom, 500 );
+		onRowSelected( context.getSelectedRow() );
+	}
+
+	private void onRowSelected( int row )
+	{
+		updateNodeRoles( context, context.getSelectedRow() ); // 7ms
+
+		hierarchyDisplay.damageReport();
+		hierarchyDisplay.repaint();
+
+		Group group = context.findGroup( context.getSelectedRow() );
+		Visualization vis = context.createInstanceVisualization( group ); // 56ms
+
+		Utils.resetDisplayZoom( instanceDisplay );
+
+		instanceDisplay.setVisualization( vis );
+
+		vis.run( "draw" );
+		Utils.waitUntilActivitiesAreFinished(); // 100ms
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void updateNodeRoles( HVContext context, int row )
+	{
+		Tree hierarchyTree = context.getTree();
+		HVConfig config = context.getConfig();
+
+		boolean isFound = false;
+
+		// Reset all nodes back to 'other'
+		for ( int i = 0; i < hierarchyTree.getNodeCount(); i++ ) {
+			Node n = hierarchyTree.getNode( i );
+			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
+		}
+
+		// If no node is selected, then there's no point in trying to recategorize nodes, since
+		// all will be classified as 'other' anyway.
+		if ( row < 0 )
+			return;
+
+		// Recategorize nodes based on the currently selected node
+		for ( int i = 0; i < hierarchyTree.getNodeCount() && !isFound; i++ ) {
+			Node n = hierarchyTree.getNode( i );
+			if ( n.getRow() == row ) {
+				isFound = true;
+				// colour child groups
+				LinkedList<Node> stack = new LinkedList<>();
+				stack.add( n );
+				while ( !stack.isEmpty() ) {
+					Node current = stack.removeFirst();
+					current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
+					for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
+						Node child = children.next();
+						stack.add( child );
+					}
+				}
+
+				if ( config.isDisplayAllPoints() && n.getParent() != null ) {
+					stack = new LinkedList<>();
+					// when the parent is empty, then we need to search up in the hierarchy because empty
+					// parents are skipped, but displayed on output images
+					Node directParent = n.getParent();
+					stack.add( directParent );
+					while ( !stack.isEmpty() ) {
+						Node current = stack.removeFirst();
+						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
+						if ( current.getParent() != null ) {
+							stack.add( current.getParent() );
+						}
+					}
+					directParent.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.DIRECT_PARENT.getNumber() );
+				}
+				n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CURRENT.getNumber() );
+			}
+		}
 	}
 }

@@ -485,7 +485,7 @@ public class HVConfig
 		this.treeResolutionHeight = imageHeight;
 	}
 
-	public int getPointWidth()
+	public int getInstanceWidth()
 	{
 		return pointResolutionWidth;
 	}
@@ -495,7 +495,7 @@ public class HVConfig
 		this.pointResolutionWidth = imageWidth;
 	}
 
-	public int getPointHeight()
+	public int getInstanceHeight()
 	{
 		return pointResolutionHeight;
 	}

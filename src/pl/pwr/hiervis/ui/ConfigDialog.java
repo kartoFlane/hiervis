@@ -249,8 +249,8 @@ public class ConfigDialog extends JDialog
 
 		txtTreeWidth.setText( "" + cfg.getTreeWidth() );
 		txtTreeHeight.setText( "" + cfg.getTreeHeight() );
-		txtPointWidth.setText( "" + cfg.getPointWidth() );
-		txtPointHeight.setText( "" + cfg.getPointHeight() );
+		txtPointWidth.setText( "" + cfg.getInstanceWidth() );
+		txtPointHeight.setText( "" + cfg.getInstanceHeight() );
 	}
 
 	private void createColorsTab( HVContext context, JTabbedPane cTabs )
@@ -468,7 +468,7 @@ public class ConfigDialog extends JDialog
 
 	private void updateConfig( HVContext context )
 	{
-		newConfig = context.getConfig();
+		newConfig = context.getConfig().copy();
 
 		newConfig.setCurrentLevelColor( lblColorSelectedNode.getBackground() );
 		newConfig.setChildGroupColor( lblColorChildGroup.getBackground() );

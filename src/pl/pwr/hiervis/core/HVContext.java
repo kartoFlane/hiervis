@@ -1,20 +1,16 @@
 package pl.pwr.hiervis.core;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Group;
 import basic_hierarchy.interfaces.Hierarchy;
-import basic_hierarchy.reader.GeneratedCSVReader;
+import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import pl.pwr.hiervis.visualisation.TreeLayoutData;
-import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.data.Tree;
 
@@ -30,6 +26,8 @@ public class HVContext
 {
 	private static final Logger log = LogManager.getLogger( HVContext.class );
 
+	public final Event<Integer> rowSelected = new Event<>();
+
 	private HVConfig config = null;
 	private Hierarchy inputHierarchy = null;
 	private Tree hierarchyTree = null;
@@ -41,35 +39,6 @@ public class HVContext
 	public HVContext()
 	{
 		setConfig( new HVConfig() );
-	}
-
-	/**
-	 * Loads the specified CSV file and uses its data to visualize the hierarchy.
-	 * 
-	 * @param path
-	 *            path to the CSV file to load.
-	 */
-	public void load( Path path ) throws IOException
-	{
-		setHierarchy(
-			loadHierarchy(
-				path,
-				config.hasInstanceNameAttribute(),
-				config.hasTrueClassAttribute(),
-				config.hasDataNamesRow(),
-				config.isFillBreadthGaps()
-			)
-		);
-
-		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
-			config,
-			inputHierarchy.getRoot()
-		);
-
-		setTree( treeData.getLeft() );
-		setTreeLayoutData( treeData.getRight() );
-
-		selectedRow = 0;
 	}
 
 	/**
@@ -121,22 +90,12 @@ public class HVContext
 		return hierarchyTreeLayout;
 	}
 
-	public void setSelectedRow( int i )
-	{
-		selectedRow = i;
-	}
-
 	/**
-	 * @return row of the currently selected node in the tree hierarchy view.
+	 * @return row of the currently selected node in the hierarchy view.
 	 */
 	public int getSelectedRow()
 	{
 		return selectedRow;
-	}
-
-	public Display createHierarchyDisplay()
-	{
-		return HierarchyProcessor.createTreeDisplay( this );
 	}
 
 	public Visualization createHierarchyVisualization()
@@ -144,24 +103,9 @@ public class HVContext
 		return HierarchyProcessor.createTreeVisualization( this );
 	}
 
-	public Display createPointDisplay()
-	{
-		return HierarchyProcessor.createInstanceDisplay( this );
-	}
-
 	public Visualization createInstanceVisualization( Group group )
 	{
 		return HierarchyProcessor.createInstanceVisualization( this, group );
-	}
-
-	private static Hierarchy loadHierarchy(
-		Path path,
-		boolean hasInstanceName,
-		boolean hasClass,
-		boolean hasNames,
-		boolean fixGaps ) throws IOException
-	{
-		return new GeneratedCSVReader().load( path.toString(), hasInstanceName, hasClass, hasNames, fixGaps );
 	}
 
 	/**
@@ -200,5 +144,13 @@ public class HVContext
 		}
 
 		return null;
+	}
+
+	public void selectNode( int row )
+	{
+		if ( selectedRow != row ) {
+			selectedRow = row;
+			rowSelected.broadcast( row );
+		}
 	}
 }

@@ -47,8 +47,8 @@ public class HierarchyImager
 		int nodeImgRightBorderWidth = 30;// this value determine the width of labels on the OY axis
 		int nodeImgTopBorderHeight = 5;
 		int nodeImgBottomBorderHeight = 30;// this value determine the width of labels on the OX axis
-		int nodeImgFinalWidth = (int)( config.getPointWidth() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
-		int nodeImgFinalHeight = (int)( config.getPointHeight() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
+		int nodeImgFinalWidth = (int)( config.getInstanceWidth() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
+		int nodeImgFinalHeight = (int)( config.getInstanceHeight() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
 
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( input.getRoot(), 0, 1 );
 
@@ -191,9 +191,9 @@ public class HierarchyImager
 	private static BufferedImage createPointImage( HVContext context, Group node )
 	{
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( node, 0, 1 );
-		int nodeImgFinalWidth = (int)( context.getConfig().getPointWidth() +
+		int nodeImgFinalWidth = (int)( context.getConfig().getInstanceWidth() +
 			Math.max( 1.0, context.getConfig().getPointScallingFactor() / 2 ) );
-		int nodeImgFinalHeight = (int)( context.getConfig().getPointHeight() +
+		int nodeImgFinalHeight = (int)( context.getConfig().getInstanceHeight() +
 			Math.max( 1.0, context.getConfig().getPointScallingFactor() / 2 ) );
 
 		LinkedList<Instance> allPoints = null;
@@ -369,7 +369,7 @@ public class HierarchyImager
 					allPoints,
 					config.getOtherGroupColor(),
 					config.getPointScallingFactor(),
-					config.getPointWidth(), config.getPointHeight(),
+					config.getInstanceWidth(), config.getInstanceHeight(),
 					bounds
 				);
 
@@ -379,7 +379,7 @@ public class HierarchyImager
 						node,
 						config.getAncestorGroupColor(),
 						config.getPointScallingFactor(),
-						config.getPointWidth(), config.getPointHeight(),
+						config.getInstanceWidth(), config.getInstanceHeight(),
 						bounds
 					);
 
@@ -388,7 +388,7 @@ public class HierarchyImager
 						node.getParent().getInstances(),
 						config.getParentGroupColor(),
 						config.getPointScallingFactor(),
-						config.getPointWidth(), config.getPointHeight(),
+						config.getInstanceWidth(), config.getInstanceHeight(),
 						bounds
 					);
 				}
@@ -399,7 +399,7 @@ public class HierarchyImager
 				node.getSubgroupInstances(),
 				config.getChildGroupColor(),
 				config.getPointScallingFactor(),
-				config.getPointWidth(), config.getPointHeight(),
+				config.getInstanceWidth(), config.getInstanceHeight(),
 				bounds
 			);
 			drawPoints(
@@ -407,7 +407,7 @@ public class HierarchyImager
 				node.getInstances(),
 				config.getCurrentGroupColor(),
 				config.getPointScallingFactor(),
-				config.getPointWidth(), config.getPointHeight(),
+				config.getInstanceWidth(), config.getInstanceHeight(),
 				bounds
 			);
 		}

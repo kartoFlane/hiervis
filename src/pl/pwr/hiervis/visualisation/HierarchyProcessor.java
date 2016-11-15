@@ -21,7 +21,6 @@ import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.util.Utils;
 import prefuse.Constants;
-import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.action.ActionList;
 import prefuse.action.RepaintAction;
@@ -32,7 +31,6 @@ import prefuse.data.Node;
 import prefuse.data.Table;
 import prefuse.data.Tree;
 import prefuse.data.query.NumberRangeModel;
-import prefuse.render.AbstractShapeRenderer;
 import prefuse.render.DefaultRendererFactory;
 import prefuse.render.EdgeRenderer;
 import prefuse.util.ColorLib;
@@ -227,44 +225,18 @@ public class HierarchyProcessor
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	private static Display createTreeDisplay( HVContext context, String currentNodeId )
-	{
-		Visualization vis = createTreeVisualization( context, currentNodeId );
-
-		HVConfig config = context.getConfig();
-
-		int hierarchyImageWidth = config.getTreeWidth();
-		int hierarchyImageHeight = config.getTreeHeight();
-
-		Display display = new Display( vis );
-		display.setBackground( config.getBackgroundColor() );
-		display.setHighQuality( true );
-		display.setSize( (int)( 5.0 * hierarchyImageWidth ), hierarchyImageHeight );
-
-		layoutVisualization( vis );
-
-		return display;
-	}
-
-	public static Display createTreeDisplay( HVContext context )
-	{
-		return createTreeDisplay( context, null );
-	}
-
 	public static Visualization createInstanceVisualization( HVContext context, Group group )
 	{
 		HVConfig config = context.getConfig();
-		int pointImageWidth = config.getPointWidth();
-		int pointImageHeight = config.getPointHeight();
+		int pointImageWidth = config.getInstanceWidth();
+		int pointImageHeight = config.getInstanceHeight();
 
 		// TODO: Make this a config property?
 		int pointSize = 2;
 
 		Visualization vis = new Visualization();
 
-		AbstractShapeRenderer asr = new PointRenderer( pointSize, config );
-		DefaultRendererFactory drf = new DefaultRendererFactory( asr );
-		vis.setRendererFactory( drf );
+		vis.setRendererFactory( new DefaultRendererFactory( new PointRenderer( pointSize, config ) ) );
 
 		String datasetName = "data";
 		String xField = "x";
@@ -331,33 +303,5 @@ public class HierarchyProcessor
 		vis.putAction( "draw", actions );
 
 		return vis;
-	}
-
-	private static Display createInstanceDisplay( HVContext context, Group group )
-	{
-		if ( group == null )
-			group = context.getHierarchy().getRoot();
-
-		HVConfig config = context.getConfig();
-
-		int pointImageWidth = config.getPointWidth();
-		int pointImageHeight = config.getPointHeight();
-
-		Visualization vis = createInstanceVisualization( context, group );
-
-		Display display = new Display( vis );
-		display.setBackground( config.getBackgroundColor() );
-		display.setHighQuality( true );
-		display.setSize( pointImageWidth, pointImageHeight );
-
-		vis.run( "draw" );
-		Utils.waitUntilActivitiesAreFinished();
-
-		return display;
-	}
-
-	public static Display createInstanceDisplay( HVContext context )
-	{
-		return createInstanceDisplay( context, null );
 	}
 }

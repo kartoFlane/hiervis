@@ -184,7 +184,7 @@ public class FileLoadingOptionsDialog extends JDialog
 
 	private void updateConfig( HVContext context )
 	{
-		newConfig = context.getConfig();
+		newConfig = context.getConfig().copy();
 
 		newConfig.setTrueClassAttribute( cboxTrueClass.isSelected() );
 		newConfig.setInstanceNameAttribute( cboxInstanceName.isSelected() );
