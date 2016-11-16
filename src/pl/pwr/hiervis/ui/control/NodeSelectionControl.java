@@ -50,7 +50,7 @@ public class NodeSelectionControl extends ControlAdapter
 			return;
 		}
 
-		context.selectNode( item.getRow() );
+		context.setSelectedRow( item.getRow() );
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public class NodeSelectionControl extends ControlAdapter
 			}
 
 			if ( n != null ) {
-				context.selectNode( n.getRow() );
+				context.setSelectedRow( n.getRow() );
 			}
 		}
 	}

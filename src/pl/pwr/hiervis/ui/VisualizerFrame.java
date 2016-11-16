@@ -97,7 +97,7 @@ public class VisualizerFrame extends JFrame
 		createMenu();
 		createGUI();
 
-		context.rowSelected.addListener( this::onRowSelected );
+		context.nodeSelectionChanged.addListener( this::onNodeSelected );
 	}
 
 	private void createGUI()
@@ -374,10 +374,10 @@ public class VisualizerFrame extends JFrame
 		Utils.resetDisplayZoom( hierarchyDisplay );
 		hierarchyDisplay.zoomAbs( p, zoom * 0.5 );
 
-		onRowSelected( context.getSelectedRow() );
+		onNodeSelected( context.getSelectedRow() );
 	}
 
-	private void onRowSelected( int row )
+	private void onNodeSelected( int row )
 	{
 		updateNodeRoles( context, context.getSelectedRow() ); // 7ms
 

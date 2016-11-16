@@ -26,8 +26,20 @@ public class HVContext
 {
 	private static final Logger log = LogManager.getLogger( HVContext.class );
 
-	public final Event<Integer> rowSelected = new Event<>();
+	// Events
 
+	/** Sent when the node (group) selected by the user has changed. */
+	public final Event<Integer> nodeSelectionChanged = new Event<>();
+	/** Sent when the loaded hierarchy is about to change. */
+	public final Event<Hierarchy> hierarchyChanging = new Event<>();
+	/** Sent when the loaded hierarchy has changed. */
+	public final Event<Hierarchy> hierarchyChanged = new Event<>();
+	/** Send when the app configuration is about to change. */
+	public final Event<HVConfig> configChanging = new Event<>();
+	/** Send when the app configuration has changed. */
+	public final Event<HVConfig> configChanged = new Event<>();
+
+	// Members
 	private HVConfig config = null;
 	private Hierarchy inputHierarchy = null;
 	private Tree hierarchyTree = null;
@@ -52,7 +64,13 @@ public class HVContext
 
 	public void setConfig( HVConfig config )
 	{
-		this.config = config;
+		if ( config == null )
+			return;
+		if ( this.config == null || !this.config.equals( config ) ) {
+			configChanging.broadcast( this.config );
+			this.config = config;
+			configChanged.broadcast( config );
+		}
 	}
 
 	public HVConfig getConfig()
@@ -62,7 +80,11 @@ public class HVContext
 
 	public void setHierarchy( Hierarchy hierarchy )
 	{
-		inputHierarchy = hierarchy;
+		if ( inputHierarchy != hierarchy ) {
+			hierarchyChanging.broadcast( inputHierarchy );
+			inputHierarchy = hierarchy;
+			hierarchyChanged.broadcast( hierarchy );
+		}
 	}
 
 	public Hierarchy getHierarchy()
@@ -96,6 +118,14 @@ public class HVContext
 	public int getSelectedRow()
 	{
 		return selectedRow;
+	}
+
+	public void setSelectedRow( int row )
+	{
+		if ( selectedRow != row ) {
+			selectedRow = row;
+			nodeSelectionChanged.broadcast( row );
+		}
 	}
 
 	public Visualization createHierarchyVisualization()
@@ -144,13 +174,5 @@ public class HVContext
 		}
 
 		return null;
-	}
-
-	public void selectNode( int row )
-	{
-		if ( selectedRow != row ) {
-			selectedRow = row;
-			rowSelected.broadcast( row );
-		}
 	}
 }

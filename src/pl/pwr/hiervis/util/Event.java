@@ -47,7 +47,10 @@ public class Event<T>
 	}
 
 	/**
-	 * <b>DO NOT CALL THIS.</b>
+	 * Notifies all registered listeners of this event.
+	 * <p>
+	 * <b>DO NOT CALL THIS:</b>
+	 * </p>
 	 * <p>
 	 * This method is made public only so that the owner of the event handler can broadcast the event.
 	 * Calling this method anywhere else violates the principle of loosely-coupled, event-driven

@@ -90,6 +90,8 @@ public class HierarchyStatisticsFrame extends JFrame
 				}
 			}
 		);
+
+		createMenu();
 	}
 
 	private void createMenu()
