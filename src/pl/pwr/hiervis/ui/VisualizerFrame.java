@@ -275,7 +275,8 @@ public class VisualizerFrame extends JFrame
 						context.getConfig().hasInstanceNameAttribute(),
 						context.getConfig().hasTrueClassAttribute(),
 						context.getConfig().hasDataNamesRow(),
-						context.getConfig().isFillBreadthGaps()
+						context.getConfig().isFillBreadthGaps(),
+						true
 					);
 
 					Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(

@@ -107,7 +107,7 @@ public final class HierarchyVisualizer
 					config.hasInstanceNameAttribute(),
 					config.hasTrueClassAttribute(),
 					config.hasDataNamesRow(),
-					false
+					false, true
 				);
 			}
 			catch ( IOException e ) {
