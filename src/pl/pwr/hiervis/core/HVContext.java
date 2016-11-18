@@ -3,11 +3,16 @@ package pl.pwr.hiervis.core;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Group;
 import basic_hierarchy.interfaces.Hierarchy;
+import internal_measures.statistics.AvgPathLength;
+import internal_measures.statistics.Height;
+import internal_measures.statistics.NumberOfLeaves;
+import internal_measures.statistics.NumberOfNodes;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import pl.pwr.hiervis.visualisation.TreeLayoutData;
@@ -45,12 +50,27 @@ public class HVContext
 	private Tree hierarchyTree = null;
 	private TreeLayoutData hierarchyTreeLayout = null;
 
+	private MeasureComputeThread computeThread = null;
+
 	private int selectedRow = 0;
 
 
 	public HVContext()
 	{
 		setConfig( new HVConfig() );
+
+		hierarchyChanged.addListener(
+			h -> {
+				computeThread = new MeasureComputeThread( HVContext.this );
+
+				computeThread.postTask( Pair.of( "Average Path Length", new AvgPathLength()::calculate ) );
+				computeThread.postTask( Pair.of( "Height", new Height()::calculate ) );
+				computeThread.postTask( Pair.of( "Number of Leaves", new NumberOfLeaves()::calculate ) );
+				computeThread.postTask( Pair.of( "Number of Nodes", new NumberOfNodes()::calculate ) );
+
+				computeThread.start();
+			}
+		);
 	}
 
 	/**
@@ -80,9 +100,9 @@ public class HVContext
 
 	public void setHierarchy( Hierarchy hierarchy )
 	{
-		if ( inputHierarchy != hierarchy ) {
-			hierarchyChanging.broadcast( inputHierarchy );
-			inputHierarchy = hierarchy;
+		if ( this.inputHierarchy != hierarchy ) {
+			hierarchyChanging.broadcast( this.inputHierarchy );
+			this.inputHierarchy = hierarchy;
 			hierarchyChanged.broadcast( hierarchy );
 		}
 	}
@@ -126,6 +146,11 @@ public class HVContext
 			selectedRow = row;
 			nodeSelectionChanged.broadcast( row );
 		}
+	}
+
+	public MeasureComputeThread getMeasureComputeThread()
+	{
+		return computeThread;
 	}
 
 	public Visualization createHierarchyVisualization()

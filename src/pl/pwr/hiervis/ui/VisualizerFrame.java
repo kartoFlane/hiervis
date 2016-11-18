@@ -38,6 +38,7 @@ import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.MeasureComputeThread;
 import pl.pwr.hiervis.ui.control.NodeSelectionControl;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.SubtreeDragControl;
@@ -98,6 +99,28 @@ public class VisualizerFrame extends JFrame
 		createGUI();
 
 		context.nodeSelectionChanged.addListener( this::onNodeSelected );
+
+		context.hierarchyChanging.addListener(
+			h -> {
+				MeasureComputeThread thread = context.getMeasureComputeThread();
+				if ( thread != null ) {
+					thread.measureComputed.removeListener( this::onMeasureComputed );
+				}
+			}
+		);
+
+		context.hierarchyChanged.addListener(
+			h -> {
+				context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
+			}
+		);
+	}
+
+	private void onMeasureComputed( Pair<String, Object> result )
+	{
+		log.trace( String.format( "%s = %s", result.getKey(), result.getValue() ) );
+
+		// TODO
 	}
 
 	private void createGUI()
