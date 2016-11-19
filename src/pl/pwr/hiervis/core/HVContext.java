@@ -33,6 +33,8 @@ public class HVContext
 
 	// Events
 
+	/** Sent when the node (group) selected by the user is about to change. */
+	public final Event<Integer> nodeSelectionChanging = new Event<>();
 	/** Sent when the node (group) selected by the user has changed. */
 	public final Event<Integer> nodeSelectionChanged = new Event<>();
 	/** Sent when the loaded hierarchy is about to change. */
@@ -143,6 +145,7 @@ public class HVContext
 	public void setSelectedRow( int row )
 	{
 		if ( selectedRow != row ) {
+			nodeSelectionChanging.broadcast( row );
 			selectedRow = row;
 			nodeSelectionChanged.broadcast( row );
 		}
