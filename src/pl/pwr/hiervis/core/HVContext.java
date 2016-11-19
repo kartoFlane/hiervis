@@ -1,7 +1,12 @@
 package pl.pwr.hiervis.core;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -46,15 +51,17 @@ public class HVContext
 	/** Send when the app configuration has changed. */
 	public final Event<HVConfig> configChanged = new Event<>();
 
+
 	// Members
+
 	private HVConfig config = null;
 	private Hierarchy inputHierarchy = null;
 	private Tree hierarchyTree = null;
 	private TreeLayoutData hierarchyTreeLayout = null;
+	private int selectedRow = 0;
+	private Map<String, Object> measureMap = new HashMap<>();
 
 	private MeasureComputeThread computeThread = null;
-
-	private int selectedRow = 0;
 
 
 	public HVContext()
@@ -140,6 +147,40 @@ public class HVContext
 		}
 	}
 
+	/**
+	 * Returns a set of measures that have been computed thus far for the currently loaded hierarchy.
+	 * <p>
+	 * This method is not particularly thread-safe, as the map of measures might be updated with new entries
+	 * while you are processing the set. resulting in missed entries.
+	 * </p>
+	 * <p>
+	 * For a thread-safe alternative, see {@link #forComputedMeasures(Consumer)}
+	 * </p>
+	 * 
+	 * @see #forComputedMeasures(Consumer)
+	 */
+	public Set<Map.Entry<String, Object>> getComputedMeasures()
+	{
+		synchronized ( measureMap ) {
+			return Collections.unmodifiableMap( measureMap ).entrySet();
+		}
+	}
+
+	/**
+	 * Performs the specified function on the set of measures that have been computed thus far for
+	 * the currently loaded hierarchy.
+	 * <p>
+	 * This method executes the function inside of a synchronized block, preventing the set from
+	 * being updated while this method is executing.
+	 * </p>
+	 */
+	public void forComputedMeasures( Consumer<Set<Map.Entry<String, Object>>> function )
+	{
+		synchronized ( measureMap ) {
+			function.accept( Collections.unmodifiableMap( measureMap ).entrySet() );
+		}
+	}
+
 	public MeasureComputeThread getMeasureComputeThread()
 	{
 		return computeThread;
@@ -205,6 +246,8 @@ public class HVContext
 			computeThread.setHierarchy( h );
 		}
 
+		measureMap.clear();
+
 		computeThread.postTask( "Average Path Length", new AvgPathLength()::calculate );
 		computeThread.postTask( "Height", new Height()::calculate );
 		computeThread.postTask( "Number of Leaves", new NumberOfLeaves()::calculate );
@@ -213,6 +256,10 @@ public class HVContext
 
 	private void onMeasureComputed( Pair<String, Object> result )
 	{
+		synchronized ( measureMap ) {
+			measureMap.put( result.getKey(), result.getValue() );
+		}
+
 		log.trace( String.format( "%s = %s", result.getKey(), result.getValue() ) );
 	}
 }
