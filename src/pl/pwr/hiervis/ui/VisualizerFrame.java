@@ -91,6 +91,11 @@ public class VisualizerFrame extends JFrame
 				{
 					// Save the current configuration on application exit.
 					context.getConfig().to( new File( HVConfig.FILE_PATH ) );
+
+					MeasureComputeThread thread = context.getMeasureComputeThread();
+					if ( thread != null ) {
+						thread.shutdown();
+					}
 				}
 			}
 		);
@@ -99,28 +104,6 @@ public class VisualizerFrame extends JFrame
 		createGUI();
 
 		context.nodeSelectionChanged.addListener( this::onNodeSelected );
-
-		context.hierarchyChanging.addListener(
-			h -> {
-				MeasureComputeThread thread = context.getMeasureComputeThread();
-				if ( thread != null ) {
-					thread.measureComputed.removeListener( this::onMeasureComputed );
-				}
-			}
-		);
-
-		context.hierarchyChanged.addListener(
-			h -> {
-				context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
-			}
-		);
-	}
-
-	private void onMeasureComputed( Pair<String, Object> result )
-	{
-		log.trace( String.format( "%s = %s", result.getKey(), result.getValue() ) );
-
-		// TODO
 	}
 
 	private void createGUI()

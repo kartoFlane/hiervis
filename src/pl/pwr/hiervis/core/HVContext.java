@@ -61,18 +61,7 @@ public class HVContext
 	{
 		setConfig( new HVConfig() );
 
-		hierarchyChanged.addListener(
-			h -> {
-				computeThread = new MeasureComputeThread( HVContext.this );
-
-				computeThread.postTask( Pair.of( "Average Path Length", new AvgPathLength()::calculate ) );
-				computeThread.postTask( Pair.of( "Height", new Height()::calculate ) );
-				computeThread.postTask( Pair.of( "Number of Leaves", new NumberOfLeaves()::calculate ) );
-				computeThread.postTask( Pair.of( "Number of Nodes", new NumberOfNodes()::calculate ) );
-
-				computeThread.start();
-			}
-		);
+		hierarchyChanged.addListener( this::onHierarchyChanged );
 	}
 
 	/**
@@ -202,5 +191,28 @@ public class HVContext
 		}
 
 		return null;
+	}
+
+	private void onHierarchyChanged( Hierarchy h )
+	{
+		if ( computeThread == null ) {
+			computeThread = new MeasureComputeThread( h );
+			computeThread.measureComputed.addListener( this::onMeasureComputed );
+			computeThread.start();
+		}
+		else {
+			computeThread.clearPendingTasks();
+			computeThread.setHierarchy( h );
+		}
+
+		computeThread.postTask( "Average Path Length", new AvgPathLength()::calculate );
+		computeThread.postTask( "Height", new Height()::calculate );
+		computeThread.postTask( "Number of Leaves", new NumberOfLeaves()::calculate );
+		computeThread.postTask( "Number of Nodes", new NumberOfNodes()::calculate );
+	}
+
+	private void onMeasureComputed( Pair<String, Object> result )
+	{
+		log.trace( String.format( "%s = %s", result.getKey(), result.getValue() ) );
 	}
 }
