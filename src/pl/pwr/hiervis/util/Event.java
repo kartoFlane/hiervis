@@ -46,6 +46,11 @@ public class Event<T>
 		listeners.remove( listener );
 	}
 
+	public void clearListeners()
+	{
+		listeners.clear();
+	}
+
 	/**
 	 * Notifies all registered listeners of this event.
 	 * <p>
