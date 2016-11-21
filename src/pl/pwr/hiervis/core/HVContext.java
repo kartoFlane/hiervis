@@ -71,6 +71,7 @@ public class HVContext
 		computeThread = new MeasureComputeThread();
 		computeThread.measureComputed.addListener( this::onMeasureComputed );
 
+		hierarchyChanging.addListener( this::onHierarchyChanging );
 		hierarchyChanged.addListener( this::onHierarchyChanged );
 
 		computeThread.start();
@@ -237,6 +238,11 @@ public class HVContext
 		}
 
 		return null;
+	}
+
+	private void onHierarchyChanging( Hierarchy h )
+	{
+		selectedRow = 0;
 	}
 
 	private void onHierarchyChanged( Hierarchy h )
