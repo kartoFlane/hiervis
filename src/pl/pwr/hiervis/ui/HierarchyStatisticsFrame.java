@@ -2,14 +2,16 @@ package pl.pwr.hiervis.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.Map.Entry;
 
-import javax.swing.BoxLayout;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -17,11 +19,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.interfaces.Hierarchy;
+import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.core.HVContext;
 
 
@@ -46,6 +50,7 @@ public class HierarchyStatisticsFrame extends JFrame
 	private WindowListener ownerListener;
 
 
+	@SuppressWarnings("unchecked")
 	public HierarchyStatisticsFrame( HVContext context, Window frame )
 	{
 		super( "Hierarchy Statistics" );
@@ -53,7 +58,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		setMinimumSize( new Dimension( 300, 200 ) );
-		setSize( 300, 200 );
+		setSize( 300, 250 );
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -122,9 +127,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		context.forComputedMeasures(
 			set -> {
-				for ( Entry<String, Object> entry : set ) {
-					cMeasures.add( createMeasurePanel( entry ) );
-				}
+				addMeasurePanel( set.toArray( new Entry[set.size()] ) );
 			}
 		);
 	}
@@ -168,8 +171,15 @@ public class HierarchyStatisticsFrame extends JFrame
 		getContentPane().add( scrollPane, BorderLayout.CENTER );
 
 		cMeasures = new JPanel();
+
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWidths = new int[] { 0 };
+		layout.rowHeights = new int[] { 0 };
+		layout.columnWeights = new double[] { 1.0 };
+		layout.rowWeights = new double[] { Double.MIN_VALUE };
+		cMeasures.setLayout( layout );
+
 		scrollPane.setViewportView( cMeasures );
-		cMeasures.setLayout( new BoxLayout( cMeasures, BoxLayout.Y_AXIS ) );
 	}
 
 	private JPanel createMeasurePanel( Entry<String, Object> entry )
@@ -178,17 +188,72 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasure.setBorder( new TitledBorder( null, entry.getKey(), TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
 
-		JLabel lblContent = new JLabel( entry.getValue().toString() );
-		cMeasure.add( lblContent, BorderLayout.NORTH );
+		cMeasure.add( createMeasureContent( entry.getValue() ), BorderLayout.NORTH );
 
 		return cMeasure;
 	}
 
-	private void onMeasureComputed( Pair<String, Object> result )
+	@SafeVarargs
+	private final void addMeasurePanel( Entry<String, Object>... entries )
 	{
-		cMeasures.add( createMeasurePanel( result ) );
+		int curItems = cMeasures.getComponentCount();
+		int newItems = curItems + entries.length;
+
+		GridBagLayout layout = (GridBagLayout)cMeasures.getLayout();
+		layout.rowHeights = new int[newItems + 1];
+		layout.rowWeights = new double[newItems + 1];
+		layout.rowWeights[newItems] = Double.MIN_VALUE;
+		cMeasures.setLayout( layout );
+
+		int i = curItems;
+		for ( Entry<String, Object> entry : entries ) {
+			GridBagConstraints constraints = new GridBagConstraints();
+			constraints.fill = GridBagConstraints.BOTH;
+			constraints.gridx = 0;
+			constraints.gridy = i;
+
+			cMeasures.add( createMeasurePanel( entry ), constraints );
+
+			++i;
+		}
+
 		cMeasures.revalidate();
 		cMeasures.repaint();
+	}
+
+	private JComponent createMeasureContent( Object result )
+	{
+		if ( result == null ) {
+			throw new IllegalArgumentException( "Result must not be null!" );
+		}
+
+		if ( result instanceof double[] ) {
+			// Histogram data
+			throw new UnsupportedOperationException( "Not implemented yet." );
+		}
+		else if ( result instanceof AvgWithStdev ) {
+			return new JLabel( result.toString() );
+		}
+		else if ( result instanceof Double ) {
+			return new JLabel( result.toString() );
+		}
+		else {
+			throw new IllegalArgumentException(
+				String.format(
+					"No case defined for data type '%s'",
+					result.getClass().getSimpleName()
+				)
+			);
+		}
+	}
+
+	private void onMeasureComputed( Pair<String, Object> result )
+	{
+		SwingUtilities.invokeLater(
+			() -> {
+				addMeasurePanel( result );
+			}
+		);
 	}
 
 	private void onHierarchyChanging( Hierarchy oldHierarchy )

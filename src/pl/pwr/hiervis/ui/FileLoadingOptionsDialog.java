@@ -177,6 +177,9 @@ public class FileLoadingOptionsDialog extends JDialog
 		gbc_btnConfirm.gridy = 0;
 		cButtons.add( btnConfirm, gbc_btnConfirm );
 
+		getRootPane().setDefaultButton( btnConfirm );
+		btnConfirm.requestFocus();
+
 		btnConfirm.addActionListener(
 			( e ) -> {
 				updateConfig( context );
