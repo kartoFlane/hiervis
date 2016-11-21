@@ -257,7 +257,5 @@ public class HVContext
 		synchronized ( measureMap ) {
 			measureMap.put( result.getKey(), result.getValue() );
 		}
-
-		log.trace( String.format( "%s = %s", result.getKey(), result.getValue() ) );
 	}
 }
