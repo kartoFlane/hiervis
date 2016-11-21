@@ -68,7 +68,12 @@ public class HVContext
 	{
 		setConfig( new HVConfig() );
 
+		computeThread = new MeasureComputeThread();
+		computeThread.measureComputed.addListener( this::onMeasureComputed );
+
 		hierarchyChanged.addListener( this::onHierarchyChanged );
+
+		computeThread.start();
 	}
 
 	/**
@@ -236,15 +241,8 @@ public class HVContext
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
-		if ( computeThread == null ) {
-			computeThread = new MeasureComputeThread( h );
-			computeThread.measureComputed.addListener( this::onMeasureComputed );
-			computeThread.start();
-		}
-		else {
-			computeThread.clearPendingTasks();
-			computeThread.setHierarchy( h );
-		}
+		computeThread.clearPendingTasks();
+		computeThread.setHierarchy( h );
 
 		measureMap.clear();
 

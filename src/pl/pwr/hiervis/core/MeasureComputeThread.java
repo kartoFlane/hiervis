@@ -33,15 +33,9 @@ public class MeasureComputeThread extends Thread
 	private Hierarchy hierarchy;
 
 
-	/**
-	 * 
-	 * @param hierarchy
-	 *            the hierarchy for which measures will be computed.
-	 */
-	public MeasureComputeThread( Hierarchy hierarchy )
+	public MeasureComputeThread()
 	{
 		setDaemon( true );
-		setHierarchy( hierarchy );
 	}
 
 	/**
@@ -118,6 +112,10 @@ public class MeasureComputeThread extends Thread
 	 */
 	public void postTask( Pair<String, Function<Hierarchy, Object>> task )
 	{
+		if ( hierarchy == null ) {
+			throw new IllegalStateException( "No hierarchy has been set!" );
+		}
+
 		lock.lock();
 		try {
 			tasks.add( task );
