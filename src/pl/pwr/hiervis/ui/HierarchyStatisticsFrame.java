@@ -8,8 +8,12 @@ import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -25,7 +29,12 @@ import javax.swing.border.TitledBorder;
 import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.interfaces.Hierarchy;
+import internal_measures.statistics.AvgPathLength;
 import internal_measures.statistics.AvgWithStdev;
+import internal_measures.statistics.Height;
+import internal_measures.statistics.NumberOfLeaves;
+import internal_measures.statistics.NumberOfNodes;
+import internal_measures.statistics.histogram.ChildPerNodePerLevel;
 import pl.pwr.hiervis.core.HVContext;
 
 
@@ -45,16 +54,19 @@ import pl.pwr.hiervis.core.HVContext;
 public class HierarchyStatisticsFrame extends JFrame
 {
 	private Window owner;
+	private HVContext context;
+
 	private JPanel cMeasures;
 
 	private WindowListener ownerListener;
+	private HashMap<String, JPanel> measurePanelMap = new HashMap<>();
 
 
-	@SuppressWarnings("unchecked")
 	public HierarchyStatisticsFrame( HVContext context, Window frame )
 	{
 		super( "Hierarchy Statistics" );
 		owner = frame;
+		this.context = context;
 
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		setMinimumSize( new Dimension( 300, 200 ) );
@@ -121,13 +133,15 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		createGUI();
 		createMenu();
+		createMesurePanels();
 
 		context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
+		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 
 		context.forComputedMeasures(
 			set -> {
-				addMeasurePanel( set.toArray( new Entry[set.size()] ) );
+				set.stream().forEach( this::updateMeasurePanel );
 			}
 		);
 	}
@@ -168,6 +182,8 @@ public class HierarchyStatisticsFrame extends JFrame
 	{
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+		scrollPane.getVerticalScrollBar().setUnitIncrement( 8 );
+		scrollPane.setBorder( BorderFactory.createEmptyBorder() );
 		getContentPane().add( scrollPane, BorderLayout.CENTER );
 
 		cMeasures = new JPanel();
@@ -182,22 +198,21 @@ public class HierarchyStatisticsFrame extends JFrame
 		scrollPane.setViewportView( cMeasures );
 	}
 
-	private JPanel createMeasurePanel( Entry<String, Object> entry )
+	private void createMesurePanels()
 	{
-		JPanel cMeasure = new JPanel();
-		cMeasure.setBorder( new TitledBorder( null, entry.getKey(), TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
-		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
-
-		cMeasure.add( createMeasureContent( entry.getValue() ), BorderLayout.NORTH );
-
-		return cMeasure;
+		addMeasurePanels(
+			createPendingMeasurePanel( "Average Path Length", new AvgPathLength()::calculate ),
+			createPendingMeasurePanel( "Height", new Height()::calculate ),
+			createPendingMeasurePanel( "Number of Leaves", new NumberOfLeaves()::calculate ),
+			createPendingMeasurePanel( "Number of Nodes", new NumberOfNodes()::calculate ),
+			createPendingMeasurePanel( "Child Per Node Per Level", new ChildPerNodePerLevel()::calculate )
+		);
 	}
 
-	@SafeVarargs
-	private final void addMeasurePanel( Entry<String, Object>... entries )
+	private void addMeasurePanels( JPanel... panels )
 	{
 		int curItems = cMeasures.getComponentCount();
-		int newItems = curItems + entries.length;
+		int newItems = curItems + panels.length;
 
 		GridBagLayout layout = (GridBagLayout)cMeasures.getLayout();
 		layout.rowHeights = new int[newItems + 1];
@@ -206,13 +221,13 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasures.setLayout( layout );
 
 		int i = curItems;
-		for ( Entry<String, Object> entry : entries ) {
+		for ( JPanel panel : panels ) {
 			GridBagConstraints constraints = new GridBagConstraints();
 			constraints.fill = GridBagConstraints.BOTH;
 			constraints.gridx = 0;
 			constraints.gridy = i;
 
-			cMeasures.add( createMeasurePanel( entry ), constraints );
+			cMeasures.add( panel, constraints );
 
 			++i;
 		}
@@ -221,6 +236,44 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasures.repaint();
 	}
 
+	private JPanel createPendingMeasurePanel( String measureName, Function<Hierarchy, Object> measureFunction )
+	{
+		JPanel cMeasure = new JPanel();
+		cMeasure.setBorder( new TitledBorder( null, measureName, TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
+		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
+
+		JButton button = new JButton();
+		button.setEnabled( context.isHierarchyDataLoaded() );
+
+		if ( context.getMeasureComputeThread().isMeasurePending( measureName ) ) {
+			button.setEnabled( false );
+			button.setText( "Calculating..." );
+		}
+		else {
+			button.setText( "Calculate" );
+			button.addActionListener(
+				( e ) -> {
+					button.setEnabled( false );
+					button.setText( "Calculating..." );
+
+					context.getMeasureComputeThread().postTask( measureName, measureFunction );
+				}
+			);
+		}
+
+		cMeasure.add( button, BorderLayout.NORTH );
+		measurePanelMap.put( measureName, cMeasure );
+
+		return cMeasure;
+	}
+
+	/**
+	 * Creates a GUI component used to represent the specified measure computation result.
+	 * 
+	 * @param result
+	 *            the measure computation result to create the component for
+	 * @return the GUI component
+	 */
 	private JComponent createMeasureContent( Object result )
 	{
 		if ( result == null ) {
@@ -228,8 +281,21 @@ public class HierarchyStatisticsFrame extends JFrame
 		}
 
 		if ( result instanceof double[] ) {
-			// Histogram data
-			throw new UnsupportedOperationException( "Not implemented yet." );
+			// Histogram data // TODO
+			double[] data = (double[])result;
+
+			StringBuilder buf = new StringBuilder();
+			buf.append( "<html><body>" );
+			for ( int i = 0; i < data.length; ++i ) {
+				buf.append( Integer.toString( i ) )
+					.append( ": " )
+					.append( Double.toString( data[i] ) );
+
+				if ( i + 1 < data.length )
+					buf.append( "<br/>" );
+			}
+			buf.append( "</html></body>" );
+			return new JLabel( buf.toString() );
 		}
 		else if ( result instanceof AvgWithStdev ) {
 			return new JLabel( result.toString() );
@@ -247,19 +313,36 @@ public class HierarchyStatisticsFrame extends JFrame
 		}
 	}
 
+	private void updateMeasurePanel( Entry<String, Object> result )
+	{
+		JPanel panel = measurePanelMap.get( result.getKey() );
+		panel.removeAll();
+
+		panel.add( createMeasureContent( result.getValue() ), BorderLayout.NORTH );
+		panel.revalidate();
+		panel.repaint();
+	}
+
 	private void onMeasureComputed( Pair<String, Object> result )
 	{
 		SwingUtilities.invokeLater(
 			() -> {
-				addMeasurePanel( result );
+				updateMeasurePanel( result );
 			}
 		);
 	}
 
 	private void onHierarchyChanging( Hierarchy oldHierarchy )
 	{
+		measurePanelMap.clear();
+
 		cMeasures.removeAll();
 		cMeasures.revalidate();
 		cMeasures.repaint();
+	}
+
+	private void onHierarchyChanged( Hierarchy newHierarchy )
+	{
+		createMesurePanels();
 	}
 }
