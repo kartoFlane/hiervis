@@ -65,6 +65,8 @@ public class VisualizerFrame extends JFrame
 
 	private HVContext context;
 
+	private HierarchyStatisticsFrame statsFrame = null;
+
 	private Display hierarchyDisplay;
 	private Display instanceDisplay;
 
@@ -228,10 +230,13 @@ public class VisualizerFrame extends JFrame
 
 		mntmStats.addActionListener(
 			( e ) -> {
-				// TODO: Register event listeners for stuff like new data file loaded, selection changed, etc.
-				JFrame statsFrame = new HierarchyStatisticsFrame( context, this );
+				if ( statsFrame == null ) {
+					statsFrame = new HierarchyStatisticsFrame( context, this );
+					statsFrame.setLocationRelativeTo( null );
+				}
+				// Restore the frame if it was minimized
+				statsFrame.setExtendedState( JFrame.NORMAL );
 				statsFrame.setVisible( true );
-				statsFrame.setLocationRelativeTo( null );
 			}
 		);
 	}
