@@ -30,6 +30,7 @@ public class MeasureComputeThread extends Thread
 
 	private final ReentrantLock lock = new ReentrantLock();
 	private Queue<Pair<String, Function<Hierarchy, Object>>> tasks = new LinkedList<>();
+	private Pair<String, Function<Hierarchy, Object>> currentTask = null;
 	private Hierarchy hierarchy;
 
 
@@ -73,18 +74,18 @@ public class MeasureComputeThread extends Thread
 			}
 
 			try {
-				Pair<String, Function<Hierarchy, Object>> task = null;
+				currentTask = null;
 
 				lock.lock();
 				try {
-					task = tasks.poll();
+					currentTask = tasks.poll();
 				}
 				finally {
 					lock.unlock();
 				}
 
-				String id = task.getKey();
-				Function<Hierarchy, Object> computation = task.getValue();
+				String id = currentTask.getKey();
+				Function<Hierarchy, Object> computation = currentTask.getValue();
 
 				log.trace( String.format( "Computing measure '%s'...", id ) );
 				measureComputing.broadcast( id );
@@ -105,6 +106,38 @@ public class MeasureComputeThread extends Thread
 		measureComputed.clearListeners();
 
 		log.trace( "Compute thread shut down." );
+	}
+
+	/**
+	 * 
+	 * @param measureName
+	 *            identifier of the measure
+	 * @return true if a measure with the specified identifier is pending calculation, or
+	 *         is currently being calculated. False otherwise.
+	 */
+	public boolean isMeasurePending( String measureName )
+	{
+		boolean result = false;
+
+		lock.lock();
+		try {
+			if ( currentTask != null && currentTask.getKey().equals( measureName ) ) {
+				result = true;
+			}
+			else {
+				for ( Pair<String, Function<Hierarchy, Object>> task : tasks ) {
+					if ( task.getKey().equals( measureName ) ) {
+						result = true;
+						break;
+					}
+				}
+			}
+		}
+		finally {
+			lock.unlock();
+		}
+
+		return result;
 	}
 
 	/**
