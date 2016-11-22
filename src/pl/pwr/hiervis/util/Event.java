@@ -48,7 +48,8 @@ public class Event<T>
 
 	public void clearListeners()
 	{
-		listeners.clear();
+		if ( listeners != null )
+			listeners.clear();
 	}
 
 	/**
