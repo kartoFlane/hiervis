@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -130,6 +131,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		createMenu();
 		createMesurePanels();
 
+		context.getMeasureComputeThread().measureComputing.addListener( this::onMeasureComputing );
 		context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
@@ -221,6 +223,7 @@ public class HierarchyStatisticsFrame extends JFrame
 			constraints.fill = GridBagConstraints.BOTH;
 			constraints.gridx = 0;
 			constraints.gridy = i;
+			constraints.insets = new Insets( 5, 5, 0, 5 );
 
 			cMeasures.add( panel, constraints );
 
@@ -238,28 +241,31 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
 
 		JButton button = new JButton();
-		button.setEnabled( context.isHierarchyDataLoaded() );
+		button.addActionListener(
+			( e ) -> {
+				boolean pending = context.getMeasureComputeThread().isMeasurePending( task.identifier );
+				updateTaskButton( button, !pending );
 
-		if ( context.getMeasureComputeThread().isMeasurePending( task.identifier ) ) {
-			button.setEnabled( false );
-			button.setText( "Calculating..." );
-		}
-		else {
-			button.setText( "Calculate" );
-			button.addActionListener(
-				( e ) -> {
-					button.setEnabled( false );
-					button.setText( "Calculating..." );
-
+				if ( pending ) {
+					context.getMeasureComputeThread().removeTask( task );
+				}
+				else {
 					context.getMeasureComputeThread().postTask( task );
 				}
-			);
-		}
+			}
+		);
+		updateTaskButton( button, false );
 
 		cMeasure.add( button, BorderLayout.NORTH );
 		measurePanelMap.put( task.identifier, cMeasure );
 
 		return cMeasure;
+	}
+
+	private void updateTaskButton( JButton button, boolean pending )
+	{
+		button.setEnabled( context.isHierarchyDataLoaded() );
+		button.setText( pending ? "Abort" : "Calculate" );
 	}
 
 	/**
@@ -298,6 +304,9 @@ public class HierarchyStatisticsFrame extends JFrame
 		else if ( result instanceof Double ) {
 			return new JLabel( result.toString() );
 		}
+		else if ( result instanceof String ) {
+			return new JLabel( result.toString() );
+		}
 		else {
 			throw new IllegalArgumentException(
 				String.format(
@@ -316,6 +325,28 @@ public class HierarchyStatisticsFrame extends JFrame
 		panel.add( createMeasureContent( result.getValue() ), BorderLayout.NORTH );
 		panel.revalidate();
 		panel.repaint();
+	}
+
+	private void onMeasureComputing( String measureName )
+	{
+		SwingUtilities.invokeLater(
+			() -> {
+				if ( measurePanelMap.containsKey( measureName ) ) {
+					JPanel panel = measurePanelMap.get( measureName );
+					JButton button = (JButton)panel.getComponent( 0 );
+					button.setEnabled( false );
+					button.setText( "Calculating..." );
+				}
+				else {
+					throw new IllegalArgumentException(
+						String.format(
+							"Implementation error: %s does not have UI component for measure '%s'.",
+							this.getClass().getSimpleName(), measureName
+						)
+					);
+				}
+			}
+		);
 	}
 
 	private void onMeasureComputed( Pair<String, Object> result )
