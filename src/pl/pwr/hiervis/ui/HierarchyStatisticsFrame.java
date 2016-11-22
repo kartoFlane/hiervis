@@ -22,6 +22,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -198,11 +199,29 @@ public class HierarchyStatisticsFrame extends JFrame
 	private void createMesurePanels()
 	{
 		addMeasurePanels(
-			createPendingMeasurePanel( MeasureTask.averagePathLength ),
-			createPendingMeasurePanel( MeasureTask.height ),
-			createPendingMeasurePanel( MeasureTask.numberOfLeaves ),
+			createSeparatorPanel( "Statistics" ),
 			createPendingMeasurePanel( MeasureTask.numberOfNodes ),
-			createPendingMeasurePanel( MeasureTask.childrenPerNodePerLevel )
+			createPendingMeasurePanel( MeasureTask.numberOfLeaves ),
+			createPendingMeasurePanel( MeasureTask.height ),
+			createPendingMeasurePanel( MeasureTask.averagePathLength ),
+
+			createSeparatorPanel( "Internal" ),
+			createPendingMeasurePanel( MeasureTask.varianceDeviation ),
+			createPendingMeasurePanel( MeasureTask.varianceDeviation2 ),
+			createPendingMeasurePanel( MeasureTask.flatWithinBetween ),
+			createPendingMeasurePanel( MeasureTask.flatDunn1 ),
+			createPendingMeasurePanel( MeasureTask.flatDunn2 ),
+			createPendingMeasurePanel( MeasureTask.flatDunn3 ),
+			createPendingMeasurePanel( MeasureTask.flatDunn4 ),
+			createPendingMeasurePanel( MeasureTask.flatDaviesBouldin ),
+			createPendingMeasurePanel( MeasureTask.flatCalinskiHarabasz ),
+
+			createSeparatorPanel( "Histograms" ),
+			createPendingMeasurePanel( MeasureTask.nodesPerLevel ),
+			createPendingMeasurePanel( MeasureTask.leavesPerLevel ),
+			createPendingMeasurePanel( MeasureTask.instancesPerLevel ),
+			createPendingMeasurePanel( MeasureTask.childrenPerNodePerLevel ),
+			createPendingMeasurePanel( MeasureTask.numberOfChildren )
 		);
 	}
 
@@ -232,6 +251,44 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		cMeasures.revalidate();
 		cMeasures.repaint();
+	}
+
+	private JPanel createSeparatorPanel( String title )
+	{
+		JPanel cSeparator = new JPanel();
+
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWidths = new int[] { 0, 0, 0, 0 };
+		layout.rowHeights = new int[] { 0, 0 };
+		layout.columnWeights = new double[] { 1.0, 0.0, 1.0, Double.MIN_VALUE };
+		layout.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+		cSeparator.setLayout( layout );
+
+		JSeparator sepLeft = new JSeparator();
+		GridBagConstraints constraintsSepLeft = new GridBagConstraints();
+		constraintsSepLeft.insets = new Insets( 0, 5, 5, 5 );
+		constraintsSepLeft.fill = GridBagConstraints.HORIZONTAL;
+		constraintsSepLeft.gridx = 0;
+		constraintsSepLeft.gridy = 0;
+		cSeparator.add( sepLeft, constraintsSepLeft );
+
+		JLabel lblNewLabel = new JLabel( title );
+		GridBagConstraints constraintsLabel = new GridBagConstraints();
+		constraintsLabel.insets = new Insets( 0, 0, 5, 0 );
+		constraintsLabel.fill = GridBagConstraints.VERTICAL;
+		constraintsLabel.gridx = 1;
+		constraintsLabel.gridy = 0;
+		cSeparator.add( lblNewLabel, constraintsLabel );
+
+		JSeparator sepRight = new JSeparator();
+		GridBagConstraints constraintsSepRight = new GridBagConstraints();
+		constraintsSepRight.insets = new Insets( 0, 5, 5, 5 );
+		constraintsSepRight.fill = GridBagConstraints.HORIZONTAL;
+		constraintsSepRight.gridx = 2;
+		constraintsSepRight.gridy = 0;
+		cSeparator.add( sepRight, constraintsSepRight );
+
+		return cSeparator;
 	}
 
 	private JPanel createPendingMeasurePanel( MeasureTask task )
