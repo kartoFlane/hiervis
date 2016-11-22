@@ -9,6 +9,7 @@ import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -16,16 +17,19 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -165,6 +169,25 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		JMenu mnOptions = new JMenu( "Options" );
 		menuBar.add( mnOptions );
+
+		JMenuItem mntmDump = new JMenuItem( "Dump Measures" );
+		mnOptions.add( mntmDump );
+
+		mntmDump.addActionListener(
+			( e ) -> {
+				JFileChooser fileDialog = new JFileChooser();
+				fileDialog.setCurrentDirectory( new File( "." ) );
+				fileDialog.setDialogTitle( "Choose a file" );
+				fileDialog.setFileSelectionMode( JFileChooser.FILES_ONLY );
+				fileDialog.setAcceptAllFileFilterUsed( false );
+				fileDialog.setFileFilter( new FileNameExtensionFilter( "*.csv", "csv" ) );
+				fileDialog.setSelectedFile( new File( "dump.csv" ) );
+
+				if ( fileDialog.showSaveDialog( this ) == JFileChooser.APPROVE_OPTION ) {
+					context.dumpMeasures( fileDialog.getSelectedFile().getAbsolutePath() );
+				}
+			}
+		);
 
 		JCheckBoxMenuItem mntmAlwaysOnTop = new JCheckBoxMenuItem( "Always On Top" );
 		mnOptions.add( mntmAlwaysOnTop );
