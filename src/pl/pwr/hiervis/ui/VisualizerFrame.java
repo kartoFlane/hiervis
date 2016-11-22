@@ -2,7 +2,6 @@ package pl.pwr.hiervis.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FileDialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -19,12 +18,14 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -236,30 +237,24 @@ public class VisualizerFrame extends JFrame
 	}
 
 	/**
-	 * Opens a file selection dialog, alowing the user to select a hierarchy file to load.
+	 * Opens a file selection dialog, allowing the user to select a hierarchy file to load.
 	 */
 	private void openFileSelectionDialog()
 	{
-		log.trace( "Creating FileDialog instance..." );
-		FileDialog fileDialog = new FileDialog( this, "Choose a file", FileDialog.LOAD );
-		log.trace( "Setting selected path..." );
-		fileDialog.setDirectory( new File( "." ).getAbsolutePath() );
+		log.trace( "Creating FileChooser instance..." );
 
-		// NOTE: In order to cover all three major platforms (Windows/Linux/Mac),
-		// we need to set *both* filename filter (which works on Linux and Mac, but
-		// not on Windows), as well as file name (which works on Windows, but not on
-		// Linux and Mac...)
-		fileDialog.setFilenameFilter( ( dir, name ) -> name.endsWith( ".csv" ) );
-		fileDialog.setFile( "*.csv" );
+		JFileChooser fileDialog = new JFileChooser();
+		fileDialog.setCurrentDirectory( new File( "." ) );
+		fileDialog.setDialogTitle( "Choose a file" );
+		fileDialog.setFileSelectionMode( JFileChooser.FILES_ONLY );
+		fileDialog.setAcceptAllFileFilterUsed( false );
+		fileDialog.setFileFilter( new FileNameExtensionFilter( "*.csv", "csv" ) );
 
-		log.trace( "Making the file dialog visible..." );
-		fileDialog.setVisible( true ); // Blocks until the dialog is dismissed.
-		log.trace( "Dialog dismissed." );
-
-		String filename = fileDialog.getFile();
-		if ( filename != null ) {
+		log.trace( "Showing file selection dialog..." );
+		if ( fileDialog.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) {
+			File file = fileDialog.getSelectedFile();
 			try {
-				log.trace( String.format( "Selected file: '%s'", filename ) );
+				log.trace( String.format( "Selected file: '%s'", file ) );
 
 				log.trace( "Creating and showing options dialog..." );
 				FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
@@ -274,7 +269,7 @@ public class VisualizerFrame extends JFrame
 					instanceDisplay.setEnabled( true );
 
 					log.trace( "Loading the file as hierarchy..." );
-					Path path = Paths.get( fileDialog.getDirectory(), filename );
+					Path path = Paths.get( file.getAbsolutePath() );
 
 					Hierarchy hierarchy = new GeneratedCSVReader().load(
 						path.toString(),
@@ -304,7 +299,7 @@ public class VisualizerFrame extends JFrame
 				}
 			}
 			catch ( IOException e ) {
-				log.error( "Error while loading hierarchy file: " + filename, e );
+				log.error( "Error while loading hierarchy file: " + file.getName(), e );
 			}
 		}
 		else {
