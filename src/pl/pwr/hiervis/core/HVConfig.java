@@ -84,6 +84,8 @@ public class HVConfig
 	@SerializableField
 	private boolean skipVisualisations;
 	@SerializableField
+	private boolean useSubtree;
+	@SerializableField
 	private String preferredLookAndFeel;
 
 
@@ -111,6 +113,7 @@ public class HVConfig
 		trueClassAttribute = false;
 		instanceNameAttribute = false;
 		skipVisualisations = false;
+		useSubtree = true;
 		preferredLookAndFeel = "";
 	}
 
@@ -603,6 +606,16 @@ public class HVConfig
 	public boolean hasSkipVisualisations()
 	{
 		return this.skipVisualisations;
+	}
+
+	public void setUseSubtree( boolean useSubtree )
+	{
+		this.useSubtree = useSubtree;
+	}
+
+	public boolean isUseSubtree()
+	{
+		return this.useSubtree;
 	}
 
 	public void setPreferredLookAndFeel( String lookAndFeel )
