@@ -66,7 +66,7 @@ public class MeasureComputeThread extends Thread
 			if ( tasks.isEmpty() ) {
 				try {
 					// Nothing to do -- keep the thread alive, polling the queue for new tasks once every second.
-					Thread.sleep( 1000 );
+					Thread.sleep( 100 );
 				}
 				catch ( InterruptedException e ) {
 				}
@@ -107,6 +107,8 @@ public class MeasureComputeThread extends Thread
 	}
 
 	/**
+	 * Checks whether the measure with the specified name is scheduled for processing, or
+	 * currently being processed.
 	 * 
 	 * @param measureName
 	 *            identifier of the measure
@@ -162,6 +164,32 @@ public class MeasureComputeThread extends Thread
 		}
 
 		taskPosted.broadcast( task );
+	}
+
+	/**
+	 * Removes the task from processing queue, if it is not already being processed.
+	 * 
+	 * @param task
+	 *            the task to remove.
+	 * @return true if the task was found and removed, false otherwise.
+	 */
+	public boolean removeTask( MeasureTask task )
+	{
+		if ( task == null ) {
+			throw new IllegalArgumentException( "Task must not be null!" );
+		}
+
+		boolean result = false;
+
+		lock.lock();
+		try {
+			result = tasks.remove( task );
+		}
+		finally {
+			lock.unlock();
+		}
+
+		return result;
 	}
 
 	/**
