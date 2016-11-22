@@ -22,6 +22,8 @@ public class MeasureComputeThread extends Thread
 {
 	private static final Logger log = LogManager.getLogger( MeasureComputeThread.class );
 
+	/** Sent when a measure task is posted for processing. */
+	public final Event<MeasureTask> taskPosted = new Event<>();
 	/** Sent when a measure computation is started. */
 	public final Event<String> measureComputing = new Event<>();
 	/** Sent when a measure computation is finished. */
@@ -159,6 +161,7 @@ public class MeasureComputeThread extends Thread
 			lock.unlock();
 		}
 
+		taskPosted.broadcast( task );
 	}
 
 	/**
@@ -184,6 +187,7 @@ public class MeasureComputeThread extends Thread
 		interrupt();
 		clearPendingTasks();
 
+		taskPosted.clearListeners();
 		measureComputing.clearListeners();
 		measureComputed.clearListeners();
 	}
