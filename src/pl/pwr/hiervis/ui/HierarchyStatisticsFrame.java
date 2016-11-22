@@ -10,7 +10,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.function.Function;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -29,13 +28,9 @@ import javax.swing.border.TitledBorder;
 import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.interfaces.Hierarchy;
-import internal_measures.statistics.AvgPathLength;
 import internal_measures.statistics.AvgWithStdev;
-import internal_measures.statistics.Height;
-import internal_measures.statistics.NumberOfLeaves;
-import internal_measures.statistics.NumberOfNodes;
-import internal_measures.statistics.histogram.ChildPerNodePerLevel;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.MeasureTask;
 
 
 /*
@@ -201,11 +196,11 @@ public class HierarchyStatisticsFrame extends JFrame
 	private void createMesurePanels()
 	{
 		addMeasurePanels(
-			createPendingMeasurePanel( "Average Path Length", new AvgPathLength()::calculate ),
-			createPendingMeasurePanel( "Height", new Height()::calculate ),
-			createPendingMeasurePanel( "Number of Leaves", new NumberOfLeaves()::calculate ),
-			createPendingMeasurePanel( "Number of Nodes", new NumberOfNodes()::calculate ),
-			createPendingMeasurePanel( "Child Per Node Per Level", new ChildPerNodePerLevel()::calculate )
+			createPendingMeasurePanel( MeasureTask.averagePathLength ),
+			createPendingMeasurePanel( MeasureTask.height ),
+			createPendingMeasurePanel( MeasureTask.numberOfLeaves ),
+			createPendingMeasurePanel( MeasureTask.numberOfNodes ),
+			createPendingMeasurePanel( MeasureTask.childrenPerNodePerLevel )
 		);
 	}
 
@@ -236,16 +231,16 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasures.repaint();
 	}
 
-	private JPanel createPendingMeasurePanel( String measureName, Function<Hierarchy, Object> measureFunction )
+	private JPanel createPendingMeasurePanel( MeasureTask task )
 	{
 		JPanel cMeasure = new JPanel();
-		cMeasure.setBorder( new TitledBorder( null, measureName, TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
+		cMeasure.setBorder( new TitledBorder( null, task.identifier, TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
 
 		JButton button = new JButton();
 		button.setEnabled( context.isHierarchyDataLoaded() );
 
-		if ( context.getMeasureComputeThread().isMeasurePending( measureName ) ) {
+		if ( context.getMeasureComputeThread().isMeasurePending( task.identifier ) ) {
 			button.setEnabled( false );
 			button.setText( "Calculating..." );
 		}
@@ -256,13 +251,13 @@ public class HierarchyStatisticsFrame extends JFrame
 					button.setEnabled( false );
 					button.setText( "Calculating..." );
 
-					context.getMeasureComputeThread().postTask( measureName, measureFunction );
+					context.getMeasureComputeThread().postTask( task );
 				}
 			);
 		}
 
 		cMeasure.add( button, BorderLayout.NORTH );
-		measurePanelMap.put( measureName, cMeasure );
+		measurePanelMap.put( task.identifier, cMeasure );
 
 		return cMeasure;
 	}

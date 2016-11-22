@@ -14,10 +14,6 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Group;
 import basic_hierarchy.interfaces.Hierarchy;
-import internal_measures.statistics.AvgPathLength;
-import internal_measures.statistics.Height;
-import internal_measures.statistics.NumberOfLeaves;
-import internal_measures.statistics.NumberOfNodes;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import pl.pwr.hiervis.visualisation.TreeLayoutData;
@@ -252,10 +248,10 @@ public class HVContext
 
 		measureMap.clear();
 
-		computeThread.postTask( "Average Path Length", new AvgPathLength()::calculate );
-		computeThread.postTask( "Height", new Height()::calculate );
-		computeThread.postTask( "Number of Leaves", new NumberOfLeaves()::calculate );
-		computeThread.postTask( "Number of Nodes", new NumberOfNodes()::calculate );
+		computeThread.postTask( MeasureTask.averagePathLength );
+		computeThread.postTask( MeasureTask.height );
+		computeThread.postTask( MeasureTask.numberOfLeaves );
+		computeThread.postTask( MeasureTask.numberOfNodes );
 	}
 
 	private void onMeasureComputed( Pair<String, Object> result )

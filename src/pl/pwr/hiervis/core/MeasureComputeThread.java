@@ -3,7 +3,6 @@ package pl.pwr.hiervis.core;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -29,8 +28,8 @@ public class MeasureComputeThread extends Thread
 	public final Event<Pair<String, Object>> measureComputed = new Event<>();
 
 	private final ReentrantLock lock = new ReentrantLock();
-	private Queue<Pair<String, Function<Hierarchy, Object>>> tasks = new LinkedList<>();
-	private Pair<String, Function<Hierarchy, Object>> currentTask = null;
+	private Queue<MeasureTask> tasks = new LinkedList<>();
+	private MeasureTask currentTask = null;
 	private Hierarchy hierarchy;
 
 
@@ -84,17 +83,14 @@ public class MeasureComputeThread extends Thread
 					lock.unlock();
 				}
 
-				String id = currentTask.getKey();
-				Function<Hierarchy, Object> computation = currentTask.getValue();
-
-				log.trace( String.format( "Computing measure '%s'...", id ) );
-				measureComputing.broadcast( id );
+				log.trace( String.format( "Computing measure '%s'...", currentTask.identifier ) );
+				measureComputing.broadcast( currentTask.identifier );
 				try {
-					Object result = computation.apply( hierarchy );
-					measureComputed.broadcast( Pair.of( id, result ) );
+					Object result = currentTask.function.apply( hierarchy );
+					measureComputed.broadcast( Pair.of( currentTask.identifier, result ) );
 				}
 				catch ( Exception e ) {
-					log.error( String.format( "An error ocurred while computing measure '%s'.", id ), e );
+					log.error( String.format( "An error ocurred while computing measure '%s'.", currentTask.identifier ), e );
 				}
 			}
 			catch ( Exception e ) {
@@ -121,12 +117,12 @@ public class MeasureComputeThread extends Thread
 
 		lock.lock();
 		try {
-			if ( currentTask != null && currentTask.getKey().equals( measureName ) ) {
+			if ( currentTask != null && currentTask.identifier.equals( measureName ) ) {
 				result = true;
 			}
 			else {
-				for ( Pair<String, Function<Hierarchy, Object>> task : tasks ) {
-					if ( task.getKey().equals( measureName ) ) {
+				for ( MeasureTask task : tasks ) {
+					if ( task.identifier.equals( measureName ) ) {
 						result = true;
 						break;
 					}
@@ -141,10 +137,16 @@ public class MeasureComputeThread extends Thread
 	}
 
 	/**
-	 * {@link #postTask(String, Function)}
+	 * Posts a new task for the thread to process.
+	 * 
+	 * @param task
+	 *            the task to post
 	 */
-	public void postTask( Pair<String, Function<Hierarchy, Object>> task )
+	public void postTask( MeasureTask task )
 	{
+		if ( task == null ) {
+			throw new IllegalArgumentException( "Task must not be null!" );
+		}
 		if ( hierarchy == null ) {
 			throw new IllegalStateException( "No hierarchy has been set!" );
 		}
@@ -156,19 +158,7 @@ public class MeasureComputeThread extends Thread
 		finally {
 			lock.unlock();
 		}
-	}
 
-	/**
-	 * Posts a new task for the thread to process.
-	 * 
-	 * @param measureName
-	 *            name of the computed measure. This will be displayed in the interface for the user to see.
-	 * @param measureFunction
-	 *            function that will compute the measure
-	 */
-	public void postTask( String measureName, Function<Hierarchy, Object> measureFunction )
-	{
-		postTask( Pair.of( measureName, measureFunction ) );
 	}
 
 	/**
@@ -193,5 +183,8 @@ public class MeasureComputeThread extends Thread
 		log.trace( "Shutting down..." );
 		interrupt();
 		clearPendingTasks();
+
+		measureComputing.clearListeners();
+		measureComputed.clearListeners();
 	}
 }
