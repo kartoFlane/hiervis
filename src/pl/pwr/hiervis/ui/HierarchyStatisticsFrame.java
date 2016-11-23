@@ -379,7 +379,8 @@ public class HierarchyStatisticsFrame extends JFrame
 			return new JLabel( buf.toString() );
 		}
 		else if ( result instanceof AvgWithStdev ) {
-			return new JLabel( result.toString() );
+			AvgWithStdev avg = (AvgWithStdev)result;
+			return new JLabel( String.format( "%s ± %s", avg.getAvg(), avg.getStdev() ) );
 		}
 		else if ( result instanceof Double ) {
 			return new JLabel( result.toString() );
