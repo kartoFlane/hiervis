@@ -18,7 +18,7 @@ import prefuse.visual.VisualItem;
  * visualization with the left mouse button and then dragging.
  *
  * @author <a href="http://jheer.org">jeffrey heer</a>
- * @author Tomasz Bachmiñski - modified to add filtering by VisualItem class
+ * @author Tomasz BachmiÅ„ski - modified to add filtering by VisualItem class
  */
 public class PanControl extends ControlAdapter
 {

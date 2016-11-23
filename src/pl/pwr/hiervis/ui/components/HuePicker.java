@@ -18,7 +18,7 @@ import pl.pwr.hiervis.util.Utils;
 /**
  * A component which allows the user to select a color's hue.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class HuePicker extends JComponent

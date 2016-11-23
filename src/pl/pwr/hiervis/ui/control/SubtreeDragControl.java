@@ -21,7 +21,7 @@ import prefuse.visual.VisualItem;
  * item itself.
  *
  * @author <a href="http://jheer.org">jeffrey heer</a>
- * @author Tomasz Bachmiñski - modified to include customizable mouse button
+ * @author Tomasz BachmiÅ„ski - modified to include customizable mouse button
  */
 public class SubtreeDragControl extends ControlAdapter
 {

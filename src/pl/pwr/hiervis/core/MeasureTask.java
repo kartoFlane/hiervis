@@ -27,7 +27,7 @@ import internal_measures.statistics.histogram.NodesPerLevel;
 /**
  * A pair that associates a measure calculation function with a user-friendly unique identifier.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public final class MeasureTask

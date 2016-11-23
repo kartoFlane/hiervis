@@ -20,7 +20,7 @@ import javax.swing.RootPaneContainer;
  * This class contains methods that are used to show customizable dialogs
  * and UI prompts to the user.
  * 
- * @author kartoFlane
+ * @author Tomasz Bachmiński
  * 
  */
 @SuppressWarnings("serial")
@@ -103,7 +103,6 @@ public final class SwingUIUtils
 		final int condition,
 		final KeyStroke keyStroke )
 	{
-
 		installOperation( dialog, condition, keyStroke, AMK_IGNORE_OPERATION, ignoreAction );
 	}
 
@@ -130,7 +129,6 @@ public final class SwingUIUtils
 		final String actionKey,
 		Action action )
 	{
-
 		JRootPane root = frame.getRootPane();
 		root.getInputMap( condition ).put( keyStroke, actionKey );
 		root.getActionMap().put( actionKey, action );
@@ -146,7 +144,6 @@ public final class SwingUIUtils
 		final String actionKey,
 		final Runnable runnable )
 	{
-
 		Action result = new AbstractAction( actionKey ) {
 			public void actionPerformed( ActionEvent e )
 			{
@@ -176,7 +173,6 @@ public final class SwingUIUtils
 		final int condition,
 		final KeyStroke keyStroke )
 	{
-
 		JRootPane root = frame.getRootPane();
 
 		InputMap inputMap = root.getInputMap( condition );
@@ -214,7 +210,6 @@ public final class SwingUIUtils
 		final Object actionKey,
 		boolean selfOnly )
 	{
-
 		JRootPane root = frame.getRootPane();
 
 		if ( selfOnly ) {

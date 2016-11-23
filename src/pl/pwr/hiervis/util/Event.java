@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  * Theoretically this class should be thread-safe, but this has not been tested at all.
  * </p>
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  * @param <T>
  *            the argument taken by listeners of this event

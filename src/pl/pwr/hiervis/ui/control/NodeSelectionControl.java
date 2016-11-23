@@ -29,7 +29,7 @@ import prefuse.visual.VisualItem;
  * to their role in the family.
  * </p>
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class NodeSelectionControl extends ControlAdapter

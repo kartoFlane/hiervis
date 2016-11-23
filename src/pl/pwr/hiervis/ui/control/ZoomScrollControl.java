@@ -15,7 +15,7 @@ import prefuse.visual.VisualItem;
  * A prefuse control which allows the user to zoom a display in and out.
  * The zoom bounds, as well as zooming step, can be customized.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class ZoomScrollControl extends ControlAdapter

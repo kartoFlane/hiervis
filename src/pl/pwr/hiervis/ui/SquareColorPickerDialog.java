@@ -38,9 +38,9 @@ import pl.pwr.hiervis.util.Utils;
 
 /**
  * A dialog window for color selection.
- * Because the defualt Swing component for color selection is ugly as sin.
+ * Because the default Swing component for color selection is ugly as sin.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class SquareColorPickerDialog extends JDialog

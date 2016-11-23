@@ -7,7 +7,7 @@ import prefuse.data.Tree;
 /**
  * A simple class containing data and logic used to compute the layout of a tree.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class TreeLayoutData

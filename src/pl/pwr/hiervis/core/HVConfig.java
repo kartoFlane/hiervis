@@ -31,7 +31,7 @@ import pl.pwr.hiervis.util.CmdLineParser;
  * Class storing the configuration of the visualizer at runtime
  * for easy access.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class HVConfig
@@ -668,7 +668,7 @@ public class HVConfig
 	 * Marker annotation used to distinguish fields that are meant to be
 	 * serialized into the config file.
 	 * 
-	 * @author Tomasz Bachmiñski
+	 * @author Tomasz BachmiÅ„ski
 	 *
 	 */
 	@Retention(RetentionPolicy.RUNTIME)

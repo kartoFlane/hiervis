@@ -30,7 +30,7 @@ import prefuse.data.Tree;
  * A way to pass various application data around, without having to rely on
  * statically-accessible variables and states, or the singleton pattern.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class HVContext

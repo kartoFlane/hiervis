@@ -15,7 +15,7 @@ import pl.pwr.hiervis.util.Event;
 /**
  * Thread used to perform calculations of hierarchy measures.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class MeasureComputeThread extends Thread

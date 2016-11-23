@@ -6,7 +6,7 @@ import java.awt.Color;
 /**
  * A container class used to represent colors using the HSV color model.
  * 
- * @author Tomasz Bachmiñski
+ * @author Tomasz BachmiÅ„ski
  *
  */
 public class HSV
