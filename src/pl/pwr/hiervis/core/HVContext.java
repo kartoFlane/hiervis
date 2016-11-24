@@ -324,7 +324,7 @@ public class HVContext
 					buf2.append( i ).append( ';' );
 				buf2.append( '\n' );
 				for ( int i = 0; i < data.length; ++i )
-					buf2.append( i ).append( ';' );
+					buf2.append( data[i] ).append( ';' );
 				buf2.append( '\n' );
 				for ( int i = 0; i < data.length; ++i )
 					buf2.append( "0.0;" );
