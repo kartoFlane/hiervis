@@ -61,6 +61,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private WindowListener ownerListener;
 	private HashMap<String, JPanel> measurePanelMap = new HashMap<>();
+	private JMenuItem mntmDump;
 
 
 	public HierarchyStatisticsFrame( HVContext context, Window frame )
@@ -70,8 +71,8 @@ public class HierarchyStatisticsFrame extends JFrame
 		this.context = context;
 
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-		setMinimumSize( new Dimension( 300, 200 ) );
-		setSize( 300, 250 );
+		setMinimumSize( new Dimension( 370, 200 ) );
+		setSize( 370, 350 );
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -170,7 +171,8 @@ public class HierarchyStatisticsFrame extends JFrame
 		JMenu mnOptions = new JMenu( "Options" );
 		menuBar.add( mnOptions );
 
-		JMenuItem mntmDump = new JMenuItem( "Dump Measures" );
+		mntmDump = new JMenuItem( "Dump Measures" );
+		mntmDump.setEnabled( false );
 		mnOptions.add( mntmDump );
 
 		mntmDump.addActionListener(
@@ -450,6 +452,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private void onHierarchyChanged( Hierarchy newHierarchy )
 	{
+		mntmDump.setEnabled( newHierarchy != null );
 		createMesurePanels();
 	}
 }
