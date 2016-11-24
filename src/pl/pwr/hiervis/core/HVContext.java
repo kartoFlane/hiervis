@@ -16,7 +16,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.util.Event;
@@ -198,7 +198,7 @@ public class HVContext
 		return HierarchyProcessor.createTreeVisualization( this );
 	}
 
-	public Visualization createInstanceVisualization( Group group )
+	public Visualization createInstanceVisualization( Node group )
 	{
 		return HierarchyProcessor.createInstanceVisualization( this, group );
 	}
@@ -210,17 +210,17 @@ public class HVContext
 	 *            the row in the data table at which the group is located.
 	 * @return the group at the specified row, or null if not found.
 	 */
-	public Group findGroup( int row )
+	public Node findGroup( int row )
 	{
 		Hierarchy h = getHierarchy();
-		Group group = h.getRoot();
+		Node group = h.getRoot();
 
 		if ( row == 0 ) {
 			return group;
 		}
 
-		Queue<Group> stack = new LinkedList<>();
-		for ( Group child : group.getChildren() ) {
+		Queue<Node> stack = new LinkedList<>();
+		for ( Node child : group.getChildren() ) {
 			stack.add( child );
 		}
 
@@ -233,7 +233,7 @@ public class HVContext
 				return group;
 			}
 
-			for ( Group child : group.getChildren() ) {
+			for ( Node child : group.getChildren() ) {
 				stack.add( child );
 			}
 		}

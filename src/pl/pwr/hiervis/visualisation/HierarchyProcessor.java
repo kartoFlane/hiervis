@@ -13,7 +13,7 @@ import java.util.Queue;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Instance;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
@@ -27,7 +27,6 @@ import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
 import prefuse.action.layout.AxisLayout;
 import prefuse.action.layout.graph.NodeLinkTreeLayout;
-import prefuse.data.Node;
 import prefuse.data.Table;
 import prefuse.data.Tree;
 import prefuse.data.query.NumberRangeModel;
@@ -40,13 +39,13 @@ import prefuse.visual.expression.VisiblePredicate;
 
 public class HierarchyProcessor
 {
-	public static Pair<Tree, TreeLayoutData> buildHierarchyTree( HVConfig config, Group sourceRoot )
+	public static Pair<Tree, TreeLayoutData> buildHierarchyTree( HVConfig config, Node sourceRoot )
 	{
 		Tree tree = new Tree();
 		tree.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
 		tree.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
 
-		Node treeRoot = tree.addRoot();
+		prefuse.data.Node treeRoot = tree.addRoot();
 		treeRoot.setString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, sourceRoot.getId() );
 		treeRoot.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 
@@ -58,17 +57,17 @@ public class HierarchyProcessor
 		HashMap<Integer, Integer> treeLevelToWidth = new HashMap<>();
 		treeLevelToWidth.put( 0, 1 );
 
-		Queue<Map.Entry<Node, Group>> treeParentToSourceChild = new LinkedList<>();
-		for ( Group sourceChild : sourceRoot.getChildren() ) {
-			treeParentToSourceChild.add( new AbstractMap.SimpleEntry<Node, Group>( treeRoot, sourceChild ) );
+		Queue<Map.Entry<prefuse.data.Node, Node>> treeParentToSourceChild = new LinkedList<>();
+		for ( Node sourceChild : sourceRoot.getChildren() ) {
+			treeParentToSourceChild.add( new AbstractMap.SimpleEntry<prefuse.data.Node, Node>( treeRoot, sourceChild ) );
 		}
 
 		while ( !treeParentToSourceChild.isEmpty() ) {
-			Entry<Node, Group> treeParentAndSourceChild = treeParentToSourceChild.remove();
-			Group sourceGroup = treeParentAndSourceChild.getValue();
+			Entry<prefuse.data.Node, Node> treeParentAndSourceChild = treeParentToSourceChild.remove();
+			Node sourceGroup = treeParentAndSourceChild.getValue();
 
 			// Create a new tree node based on the source group
-			Node newNode = tree.addChild( treeParentAndSourceChild.getKey() );
+			prefuse.data.Node newNode = tree.addChild( treeParentAndSourceChild.getKey() );
 			newNode.setString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, sourceGroup.getId() );
 			newNode.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 
@@ -86,8 +85,8 @@ public class HierarchyProcessor
 			}
 
 			// Enqueue this group's children for processing
-			for ( Group child : sourceGroup.getChildren() ) {
-				treeParentToSourceChild.add( new AbstractMap.SimpleEntry<Node, Group>( newNode, child ) );
+			for ( Node child : sourceGroup.getChildren() ) {
+				treeParentToSourceChild.add( new AbstractMap.SimpleEntry<prefuse.data.Node, Node>( newNode, child ) );
 			}
 		}
 
@@ -109,7 +108,7 @@ public class HierarchyProcessor
 			boolean found = false;
 
 			for ( int i = 0; i < hierarchyTree.getNodeCount(); ++i ) {
-				Node n = hierarchyTree.getNode( i );
+				prefuse.data.Node n = hierarchyTree.getNode( i );
 
 				// Reset node role to 'other'
 				n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
@@ -120,15 +119,15 @@ public class HierarchyProcessor
 					n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CURRENT.getNumber() );
 
 					// Color child groups
-					LinkedList<Node> stack = new LinkedList<>();
+					LinkedList<prefuse.data.Node> stack = new LinkedList<>();
 					stack.add( n );
 
 					while ( !stack.isEmpty() ) {
-						Node current = stack.removeFirst();
+						prefuse.data.Node current = stack.removeFirst();
 						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
 
-						for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
-							Node child = children.next();
+						for ( Iterator<prefuse.data.Node> children = current.children(); children.hasNext(); ) {
+							prefuse.data.Node child = children.next();
 							stack.add( child );
 						}
 					}
@@ -138,11 +137,11 @@ public class HierarchyProcessor
 
 						// IF the parent is empty, then we need to search up in the hierarchy because empty
 						// parents are skipped, but displayed on output images
-						Node directParent = n.getParent();
+						prefuse.data.Node directParent = n.getParent();
 						stack.add( directParent );
 
 						while ( !stack.isEmpty() ) {
-							Node current = stack.removeFirst();
+							prefuse.data.Node current = stack.removeFirst();
 							current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
 
 							if ( current.getParent() != null ) {
@@ -225,7 +224,7 @@ public class HierarchyProcessor
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	public static Visualization createInstanceVisualization( HVContext context, Group group )
+	public static Visualization createInstanceVisualization( HVContext context, Node group )
 	{
 		HVConfig config = context.getConfig();
 		int pointImageWidth = config.getInstanceWidth();
@@ -252,10 +251,10 @@ public class HierarchyProcessor
 		int dimX = 0;
 		int dimY = 1;
 
-		Group root = context.getHierarchy().getRoot();
+		Node root = context.getHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root, dimX, dimY );
 
-		for ( Instance i : group.getSubgroupInstances() ) {
+		for ( Instance i : group.getSubtreeInstances() ) {
 			double sourceX = i.getData()[dimX];
 			double sourceY = i.getData()[dimY];
 

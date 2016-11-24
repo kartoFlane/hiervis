@@ -31,7 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.HierarchyVisualizer;
@@ -50,7 +50,6 @@ import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.Control;
-import prefuse.data.Node;
 import prefuse.data.Tree;
 import prefuse.visual.NodeItem;
 
@@ -391,7 +390,7 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.damageReport();
 		hierarchyDisplay.repaint();
 
-		Group group = context.findGroup( context.getSelectedRow() );
+		Node group = context.findGroup( context.getSelectedRow() );
 		Visualization vis = context.createInstanceVisualization( group ); // 56ms
 
 		Utils.resetDisplayZoom( instanceDisplay );
@@ -412,7 +411,7 @@ public class VisualizerFrame extends JFrame
 
 		// Reset all nodes back to 'other'
 		for ( int i = 0; i < hierarchyTree.getNodeCount(); i++ ) {
-			Node n = hierarchyTree.getNode( i );
+			prefuse.data.Node n = hierarchyTree.getNode( i );
 			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 		}
 
@@ -423,17 +422,17 @@ public class VisualizerFrame extends JFrame
 
 		// Recategorize nodes based on the currently selected node
 		for ( int i = 0; i < hierarchyTree.getNodeCount() && !isFound; i++ ) {
-			Node n = hierarchyTree.getNode( i );
+			prefuse.data.Node n = hierarchyTree.getNode( i );
 			if ( n.getRow() == row ) {
 				isFound = true;
 				// colour child groups
-				LinkedList<Node> stack = new LinkedList<>();
+				LinkedList<prefuse.data.Node> stack = new LinkedList<>();
 				stack.add( n );
 				while ( !stack.isEmpty() ) {
-					Node current = stack.removeFirst();
+					prefuse.data.Node current = stack.removeFirst();
 					current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
-					for ( Iterator<Node> children = current.children(); children.hasNext(); ) {
-						Node child = children.next();
+					for ( Iterator<prefuse.data.Node> children = current.children(); children.hasNext(); ) {
+						prefuse.data.Node child = children.next();
 						stack.add( child );
 					}
 				}
@@ -442,10 +441,10 @@ public class VisualizerFrame extends JFrame
 					stack = new LinkedList<>();
 					// when the parent is empty, then we need to search up in the hierarchy because empty
 					// parents are skipped, but displayed on output images
-					Node directParent = n.getParent();
+					prefuse.data.Node directParent = n.getParent();
 					stack.add( directParent );
 					while ( !stack.isEmpty() ) {
-						Node current = stack.removeFirst();
+						prefuse.data.Node current = stack.removeFirst();
 						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
 						if ( current.getParent() != null ) {
 							stack.add( current.getParent() );

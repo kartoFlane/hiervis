@@ -11,7 +11,7 @@ import java.util.LinkedList;
 
 import javax.imageio.ImageIO;
 
-import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import pl.pwr.hiervis.core.ElementRole;
@@ -54,12 +54,12 @@ public class HierarchyImager
 
 		LinkedList<Instance> allPoints = null;
 		if ( config.isDisplayAllPoints() ) {
-			allPoints = input.getRoot().getSubgroupInstances();
+			allPoints = input.getRoot().getSubtreeInstances();
 		}
 
 		int imgCounter = 0;
-		for ( Group n : input.getGroups() ) {
-			if ( n.getInstances().size() > 0 ) {
+		for ( Node n : input.getGroups() ) {
+			if ( n.getNodeInstances().size() > 0 ) {
 				System.out.println( "==== " + n.getId() + " ====" );
 				System.out.println( "Point visualisation..." );
 				BufferedImage nodeImg = new BufferedImage( nodeImgFinalWidth, nodeImgFinalHeight, BufferedImage.TYPE_INT_ARGB );
@@ -80,7 +80,7 @@ public class HierarchyImager
 
 				System.out.println( "Prepare histogram data..." );
 				HistogramTable allDataHistogramTable = createAllDataHistogramTable(
-					input.getRoot().getSubgroupInstances(),
+					input.getRoot().getSubtreeInstances(),
 					config.getNumberOfHistogramBins()
 				);
 				HistogramGraph.setAllDataHistoTable( allDataHistogramTable );
@@ -188,7 +188,7 @@ public class HierarchyImager
 		);
 	}
 
-	private static BufferedImage createPointImage( HVContext context, Group node )
+	private static BufferedImage createPointImage( HVContext context, Node node )
 	{
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( node, 0, 1 );
 		int nodeImgFinalWidth = (int)( context.getConfig().getInstanceWidth() +
@@ -198,7 +198,7 @@ public class HierarchyImager
 
 		LinkedList<Instance> allPoints = null;
 		if ( context.getConfig().isDisplayAllPoints() ) {
-			allPoints = context.getHierarchy().getRoot().getSubgroupInstances();
+			allPoints = context.getHierarchy().getRoot().getSubtreeInstances();
 		}
 
 		BufferedImage nodeImg = new BufferedImage( nodeImgFinalWidth, nodeImgFinalHeight, BufferedImage.TYPE_INT_ARGB );
@@ -331,18 +331,18 @@ public class HierarchyImager
 
 	private static void drawParentAncestorsPoints(
 		Graphics2D imgContent,
-		Group parent,
+		Node parent,
 		Color parentAncestorsColor,
 		double pointScallingFactor,
 		int imageWidth, int imageHeight,
 		Rectangle2D bounds )
 	{
 
-		Group n = parent;
+		Node n = parent;
 		while ( n.getParent() != null ) {
 			drawPoints(
 				imgContent,
-				n.getParent().getInstances(),
+				n.getParent().getNodeInstances(),
 				parentAncestorsColor,
 				pointScallingFactor,
 				imageWidth, imageHeight,
@@ -354,7 +354,7 @@ public class HierarchyImager
 
 	private static BufferedImage fillImage(
 		BufferedImage nodeImg,
-		Group node,
+		Node node,
 		HVConfig config,
 		Rectangle2D bounds,
 		LinkedList<Instance> allPoints )
@@ -385,7 +385,7 @@ public class HierarchyImager
 
 					drawPoints(
 						imgContent,
-						node.getParent().getInstances(),
+						node.getParent().getNodeInstances(),
 						config.getParentGroupColor(),
 						config.getPointScallingFactor(),
 						config.getInstanceWidth(), config.getInstanceHeight(),
@@ -396,7 +396,7 @@ public class HierarchyImager
 
 			drawPoints(
 				imgContent,
-				node.getSubgroupInstances(),
+				node.getSubtreeInstances(),
 				config.getChildGroupColor(),
 				config.getPointScallingFactor(),
 				config.getInstanceWidth(), config.getInstanceHeight(),
@@ -404,7 +404,7 @@ public class HierarchyImager
 			);
 			drawPoints(
 				imgContent,
-				node.getInstances(),
+				node.getNodeInstances(),
 				config.getCurrentGroupColor(),
 				config.getPointScallingFactor(),
 				config.getInstanceWidth(), config.getInstanceHeight(),
@@ -434,14 +434,14 @@ public class HierarchyImager
 	}
 
 	private static HistogramTable prepareHistogramTableUsingAllDataBins(
-		Group node,
+		Node node,
 		HistogramTable allDataHistogramTable,
 		int roleNum )
 	{
 		Table histogramData = new Table();
 		histogramData.addColumn( "x", double.class );
 		histogramData.addColumn( "y", double.class );
-		for ( Instance i : node.getInstances() ) {
+		for ( Instance i : node.getNodeInstances() ) {
 			int newRowNum = histogramData.addRow();
 			histogramData.set( newRowNum, "x", i.getData()[0] );
 			histogramData.set( newRowNum, "y", i.getData()[1] );

@@ -8,7 +8,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
-import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Instance;
 import prefuse.Display;
 import prefuse.activity.ActivityManager;
@@ -108,14 +108,14 @@ public class Utils
 	 *            index of the data dimension imaged on the Y axis
 	 * @return the smallest bounding rectangle
 	 */
-	public static Rectangle2D calculateBoundingRectForCluster( Group group, int dimX, int dimY )
+	public static Rectangle2D calculateBoundingRectForCluster( Node group, int dimX, int dimY )
 	{
 		double minX = Double.MAX_VALUE;
 		double minY = Double.MAX_VALUE;
 		double maxX = Double.MIN_VALUE;
 		double maxY = Double.MIN_VALUE;
 
-		for ( Instance i : group.getSubgroupInstances() ) {
+		for ( Instance i : group.getSubtreeInstances() ) {
 			double x = i.getData()[dimX];
 			double y = i.getData()[dimY];
 

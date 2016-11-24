@@ -13,7 +13,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-import basic_hierarchy.interfaces.Group;
+import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Hierarchy;
 
 
@@ -89,19 +89,19 @@ public class HierarchyStatistics
 		pathLength = new LinkedList<>();
 
 
-		Stack<AbstractMap.SimpleEntry<Group, Integer>> s = new Stack<>();// node and lvl number
-		s.push( new AbstractMap.SimpleEntry<Group, Integer>( h.getRoot(), 0 ) );
+		Stack<AbstractMap.SimpleEntry<Node, Integer>> s = new Stack<>();// node and lvl number
+		s.push( new AbstractMap.SimpleEntry<Node, Integer>( h.getRoot(), 0 ) );
 
 		while ( !s.isEmpty() ) {
-			AbstractMap.SimpleEntry<Group, Integer> curr = s.pop();
-			Group currentNode = curr.getKey();
+			AbstractMap.SimpleEntry<Node, Integer> curr = s.pop();
+			Node currentNode = curr.getKey();
 			int height = curr.getValue();
 
-			for ( Group ch : currentNode.getChildren() ) {
-				s.push( new AbstractMap.SimpleEntry<Group, Integer>( ch, curr.getValue() + 1 ) );
+			for ( Node ch : currentNode.getChildren() ) {
+				s.push( new AbstractMap.SimpleEntry<Node, Integer>( ch, curr.getValue() + 1 ) );
 			}
 
-			numberOfInstancesPerNode.add( (double)currentNode.getInstances().size() );
+			numberOfInstancesPerNode.add( (double)currentNode.getNodeInstances().size() );
 
 			numberOfChildPerNode.add( (double)currentNode.getChildren().size() );
 
@@ -119,8 +119,8 @@ public class HierarchyStatistics
 			}
 
 			hierarchyWidthOnEachHeight[height] += 1;
-			eachLevelNumberOfInstances[height] += currentNode.getInstances().size();
-			overallNumberOfInstances += currentNode.getInstances().size();
+			eachLevelNumberOfInstances[height] += currentNode.getNodeInstances().size();
+			overallNumberOfInstances += currentNode.getNodeInstances().size();
 
 			Integer numOfChildren = currentNode.getChildren().size();
 			nodeHeightWithItsChildrenCount.add( new AbstractMap.SimpleEntry<Integer, Integer>( height, numOfChildren ) );
@@ -202,13 +202,13 @@ public class HierarchyStatistics
 	{
 		nodesEstimatedParameters = new LinkedList<GroupWithEmpiricalParameters>();
 
-		LinkedList<Group> s = new LinkedList<>();
+		LinkedList<Node> s = new LinkedList<>();
 		s.add( h.getRoot() );
 
 		while ( !s.isEmpty() ) {
-			Group curr = s.removeLast();
+			Node curr = s.removeLast();
 			for ( int i = curr.getChildren().size() - 1; i >= 0; --i ) {
-				Group ch = curr.getChildren().get( i );
+				Node ch = curr.getChildren().get( i );
 				s.add( ch );
 			}
 
@@ -526,14 +526,14 @@ public class HierarchyStatistics
 	private int getHierarchyHeight( Hierarchy h )
 	{
 		int height = 0;
-		Group root = h.getRoot();
-		Stack<AbstractMap.SimpleEntry<Group, Integer>> s = new Stack<>(); // Node and its height
-		s.push( new AbstractMap.SimpleEntry<Group, Integer>( root, 0 ) );
+		Node root = h.getRoot();
+		Stack<AbstractMap.SimpleEntry<Node, Integer>> s = new Stack<>(); // Node and its height
+		s.push( new AbstractMap.SimpleEntry<Node, Integer>( root, 0 ) );
 
 		while ( !s.isEmpty() ) {
-			AbstractMap.SimpleEntry<Group, Integer> curr = s.pop();
-			for ( Group ch : curr.getKey().getChildren() ) {
-				s.push( new AbstractMap.SimpleEntry<Group, Integer>( ch, curr.getValue() + 1 ) );
+			AbstractMap.SimpleEntry<Node, Integer> curr = s.pop();
+			for ( Node ch : curr.getKey().getChildren() ) {
+				s.push( new AbstractMap.SimpleEntry<Node, Integer>( ch, curr.getValue() + 1 ) );
 			}
 
 			height = Math.max( height, curr.getValue() );
