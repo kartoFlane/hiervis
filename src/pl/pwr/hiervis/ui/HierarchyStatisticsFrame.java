@@ -172,7 +172,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		menuBar.add( mnOptions );
 
 		mntmDump = new JMenuItem( "Dump Measures" );
-		mntmDump.setEnabled( false );
+		mntmDump.setEnabled( context.isHierarchyDataLoaded() );
 		mnOptions.add( mntmDump );
 
 		mntmDump.addActionListener(
