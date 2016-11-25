@@ -46,7 +46,7 @@ fi
 # Finally, the payload.
 cd "${maindir}";
 # - - -
-java -jar hv.jar;
+java -Dsun.awt.disablegrab=true -jar hv.jar;
 # - - -
 
 if [ "${ingui}" = "1" ]; then

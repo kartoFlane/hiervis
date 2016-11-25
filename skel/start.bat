@@ -1,3 +1,3 @@
 @echo off
-java -jar hv.jar
+java -Dsun.awt.disablegrab=true -jar hv.jar
 exit
