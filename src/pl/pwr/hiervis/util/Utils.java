@@ -7,6 +7,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Array;
 
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
@@ -178,5 +179,20 @@ public class Utils
 	public static double clamp( double min, double value, double max )
 	{
 		return Math.min( max, Math.max( min, value ) );
+	}
+
+	/**
+	 * Creates a generic array of the specified type and size.
+	 * 
+	 * @param clazz
+	 *            type of the array
+	 * @param size
+	 *            size of the array
+	 * @return the generic array
+	 */
+	@SuppressWarnings("unchecked")
+	public <E> E[] createArray( Class<E> clazz, int size )
+	{
+		return (E[])Array.newInstance( clazz, size );
 	}
 }

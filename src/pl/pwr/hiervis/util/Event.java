@@ -12,10 +12,16 @@ import java.util.function.Consumer;
  * <p>
  * One grave shortcoming of this class is that the {@link #broadcast(Object)} method is public,
  * therefore anyone can invoke the handler and broadcast events to listeners.
- * This makes this class unusable for anything other than private projects.
+ * This lack of fine access control makes this class unusable for anything other than private projects.
  * </p>
  * <p>
  * Theoretically this class should be thread-safe, but this has not been tested at all.
+ * </p>
+ * <p>
+ * An important thing to note when using this class with threads: listeners have their handler
+ * methods executed on the thread that invoked the {@link #broadcast(Object)} method.
+ * Consider using a lock, or executing the handler code inside of a {@code synchronized} block,
+ * to avoid potential threading issues.
  * </p>
  * 
  * @author Tomasz Bachmiński
