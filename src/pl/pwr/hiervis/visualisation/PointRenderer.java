@@ -32,7 +32,7 @@ public class PointRenderer extends AbstractShapeRenderer
 		this.stringRenderer = new StringRenderer();
 		this.stringRenderer.setHorizontalAlignment( Constants.LEFT );
 		this.stringRenderer.setVerticalAlignment( Constants.BOTTOM );
-		this.stringRenderer.setTextField( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME );
+		// this.stringRenderer.setTextField( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME );
 	}
 
 	@Override
@@ -79,6 +79,6 @@ public class PointRenderer extends AbstractShapeRenderer
 	public void render( Graphics2D g, VisualItem item )
 	{
 		super.render( g, item );
-		stringRenderer.render( g, item );
+		// stringRenderer.render( g, item );
 	}
 }

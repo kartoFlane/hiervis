@@ -47,6 +47,7 @@ import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.Control;
+import prefuse.controls.ToolTipControl;
 import prefuse.data.Tree;
 import prefuse.visual.NodeItem;
 
@@ -161,6 +162,7 @@ public class VisualizerFrame extends JFrame
 		instanceDisplay.addControlListener( new PanControl( true ) );
 		instanceZoomControl = new ZoomScrollControl();
 		instanceDisplay.addControlListener( instanceZoomControl );
+		instanceDisplay.addControlListener( new ToolTipControl( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME ) );
 		cNodeViewer.add( instanceDisplay );
 	}
 
