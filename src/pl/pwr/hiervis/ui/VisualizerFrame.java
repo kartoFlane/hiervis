@@ -21,6 +21,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -181,7 +182,7 @@ public class VisualizerFrame extends JFrame
 		mnFile.add( mntmOpenFile );
 
 		mntmOpenFile.addActionListener(
-			( e ) -> {
+			e -> {
 				log.trace( "Clicked open file menu item." );
 				openFileSelectionDialog();
 			}
@@ -194,9 +195,23 @@ public class VisualizerFrame extends JFrame
 		mnFile.add( mntmConfig );
 
 		mntmConfig.addActionListener(
-			( e ) -> {
+			e -> {
 				log.trace( "Clicked config menu item." );
 				openConfigDialog();
+			}
+		);
+
+		JMenuItem mntmTest = new JMenuItem( "Config re-EDT" );
+		mnFile.add( mntmTest );
+
+		mntmTest.addActionListener(
+			e -> {
+				log.trace( "Clicked test config menu item." );
+				SwingUtilities.invokeLater(
+					() -> {
+						openConfigDialog();
+					}
+				);
 			}
 		);
 	}
@@ -210,7 +225,7 @@ public class VisualizerFrame extends JFrame
 		mnView.add( mntmStats );
 
 		mntmStats.addActionListener(
-			( e ) -> {
+			e -> {
 				if ( statsFrame == null ) {
 					statsFrame = new HierarchyStatisticsFrame( context, this );
 					statsFrame.setLocationRelativeTo( null );
@@ -360,6 +375,8 @@ public class VisualizerFrame extends JFrame
 		Visualization vis = context.createInstanceVisualization( group ); // 56ms
 
 		instanceDisplay.setVisualization( vis );
+		instanceDisplay.damageReport();
+		instanceDisplay.repaint();
 
 		vis.run( "draw" );
 		Utils.waitUntilActivitiesAreFinished(); // 100ms
