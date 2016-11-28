@@ -9,6 +9,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Array;
 
+import org.apache.commons.lang3.time.StopWatch;
+import org.apache.logging.log4j.Logger;
+
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
 import prefuse.Display;
@@ -96,6 +99,33 @@ public class Utils
 		}
 
 		return img;
+	}
+
+	/**
+	 * Executes the specified runnable in a timed block, and prints the measured
+	 * time to the specified logger, with the specified prefix.
+	 * 
+	 * @param log
+	 *            the logger to print the result to
+	 * @param prefix
+	 *            the prefix in the printed message
+	 * @param f
+	 *            the runnable to time
+	 */
+	public static void timed( Logger log, String prefix, Runnable f )
+	{
+		StopWatch sw = new StopWatch();
+
+		sw.start();
+		f.run();
+		sw.stop();
+
+		log.trace(
+			String.format(
+				"%s: %sms (%sns)",
+				prefix, sw.getTime(), sw.getNanoTime()
+			)
+		);
 	}
 
 	public static int rgba( Color c )
