@@ -175,7 +175,6 @@ public class HierarchyProcessor
 		Visualization vis = new Visualization();
 
 		if ( context.isHierarchyDataLoaded() ) {
-
 			vis.add( HVConstants.NAME_OF_HIERARCHY, hierarchyTree );
 
 			NodeRenderer r = new NodeRenderer( layoutData.getNodeSize(), config );

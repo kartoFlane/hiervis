@@ -5,12 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -31,8 +27,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Hierarchy;
+import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.HierarchyVisualizer;
 import pl.pwr.hiervis.core.ElementRole;
@@ -203,20 +199,6 @@ public class VisualizerFrame extends JFrame
 				openConfigDialog();
 			}
 		);
-
-		JMenuItem mntmTest = new JMenuItem( "Config non-lambda" );
-		mnFile.add( mntmTest );
-
-		mntmTest.addActionListener(
-			new ActionListener() {
-				@Override
-				public void actionPerformed( ActionEvent e )
-				{
-					log.trace( "Clicked non-lambda config menu item." );
-					openConfigDialog();
-				}
-			}
-		);
 	}
 
 	private void createViewMenu( JMenuBar menuBar )
@@ -361,26 +343,10 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
-		Rectangle2D contentRect = hierarchyDisplay.getVisibleRect();
-
-		Point2D p = new Point2D.Double(
-			contentRect.getCenterX(),
-			contentRect.getCenterY()
-		);
-
-		double zoom = -1;
-
-		if ( hierarchyDisplay.getWidth() > hierarchyDisplay.getHeight() ) {
-			zoom = contentRect.getHeight() / hierarchyDisplay.getHeight();
-		}
-		else {
-			zoom = contentRect.getWidth() / hierarchyDisplay.getWidth();
-		}
-
-		Utils.resetDisplayZoom( hierarchyDisplay );
-		hierarchyDisplay.zoomAbs( p, zoom * 0.5 );
-
 		onNodeSelected( context.getSelectedRow() );
+
+		Utils.resetDisplayZoom( hierarchyDisplay, 0, 0 );
+		Utils.resetDisplayZoom( instanceDisplay, 0, 0 );
 	}
 
 	private void onNodeSelected( int row )
@@ -392,8 +358,6 @@ public class VisualizerFrame extends JFrame
 
 		Node group = context.findGroup( context.getSelectedRow() );
 		Visualization vis = context.createInstanceVisualization( group ); // 56ms
-
-		Utils.resetDisplayZoom( instanceDisplay );
 
 		instanceDisplay.setVisualization( vis );
 

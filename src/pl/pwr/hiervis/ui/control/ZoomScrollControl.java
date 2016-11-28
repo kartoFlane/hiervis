@@ -3,9 +3,8 @@ package pl.pwr.hiervis.ui.control;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
+import pl.pwr.hiervis.util.Utils;
 import prefuse.Display;
 import prefuse.controls.ControlAdapter;
 import prefuse.visual.VisualItem;
@@ -173,24 +172,7 @@ public class ZoomScrollControl extends ControlAdapter
 	public void keyPressed( KeyEvent e )
 	{
 		if ( e.isControlDown() && ( e.getKeyCode() == KeyEvent.VK_NUMPAD0 || e.getKeyCode() == KeyEvent.VK_0 ) ) {
-			Display d = (Display)e.getSource();
-
-			Rectangle2D rect = null;
-			if ( d.getVisibleItemCount() == 0 ) {
-				// If the display has no visual items, then just use its dimensions directly
-				rect = new Rectangle2D.Double( 0, 0, d.getWidth(), d.getHeight() );
-			}
-			else {
-				// If the display does have some visual items, then use their bounding box
-				rect = d.getItemBounds();
-			}
-
-			Point2D p = new Point2D.Double(
-				rect.getCenterX(),
-				rect.getCenterY()
-			);
-
-			d.animatePanAndZoomToAbs( p, 1 / d.getScale(), 500 );
+			Utils.resetDisplayZoom( (Display)e.getSource(), 0, 500 );
 		}
 	}
 }
