@@ -2,6 +2,7 @@ package pl.pwr.hiervis.visualisation;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
+import java.text.NumberFormat;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,8 +14,8 @@ import java.util.Queue;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Instance;
+import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
@@ -25,13 +26,17 @@ import prefuse.Visualization;
 import prefuse.action.ActionList;
 import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
+import prefuse.action.layout.AxisLabelLayout;
 import prefuse.action.layout.AxisLayout;
 import prefuse.action.layout.graph.NodeLinkTreeLayout;
 import prefuse.data.Table;
 import prefuse.data.Tree;
 import prefuse.data.query.NumberRangeModel;
+import prefuse.render.AxisRenderer;
 import prefuse.render.DefaultRendererFactory;
 import prefuse.render.EdgeRenderer;
+import prefuse.render.Renderer;
+import prefuse.render.RendererFactory;
 import prefuse.util.ColorLib;
 import prefuse.visual.VisualItem;
 import prefuse.visual.expression.VisiblePredicate;
@@ -234,15 +239,31 @@ public class HierarchyProcessor
 
 		Visualization vis = new Visualization();
 
-		vis.setRendererFactory( new DefaultRendererFactory( new PointRenderer( pointSize, config ) ) );
+		vis.setRendererFactory(
+			new RendererFactory() {
+				Renderer yAxisRenderer = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
+				Renderer xAxisRenderer = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
+				Renderer pointRenderer = new PointRenderer( pointSize, config );
+
+
+				public Renderer getRenderer( VisualItem item )
+				{
+					if ( item.isInGroup( "ylabels" ) ) {
+						return yAxisRenderer;
+					}
+					if ( item.isInGroup( "xlabels" ) ) {
+						return xAxisRenderer;
+					}
+					return pointRenderer;
+				}
+			}
+		);
 
 		String datasetName = "data";
-		String xField = "x";
-		String yField = "y";
 
 		Table table = new Table();
-		table.addColumn( xField, double.class );
-		table.addColumn( yField, double.class );
+		table.addColumn( HVConstants.PREFUSE_NODE_PLOT_X_COLUMN_NAME, double.class );
+		table.addColumn( HVConstants.PREFUSE_NODE_PLOT_Y_COLUMN_NAME, double.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, String.class );
 
@@ -280,22 +301,37 @@ public class HierarchyProcessor
 		vis.addTable( datasetName, table );
 
 		AxisLayout axisX = new AxisLayout(
-			datasetName, xField,
+			datasetName, HVConstants.PREFUSE_NODE_PLOT_X_COLUMN_NAME,
 			Constants.X_AXIS, VisiblePredicate.TRUE
 		);
 		axisX.setRangeModel( new NumberRangeModel( 0, pointImageWidth, 0, pointImageWidth ) );
-		vis.putAction( "x", axisX );
 
 		AxisLayout axisY = new AxisLayout(
-			datasetName, yField,
+			datasetName, HVConstants.PREFUSE_NODE_PLOT_Y_COLUMN_NAME,
 			Constants.Y_AXIS, VisiblePredicate.TRUE
 		);
 		axisY.setRangeModel( new NumberRangeModel( 0, pointImageHeight, 0, pointImageHeight ) );
-		vis.putAction( "y", axisY );
+
+		AxisLabelLayout labelX = new AxisLabelLayout( "xlabels", axisX );
+		labelX.setNumberFormat( NumberFormat.getNumberInstance() );
+		labelX.setScale( Constants.LINEAR_SCALE );
+
+		AxisLabelLayout labelY = new AxisLabelLayout( "ylabels", axisY );
+		labelX.setNumberFormat( NumberFormat.getNumberInstance() );
+		labelX.setScale( Constants.LINEAR_SCALE );
 
 		ActionList actions = new ActionList();
 		actions.add( axisX );
 		actions.add( axisY );
+		actions.add( labelX );
+		actions.add( labelY );
+		actions.add(
+			new ColorAction(
+				datasetName,
+				VisualItem.FILLCOLOR,
+				ColorLib.color( Color.MAGENTA )
+			)
+		);
 		actions.add( new RepaintAction() );
 
 		vis.putAction( "draw", actions );
