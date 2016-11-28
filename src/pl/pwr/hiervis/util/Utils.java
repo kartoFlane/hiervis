@@ -8,11 +8,14 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
-import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Instance;
+import basic_hierarchy.interfaces.Node;
 import prefuse.Display;
+import prefuse.Visualization;
 import prefuse.activity.ActivityManager;
 import prefuse.util.ColorLib;
+import prefuse.util.GraphicsLib;
+import prefuse.util.display.DisplayLib;
 
 
 public class Utils
@@ -46,9 +49,12 @@ public class Utils
 		);
 	}
 
-	public static void resetDisplayZoom( Display display )
+	public static void resetDisplayZoom( Display display, int margin, int duration )
 	{
-		display.zoomAbs( getDisplayCenter( display ), 1 / display.getScale() );
+		Visualization vis = display.getVisualization();
+		Rectangle2D bounds = vis.getBounds( Visualization.ALL_ITEMS );
+		GraphicsLib.expand( bounds, margin + (int)( 1 / display.getScale() ) );
+		DisplayLib.fitViewToBounds( display, bounds, duration );
 	}
 
 	public static BufferedImage getDisplaySnapshot( Display dis )
