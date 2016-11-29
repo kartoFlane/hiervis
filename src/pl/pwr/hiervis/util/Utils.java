@@ -53,10 +53,24 @@ public class Utils
 		);
 	}
 
-	public static void resetDisplayZoom( Display display, int margin, int duration )
+	/**
+	 * Zooms in the view for the specified display so that the view encompasses all items
+	 * in the specified group, with the given margin from the display's edges. Animated over
+	 * the specified duration.
+	 * 
+	 * @param display
+	 *            the display to zoom
+	 * @param group
+	 *            the group of items to zoom in to
+	 * @param margin
+	 *            the bounds that should be visible in the Display view
+	 * @param duration
+	 *            the duration of an animated transition. A value of zero will result in an instantaneous change.
+	 */
+	public static void fitToBounds( Display display, String group, int margin, int duration )
 	{
 		Visualization vis = display.getVisualization();
-		Rectangle2D bounds = vis.getBounds( Visualization.ALL_ITEMS );
+		Rectangle2D bounds = vis.getBounds( group );
 		GraphicsLib.expand( bounds, margin + (int)( 1 / display.getScale() ) );
 		DisplayLib.fitViewToBounds( display, bounds, duration );
 	}

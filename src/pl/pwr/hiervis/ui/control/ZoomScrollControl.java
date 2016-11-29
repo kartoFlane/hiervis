@@ -6,6 +6,7 @@ import java.awt.event.MouseWheelEvent;
 
 import pl.pwr.hiervis.util.Utils;
 import prefuse.Display;
+import prefuse.Visualization;
 import prefuse.controls.ControlAdapter;
 import prefuse.visual.VisualItem;
 
@@ -172,7 +173,7 @@ public class ZoomScrollControl extends ControlAdapter
 	public void keyPressed( KeyEvent e )
 	{
 		if ( e.isControlDown() && ( e.getKeyCode() == KeyEvent.VK_NUMPAD0 || e.getKeyCode() == KeyEvent.VK_0 ) ) {
-			Utils.resetDisplayZoom( (Display)e.getSource(), 0, 500 );
+			Utils.fitToBounds( (Display)e.getSource(), Visualization.ALL_ITEMS, 0, 500 );
 		}
 	}
 }

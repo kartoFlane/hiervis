@@ -362,8 +362,8 @@ public class VisualizerFrame extends JFrame
 
 		onNodeSelected( context.getSelectedRow() );
 
-		Utils.resetDisplayZoom( hierarchyDisplay, 0, 0 );
-		Utils.resetDisplayZoom( instanceDisplay, 0, 0 );
+		Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
+		Utils.fitToBounds( instanceDisplay, Visualization.ALL_ITEMS, 0, 0 );
 	}
 
 	private void onNodeSelected( int row )
