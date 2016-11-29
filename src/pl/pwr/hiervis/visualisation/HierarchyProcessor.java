@@ -228,7 +228,7 @@ public class HierarchyProcessor
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	public static Visualization createInstanceVisualization( HVContext context, Node group )
+	public static Visualization createInstanceVisualization( HVContext context, Node group, int dimX, int dimY )
 	{
 		HVConfig config = context.getConfig();
 		int pointImageWidth = config.getInstanceWidth();
@@ -266,10 +266,6 @@ public class HierarchyProcessor
 		table.addColumn( HVConstants.PREFUSE_NODE_PLOT_Y_COLUMN_NAME, double.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
 		table.addColumn( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, String.class );
-
-		// TODO: Make this a parameter
-		int dimX = 0;
-		int dimY = 1;
 
 		Node root = context.getHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root, dimX, dimY );

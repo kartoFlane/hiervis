@@ -16,8 +16,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.interfaces.Hierarchy;
+import basic_hierarchy.interfaces.Node;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
@@ -198,9 +198,9 @@ public class HVContext
 		return HierarchyProcessor.createTreeVisualization( this );
 	}
 
-	public Visualization createInstanceVisualization( Node group )
+	public Visualization createInstanceVisualization( Node group, int dimX, int dimY )
 	{
-		return HierarchyProcessor.createInstanceVisualization( this, group );
+		return HierarchyProcessor.createInstanceVisualization( this, group, dimX, dimY );
 	}
 
 	/**

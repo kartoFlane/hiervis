@@ -374,7 +374,7 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.repaint();
 
 		Node group = context.findGroup( context.getSelectedRow() );
-		Visualization vis = context.createInstanceVisualization( group ); // 56ms
+		Visualization vis = context.createInstanceVisualization( group, 0, 1 ); // 56ms
 
 		instanceDisplay.setVisualization( vis );
 		instanceDisplay.damageReport();
