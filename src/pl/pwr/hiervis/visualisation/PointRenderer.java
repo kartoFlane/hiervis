@@ -22,6 +22,7 @@ public class PointRenderer extends AbstractShapeRenderer
 	protected int pointSize;
 
 	private StringRenderer stringRenderer;
+	private boolean drawLabels = false;
 
 
 	public PointRenderer( int pointSize, HVConfig config )
@@ -32,7 +33,7 @@ public class PointRenderer extends AbstractShapeRenderer
 		this.stringRenderer = new StringRenderer();
 		this.stringRenderer.setHorizontalAlignment( Constants.LEFT );
 		this.stringRenderer.setVerticalAlignment( Constants.BOTTOM );
-		// this.stringRenderer.setTextField( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME );
+		this.stringRenderer.setTextField( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME );
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class PointRenderer extends AbstractShapeRenderer
 			item.setFillColor( config.getOtherGroupColor().getRGB() );
 		}
 
-		if ( stringRenderer.getText( item ) == null ) {
+		if ( !drawLabels || stringRenderer.getText( item ) == null ) {
 			return ellipse;
 		}
 		else {

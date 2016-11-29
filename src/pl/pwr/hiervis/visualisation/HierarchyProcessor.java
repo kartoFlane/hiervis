@@ -180,7 +180,7 @@ public class HierarchyProcessor
 		Visualization vis = new Visualization();
 
 		if ( context.isHierarchyDataLoaded() ) {
-			vis.add( HVConstants.NAME_OF_HIERARCHY, hierarchyTree );
+			vis.add( HVConstants.HIERARCHY_DATA_NAME, hierarchyTree );
 
 			NodeRenderer r = new NodeRenderer( layoutData.getNodeSize(), config );
 			DefaultRendererFactory drf = new DefaultRendererFactory( r );
@@ -189,13 +189,13 @@ public class HierarchyProcessor
 			vis.setRendererFactory( drf );
 
 			ColorAction edgesColor = new ColorAction(
-				HVConstants.NAME_OF_HIERARCHY + ".edges",
+				HVConstants.HIERARCHY_DATA_NAME + ".edges",
 				VisualItem.STROKECOLOR,
 				ColorLib.color( Color.lightGray )
 			);
 
 			NodeLinkTreeLayout treeLayout = new NodeLinkTreeLayout(
-				HVConstants.NAME_OF_HIERARCHY,
+				HVConstants.HIERARCHY_DATA_NAME,
 				layoutData.getTreeOrientation(),
 				layoutData.getDepthSpace(),
 				layoutData.getSiblingSpace(),
@@ -207,8 +207,8 @@ public class HierarchyProcessor
 			layout.add( treeLayout );
 			layout.add( new RepaintAction() );
 
-			vis.putAction( HVConstants.NAME_OF_HIERARCHY + ".edges", edgesColor );
-			vis.putAction( HVConstants.NAME_OF_HIERARCHY + ".layout", layout );
+			vis.putAction( HVConstants.HIERARCHY_DATA_NAME + ".edges", edgesColor );
+			vis.putAction( HVConstants.HIERARCHY_DATA_NAME + ".layout", layout );
 			// TODO we can here implement a heuristic that will check if after enlarging
 			// the border lines (rows and columns) of pixels do not contain other values
 			// than background colour. If so, then we are expanding one again, otherwise
@@ -222,8 +222,8 @@ public class HierarchyProcessor
 	{
 		// TODO: in run function a threads are used, so threads could be somehow used
 		// to fill the images more efficiently
-		vis.run( HVConstants.NAME_OF_HIERARCHY + ".edges" );
-		vis.run( HVConstants.NAME_OF_HIERARCHY + ".layout" );
+		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".edges" );
+		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".layout" );
 
 		Utils.waitUntilActivitiesAreFinished();
 	}
@@ -239,27 +239,28 @@ public class HierarchyProcessor
 
 		Visualization vis = new Visualization();
 
+		String nameLabelsX = "labelsX";
+		String nameLabelsY = "labelsY";
+
 		vis.setRendererFactory(
 			new RendererFactory() {
-				Renderer yAxisRenderer = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
-				Renderer xAxisRenderer = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
-				Renderer pointRenderer = new PointRenderer( pointSize, config );
+				Renderer rendererAxisX = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
+				Renderer rendererAxisY = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
+				Renderer rendererPoint = new PointRenderer( pointSize, config );
 
 
 				public Renderer getRenderer( VisualItem item )
 				{
-					if ( item.isInGroup( "ylabels" ) ) {
-						return yAxisRenderer;
+					if ( item.isInGroup( nameLabelsX ) ) {
+						return rendererAxisX;
 					}
-					if ( item.isInGroup( "xlabels" ) ) {
-						return xAxisRenderer;
+					if ( item.isInGroup( nameLabelsY ) ) {
+						return rendererAxisY;
 					}
-					return pointRenderer;
+					return rendererPoint;
 				}
 			}
 		);
-
-		String datasetName = "data";
 
 		Table table = new Table();
 		table.addColumn( HVConstants.PREFUSE_NODE_PLOT_X_COLUMN_NAME, double.class );
@@ -294,25 +295,27 @@ public class HierarchyProcessor
 			table.setString( row, HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, i.getInstanceName() );
 		}
 
-		vis.addTable( datasetName, table );
+		vis.addTable( HVConstants.INSTANCE_DATA_NAME, table );
 
 		AxisLayout axisX = new AxisLayout(
-			datasetName, HVConstants.PREFUSE_NODE_PLOT_X_COLUMN_NAME,
+			HVConstants.INSTANCE_DATA_NAME,
+			HVConstants.PREFUSE_NODE_PLOT_X_COLUMN_NAME,
 			Constants.X_AXIS, VisiblePredicate.TRUE
 		);
 		axisX.setRangeModel( new NumberRangeModel( 0, pointImageWidth, 0, pointImageWidth ) );
 
 		AxisLayout axisY = new AxisLayout(
-			datasetName, HVConstants.PREFUSE_NODE_PLOT_Y_COLUMN_NAME,
+			HVConstants.INSTANCE_DATA_NAME,
+			HVConstants.PREFUSE_NODE_PLOT_Y_COLUMN_NAME,
 			Constants.Y_AXIS, VisiblePredicate.TRUE
 		);
 		axisY.setRangeModel( new NumberRangeModel( 0, pointImageHeight, 0, pointImageHeight ) );
 
-		AxisLabelLayout labelX = new AxisLabelLayout( "xlabels", axisX );
+		AxisLabelLayout labelX = new AxisLabelLayout( nameLabelsX, axisX );
 		labelX.setNumberFormat( NumberFormat.getNumberInstance() );
 		labelX.setScale( Constants.LINEAR_SCALE );
 
-		AxisLabelLayout labelY = new AxisLabelLayout( "ylabels", axisY );
+		AxisLabelLayout labelY = new AxisLabelLayout( nameLabelsY, axisY );
 		labelX.setNumberFormat( NumberFormat.getNumberInstance() );
 		labelX.setScale( Constants.LINEAR_SCALE );
 
@@ -323,7 +326,7 @@ public class HierarchyProcessor
 		actions.add( labelY );
 		actions.add(
 			new ColorAction(
-				datasetName,
+				HVConstants.INSTANCE_DATA_NAME,
 				VisualItem.FILLCOLOR,
 				ColorLib.color( Color.MAGENTA )
 			)
