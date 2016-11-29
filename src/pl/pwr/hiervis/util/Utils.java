@@ -43,16 +43,6 @@ public class Utils
 		}
 	}
 
-	public static Point2D getDisplayCenter( Display display )
-	{
-		Rectangle2D contentRect = display.getVisibleRect();
-
-		return new Point2D.Double(
-			contentRect.getCenterX(),
-			contentRect.getCenterY()
-		);
-	}
-
 	/**
 	 * Zooms in the view for the specified display so that the view encompasses all items
 	 * in the specified group, with the given margin from the display's edges. Animated over
@@ -177,29 +167,6 @@ public class Utils
 		}
 
 		return new Rectangle2D.Double( minX, minY, maxX - minX, maxY - minY );
-	}
-
-	/**
-	 * Calculates the binomial coefficient of the given values, ie.
-	 * the number of unique t tuples that can be selected from n elements.
-	 * 
-	 * @param n
-	 *            the total number of elements.
-	 * @param t
-	 *            the size of a tuple
-	 * @return the binomial coefficient
-	 */
-	public static long binomialCoefficient( int n, int t )
-	{
-		if ( t > n - t )
-			t = n - t;
-
-		long result = 1;
-		for ( int i = 1, m = n; i <= t; ++i, --m ) {
-			result = result * m / i;
-		}
-
-		return result;
 	}
 
 	/**
