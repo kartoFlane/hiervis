@@ -166,6 +166,29 @@ public class Utils
 	}
 
 	/**
+	 * Calculates the binomial coefficient of the given values, ie.
+	 * the number of unique t tuples that can be selected from n elements.
+	 * 
+	 * @param n
+	 *            the total number of elements.
+	 * @param t
+	 *            the size of a tuple
+	 * @return the binomial coefficient
+	 */
+	public static long binomialCoefficient( int n, int t )
+	{
+		if ( t > n - t )
+			t = n - t;
+
+		long result = 1;
+		for ( int i = 1, m = n; i <= t; ++i, --m ) {
+			result = result * m / i;
+		}
+
+		return result;
+	}
+
+	/**
 	 * Normalize the specified source value from its source range into target range.
 	 * 
 	 * @param sourceValue
