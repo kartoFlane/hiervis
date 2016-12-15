@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,8 +57,11 @@ public class HVContext
 	// Members
 
 	private HVConfig config = null;
+	/** The raw hierarchy data, as it was loaded from the file. */
 	private Hierarchy inputHierarchy = null;
+	/** Tree structure representing relationships between groups (nodes) in the hierarchy */
 	private Tree hierarchyTree = null;
+	/** Helper layout data for drawing the tree. */
 	private TreeLayoutData hierarchyTreeLayout = null;
 	private int selectedRow = 0;
 	private Map<String, Object> measureMap = new HashMap<>();
@@ -117,19 +121,9 @@ public class HVContext
 		return inputHierarchy;
 	}
 
-	public void setTree( Tree tree )
-	{
-		hierarchyTree = tree;
-	}
-
 	public Tree getTree()
 	{
 		return hierarchyTree;
-	}
-
-	public void setTreeLayoutData( TreeLayoutData layoutData )
-	{
-		hierarchyTreeLayout = layoutData;
 	}
 
 	public TreeLayoutData getTreeLayoutData()
@@ -241,6 +235,29 @@ public class HVContext
 		return null;
 	}
 
+	/**
+	 * Searches the hierarchy for a group with the specified identifier / name.
+	 * 
+	 * @param name
+	 *            the name to look for.
+	 * @return the node / group with the specified name, or null if not found.
+	 */
+	public prefuse.data.Node findGroup( String name )
+	{
+		// TODO:
+		// Can potentially speed this up by using a lookup cache in the form of a hash map.
+		// Not sure if worth it, though.
+		int nodeCount = hierarchyTree.getNodeCount();
+		for ( int i = 0; i < nodeCount; ++i ) {
+			prefuse.data.Node n = hierarchyTree.getNode( i );
+			if ( n.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME ).equals( name ) ) {
+				return n;
+			}
+		}
+
+		return null;
+	}
+
 	private void onHierarchyChanging( Hierarchy h )
 	{
 		selectedRow = 0;
@@ -248,6 +265,21 @@ public class HVContext
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
+		int dataDimCount = h.getRoot().getSubtreeInstances().get( 0 ).getData().length;
+		log.trace(
+			String.format(
+				"Loaded hierarchy with %s data dimensions. Visualizations needed: %s",
+				dataDimCount, CombinatoricsUtils.binomialCoefficient( dataDimCount, 2 )
+			)
+		);
+
+		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
+			config,
+			h.getRoot()
+		);
+		hierarchyTree = treeData.getLeft();
+		hierarchyTreeLayout = treeData.getRight();
+
 		computeThread.clearPendingTasks();
 		computeThread.setHierarchy( h );
 

@@ -277,14 +277,8 @@ public class VisualizerFrame extends JFrame
 						context.getConfig().isUseSubtree()
 					);
 
-					Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
-						context.getConfig(),
-						hierarchy.getRoot()
-					);
-
+					log.trace( "Switching hierarchy..." );
 					context.setHierarchy( hierarchy );
-					context.setTree( treeData.getLeft() );
-					context.setTreeLayoutData( treeData.getRight() );
 
 					log.trace( "Reprocessing..." );
 					reprocess();
