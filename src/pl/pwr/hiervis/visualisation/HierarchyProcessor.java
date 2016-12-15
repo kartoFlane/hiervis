@@ -316,8 +316,8 @@ public class HierarchyProcessor
 		labelX.setScale( Constants.LINEAR_SCALE );
 
 		AxisLabelLayout labelY = new AxisLabelLayout( nameLabelsY, axisY );
-		labelX.setNumberFormat( NumberFormat.getNumberInstance() );
-		labelX.setScale( Constants.LINEAR_SCALE );
+		labelY.setNumberFormat( NumberFormat.getNumberInstance() );
+		labelY.setScale( Constants.LINEAR_SCALE );
 
 		ActionList actions = new ActionList();
 		actions.add( axisX );
