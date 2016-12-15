@@ -29,9 +29,15 @@ import prefuse.action.assignment.ColorAction;
 import prefuse.action.layout.AxisLabelLayout;
 import prefuse.action.layout.AxisLayout;
 import prefuse.action.layout.graph.NodeLinkTreeLayout;
+import prefuse.data.Schema;
 import prefuse.data.Table;
 import prefuse.data.Tree;
 import prefuse.data.query.NumberRangeModel;
+import prefuse.data.Tuple;
+import prefuse.data.expression.AbstractExpression;
+import prefuse.data.expression.ComparisonPredicate;
+import prefuse.data.expression.Literal;
+import prefuse.data.expression.Predicate;
 import prefuse.render.AxisRenderer;
 import prefuse.render.DefaultRendererFactory;
 import prefuse.render.EdgeRenderer;
@@ -235,7 +241,7 @@ public class HierarchyProcessor
 		int pointImageHeight = config.getInstanceHeight();
 
 		// TODO: Make this a config property?
-		int pointSize = 2;
+		int pointSize = 3;
 
 		Visualization vis = new Visualization();
 
@@ -246,7 +252,7 @@ public class HierarchyProcessor
 			new RendererFactory() {
 				Renderer rendererAxisX = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
 				Renderer rendererAxisY = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
-				Renderer rendererPoint = new PointRenderer( pointSize, config );
+				Renderer rendererPoint = new PointRenderer( pointSize );
 
 
 				public Renderer getRenderer( VisualItem item )
@@ -319,22 +325,64 @@ public class HierarchyProcessor
 		labelY.setNumberFormat( NumberFormat.getNumberInstance() );
 		labelY.setScale( Constants.LINEAR_SCALE );
 
+		ColorAction colors = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
+		colors.setDefaultColor( Utils.rgba( Color.MAGENTA ) );
+		colors.add( getPredicateFor( ElementRole.CURRENT ), Utils.rgba( config.getCurrentGroupColor() ) );
+		colors.add( getPredicateFor( ElementRole.DIRECT_PARENT ), Utils.rgba( config.getParentGroupColor() ) );
+		colors.add( getPredicateFor( ElementRole.INDIRECT_PARENT ), Utils.rgba( config.getAncestorGroupColor() ) );
+		colors.add( getPredicateFor( ElementRole.CHILD ), Utils.rgba( config.getChildGroupColor() ) );
+		colors.add( getPredicateFor( ElementRole.OTHER ), Utils.rgba( config.getOtherGroupColor() ) );
+
 		ActionList actions = new ActionList();
 		actions.add( axisX );
 		actions.add( axisY );
 		actions.add( labelX );
 		actions.add( labelY );
-		actions.add(
-			new ColorAction(
-				HVConstants.INSTANCE_DATA_NAME,
-				VisualItem.FILLCOLOR,
-				ColorLib.color( Color.MAGENTA )
-			)
-		);
+		actions.add( colors );
 		actions.add( new RepaintAction() );
 
 		vis.putAction( "draw", actions );
+		vis.putAction( "repaint", new RepaintAction() );
 
 		return vis;
+	}
+
+	private static ComparisonPredicate getPredicateFor( ElementRole elementRole )
+	{
+		return new ComparisonPredicate(
+			ComparisonPredicate.EQ,
+			// new ColumnExpression( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME ),
+			new InstanceNodeExpression( "test" ),
+			Literal.getLiteral( elementRole.getNumber() )
+		);
+	}
+
+
+	@SuppressWarnings("rawtypes")
+	private static class InstanceNodeExpression extends AbstractExpression implements Predicate
+	{
+		protected final String m_field;
+
+
+		public InstanceNodeExpression( String field )
+		{
+			m_field = field;
+		}
+
+		public Class getType( Schema s )
+		{
+			return int.class;
+		}
+
+		public Object get( Tuple t )
+		{
+			return getInt( t );
+		}
+
+		public int getInt( Tuple t )
+		{
+			prefuse.data.Node node = (prefuse.data.Node)t.get( m_field );
+			return node.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
+		}
 	}
 }
