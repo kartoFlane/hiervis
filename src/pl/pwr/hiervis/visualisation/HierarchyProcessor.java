@@ -110,6 +110,58 @@ public class HierarchyProcessor
 	}
 
 	@SuppressWarnings("unchecked")
+	public static void updateNodeRoles( HVContext context, int row )
+	{
+		Table instanceTable = context.getInstanceTable();
+		Tree hierarchyTree = context.getTree();
+		HVConfig config = context.getConfig();
+
+		// Reset all nodes back to 'other'
+		for ( int i = 0; i < hierarchyTree.getNodeCount(); ++i ) {
+			prefuse.data.Node n = hierarchyTree.getNode( i );
+			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
+		}
+		for ( int i = 0; i < instanceTable.getRowCount(); ++i ) {
+			instanceTable.set( i, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
+		}
+
+		if ( row < 0 )
+			return;
+
+		prefuse.data.Node n = hierarchyTree.getNode( row );
+
+		LinkedList<prefuse.data.Node> stack = new LinkedList<>();
+		stack.add( n );
+		while ( !stack.isEmpty() ) {
+			prefuse.data.Node current = stack.removeFirst();
+			current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
+			for ( Iterator<prefuse.data.Node> children = current.children(); children.hasNext(); ) {
+				prefuse.data.Node child = children.next();
+				stack.add( child );
+			}
+		}
+
+		if ( config.isDisplayAllPoints() && n.getParent() != null ) {
+			stack = new LinkedList<>();
+			// when the parent is empty, then we need to search up in the hierarchy because empty
+			// parents are skipped, but displayed on output images
+			prefuse.data.Node directParent = n.getParent();
+			stack.add( directParent );
+			while ( !stack.isEmpty() ) {
+				prefuse.data.Node current = stack.removeFirst();
+				current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
+				if ( current.getParent() != null ) {
+					stack.add( current.getParent() );
+				}
+			}
+
+			directParent.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.DIRECT_PARENT.getNumber() );
+		}
+
+		n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CURRENT.getNumber() );
+	}
+
+	@SuppressWarnings("unchecked")
 	public static void updateTreeNodeRoles( HVContext context, String currentGroupId )
 	{
 		Tree hierarchyTree = context.getTree();

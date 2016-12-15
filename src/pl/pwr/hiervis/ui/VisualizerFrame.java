@@ -11,8 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -24,7 +22,6 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,7 +29,6 @@ import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.HierarchyVisualizer;
-import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
@@ -43,12 +39,10 @@ import pl.pwr.hiervis.ui.control.SubtreeDragControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
-import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.Control;
 import prefuse.controls.ToolTipControl;
-import prefuse.data.Tree;
 import prefuse.visual.NodeItem;
 
 
@@ -368,7 +362,7 @@ public class VisualizerFrame extends JFrame
 
 	private void onNodeSelected( int row )
 	{
-		updateNodeRoles( context, context.getSelectedRow() ); // 7ms
+		HierarchyProcessor.updateNodeRoles( context, context.getSelectedRow() ); // 7ms
 
 		hierarchyDisplay.damageReport();
 		hierarchyDisplay.repaint();
@@ -382,61 +376,5 @@ public class VisualizerFrame extends JFrame
 
 		vis.run( "draw" );
 		Utils.waitUntilActivitiesAreFinished(); // 100ms
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void updateNodeRoles( HVContext context, int row )
-	{
-		Tree hierarchyTree = context.getTree();
-		HVConfig config = context.getConfig();
-
-		boolean isFound = false;
-
-		// Reset all nodes back to 'other'
-		for ( int i = 0; i < hierarchyTree.getNodeCount(); i++ ) {
-			prefuse.data.Node n = hierarchyTree.getNode( i );
-			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
-		}
-
-		// If no node is selected, then there's no point in trying to recategorize nodes, since
-		// all will be classified as 'other' anyway.
-		if ( row < 0 )
-			return;
-
-		// Recategorize nodes based on the currently selected node
-		for ( int i = 0; i < hierarchyTree.getNodeCount() && !isFound; i++ ) {
-			prefuse.data.Node n = hierarchyTree.getNode( i );
-			if ( n.getRow() == row ) {
-				isFound = true;
-				// colour child groups
-				LinkedList<prefuse.data.Node> stack = new LinkedList<>();
-				stack.add( n );
-				while ( !stack.isEmpty() ) {
-					prefuse.data.Node current = stack.removeFirst();
-					current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CHILD.getNumber() );
-					for ( Iterator<prefuse.data.Node> children = current.children(); children.hasNext(); ) {
-						prefuse.data.Node child = children.next();
-						stack.add( child );
-					}
-				}
-
-				if ( config.isDisplayAllPoints() && n.getParent() != null ) {
-					stack = new LinkedList<>();
-					// when the parent is empty, then we need to search up in the hierarchy because empty
-					// parents are skipped, but displayed on output images
-					prefuse.data.Node directParent = n.getParent();
-					stack.add( directParent );
-					while ( !stack.isEmpty() ) {
-						prefuse.data.Node current = stack.removeFirst();
-						current.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.INDIRECT_PARENT.getNumber() );
-						if ( current.getParent() != null ) {
-							stack.add( current.getParent() );
-						}
-					}
-					directParent.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.DIRECT_PARENT.getNumber() );
-				}
-				n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.CURRENT.getNumber() );
-			}
-		}
 	}
 }
