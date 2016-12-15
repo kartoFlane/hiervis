@@ -31,10 +31,10 @@ import java.util.function.Consumer;
  */
 public class Event<T>
 {
-	private Set<Consumer<T>> listeners = null;
+	private Set<Consumer<? super T>> listeners = null;
 
 
-	public void addListener( Consumer<T> listener )
+	public void addListener( Consumer<? super T> listener )
 	{
 		if ( listener == null )
 			return;
@@ -43,7 +43,7 @@ public class Event<T>
 		listeners.add( listener );
 	}
 
-	public void removeListener( Consumer<T> listener )
+	public void removeListener( Consumer<? super T> listener )
 	{
 		if ( listener == null )
 			return;
@@ -77,7 +77,16 @@ public class Event<T>
 		listeners.forEach( listener -> safeNotify( listener, args ) );
 	}
 
-	private void safeNotify( Consumer<T> listener, T args )
+	/**
+	 * Notifies the listener of the event inside of a try-catch block, so that if a single
+	 * listener throws an exception, it won't break the whole chain.
+	 * 
+	 * @param listener
+	 *            the listener to notify
+	 * @param args
+	 *            the event arguments to pass
+	 */
+	private void safeNotify( Consumer<? super T> listener, T args )
 	{
 		try {
 			listener.accept( args );
