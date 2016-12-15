@@ -112,7 +112,6 @@ public class HierarchyProcessor
 	@SuppressWarnings("unchecked")
 	public static void updateNodeRoles( HVContext context, int row )
 	{
-		Table instanceTable = context.getInstanceTable();
 		Tree hierarchyTree = context.getTree();
 		HVConfig config = context.getConfig();
 
@@ -120,9 +119,6 @@ public class HierarchyProcessor
 		for ( int i = 0; i < hierarchyTree.getNodeCount(); ++i ) {
 			prefuse.data.Node n = hierarchyTree.getNode( i );
 			n.setInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
-		}
-		for ( int i = 0; i < instanceTable.getRowCount(); ++i ) {
-			instanceTable.set( i, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, ElementRole.OTHER.getNumber() );
 		}
 
 		if ( row < 0 )
@@ -390,7 +386,15 @@ public class HierarchyProcessor
 		actions.add( axisY );
 		actions.add( labelX );
 		actions.add( labelY );
-		actions.add( colors );
+		actions.add(
+            new ColorAction(
+                HVConstants.INSTANCE_DATA_NAME,
+                VisualItem.FILLCOLOR,
+                ColorLib.color( Color.MAGENTA )
+            )
+        );
+
+		//actions.add( colors );
 		actions.add( new RepaintAction() );
 
 		vis.putAction( "draw", actions );
