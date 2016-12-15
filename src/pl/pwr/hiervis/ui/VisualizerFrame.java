@@ -19,7 +19,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.logging.log4j.LogManager;
@@ -175,41 +174,15 @@ public class VisualizerFrame extends JFrame
 		menuBar.add( mnFile );
 
 		JMenuItem mntmOpenFile = new JMenuItem( "Open file..." );
+		mntmOpenFile.addActionListener( e -> openFileSelectionDialog() );
 		mnFile.add( mntmOpenFile );
-
-		mntmOpenFile.addActionListener(
-			e -> {
-				log.trace( "Clicked open file menu item." );
-				openFileSelectionDialog();
-			}
-		);
 
 		JSeparator separator = new JSeparator();
 		mnFile.add( separator );
 
 		JMenuItem mntmConfig = new JMenuItem( "Config" );
+		mntmConfig.addActionListener( e -> openConfigDialog() );
 		mnFile.add( mntmConfig );
-
-		mntmConfig.addActionListener(
-			e -> {
-				log.trace( "Clicked config menu item." );
-				openConfigDialog();
-			}
-		);
-
-		JMenuItem mntmTest = new JMenuItem( "Config re-EDT" );
-		mnFile.add( mntmTest );
-
-		mntmTest.addActionListener(
-			e -> {
-				log.trace( "Clicked test config menu item." );
-				SwingUtilities.invokeLater(
-					() -> {
-						openConfigDialog();
-					}
-				);
-			}
-		);
 	}
 
 	private void createViewMenu( JMenuBar menuBar )
@@ -226,6 +199,7 @@ public class VisualizerFrame extends JFrame
 					statsFrame = new HierarchyStatisticsFrame( context, this );
 					statsFrame.setLocationRelativeTo( null );
 				}
+
 				// Restore the frame if it was minimized
 				statsFrame.setExtendedState( JFrame.NORMAL );
 				statsFrame.setVisible( true );
@@ -238,8 +212,6 @@ public class VisualizerFrame extends JFrame
 	 */
 	private void openFileSelectionDialog()
 	{
-		log.trace( "Creating FileChooser instance..." );
-
 		JFileChooser fileDialog = new JFileChooser();
 		fileDialog.setCurrentDirectory( new File( "." ) );
 		fileDialog.setDialogTitle( "Choose a file" );
@@ -247,25 +219,21 @@ public class VisualizerFrame extends JFrame
 		fileDialog.setAcceptAllFileFilterUsed( false );
 		fileDialog.setFileFilter( new FileNameExtensionFilter( "*.csv", "csv" ) );
 
-		log.trace( "Showing file selection dialog..." );
 		if ( fileDialog.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) {
 			File file = fileDialog.getSelectedFile();
 			try {
 				log.trace( String.format( "Selected file: '%s'", file ) );
 
-				log.trace( "Creating and showing options dialog..." );
 				FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
 				optionsDialog.setVisible( true );
-				log.trace( "Dialog dismissed." );
 
-				if ( optionsDialog.getConfig() != null ) {
+				if ( optionsDialog.hasConfigChanged() ) {
 					context.setConfig( optionsDialog.getConfig() );
 
-					log.trace( "Enabling prefuse displays..." );
 					hierarchyDisplay.setEnabled( true );
 					instanceDisplay.setEnabled( true );
 
-					log.trace( "Loading the file as hierarchy..." );
+					log.trace( "Parsing..." );
 					Path path = Paths.get( file.getAbsolutePath() );
 
 					Hierarchy hierarchy = new GeneratedCSVReader().load(
@@ -306,26 +274,21 @@ public class VisualizerFrame extends JFrame
 	 */
 	private void openConfigDialog()
 	{
-		log.trace( "Creating ConfigDialog instance..." );
 		ConfigDialog dialog = new ConfigDialog( context, VisualizerFrame.this );
 
 		// Make the dialog appear at the center of the screen
 		dialog.setLocationRelativeTo( null );
-
-		log.trace( "Making the dialog visible..." );
 		dialog.setVisible( true ); // Blocks until the dialog is dismissed.
-		log.trace( "Dialog dismissed." );
 
-		// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
-		if ( !context.isHierarchyDataLoaded() )
-			return;
-
-		// If no changes have been made to the config, then we don't need to reprocess anything.
-		if ( dialog.getConfig() != null ) {
+		if ( dialog.hasConfigChanged() ) {
 			log.trace( "Updating current config..." );
 			context.setConfig( dialog.getConfig() );
-			log.trace( "Reprocessing..." );
-			reprocess();
+
+			// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
+			if ( context.isHierarchyDataLoaded() ) {
+				log.trace( "Reprocessing..." );
+				reprocess();
+			}
 		}
 
 		log.trace( "Config customization finished." );

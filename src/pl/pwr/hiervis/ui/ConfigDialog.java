@@ -501,4 +501,12 @@ public class ConfigDialog extends JDialog
 	{
 		return newConfig;
 	}
+
+	/**
+	 * @return true if the user has made changes to the config, false if config state is unchanged.
+	 */
+	public boolean hasConfigChanged()
+	{
+		return newConfig != null;
+	}
 }
