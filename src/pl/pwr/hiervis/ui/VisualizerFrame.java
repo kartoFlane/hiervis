@@ -155,7 +155,7 @@ public class VisualizerFrame extends JFrame
 		instanceDisplay.addControlListener( new PanControl( true ) );
 		instanceZoomControl = new ZoomScrollControl();
 		instanceDisplay.addControlListener( instanceZoomControl );
-		instanceDisplay.addControlListener( new ToolTipControl( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME ) );
+		instanceDisplay.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
 		cNodeViewer.add( instanceDisplay );
 	}
 

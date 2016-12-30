@@ -24,6 +24,7 @@ import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Visualization;
+import prefuse.data.Table;
 import prefuse.data.Tree;
 
 
@@ -63,6 +64,8 @@ public class HVContext
 	private Tree hierarchyTree = null;
 	/** Helper layout data for drawing the tree. */
 	private TreeLayoutData hierarchyTreeLayout = null;
+	/** Table containing processed instance data */
+	private Table instanceTable = null;
 	private int selectedRow = 0;
 	private Map<String, Object> measureMap = new HashMap<>();
 
@@ -129,6 +132,11 @@ public class HVContext
 	public TreeLayoutData getTreeLayoutData()
 	{
 		return hierarchyTreeLayout;
+	}
+
+	public Table getInstanceTable()
+	{
+		return instanceTable;
 	}
 
 	/**
@@ -279,6 +287,8 @@ public class HVContext
 		);
 		hierarchyTree = treeData.getLeft();
 		hierarchyTreeLayout = treeData.getRight();
+
+		instanceTable = HierarchyProcessor.createInstanceTable( this );
 
 		computeThread.clearPendingTasks();
 		computeThread.setHierarchy( h );

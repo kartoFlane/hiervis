@@ -14,6 +14,7 @@ import java.util.Queue;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.ElementRole;
@@ -32,12 +33,12 @@ import prefuse.action.layout.graph.NodeLinkTreeLayout;
 import prefuse.data.Schema;
 import prefuse.data.Table;
 import prefuse.data.Tree;
-import prefuse.data.query.NumberRangeModel;
 import prefuse.data.Tuple;
 import prefuse.data.expression.AbstractExpression;
 import prefuse.data.expression.ComparisonPredicate;
 import prefuse.data.expression.Literal;
 import prefuse.data.expression.Predicate;
+import prefuse.data.query.NumberRangeModel;
 import prefuse.render.AxisRenderer;
 import prefuse.render.DefaultRendererFactory;
 import prefuse.render.EdgeRenderer;
@@ -282,11 +283,112 @@ public class HierarchyProcessor
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
+	public static Table createInstanceTable( HVContext context )
+	{
+		String[] dataNames = getFeatureNames( context.getHierarchy() );
+
+		Table table = createEmptyInstanceTable( context, dataNames );
+		processInstanceData( context, dataNames.length, table );
+
+		return table;
+	}
+
+	/**
+	 * If the input file had a first row with column names, then this method returns those names.
+	 * If the first row did not contain column names, it creates artificial names ("dimension #")
+	 * 
+	 * @param hierarchy
+	 *            the hierarchy to get the names for
+	 * @return array of names for instance features
+	 */
+	private static String[] getFeatureNames( Hierarchy hierarchy )
+	{
+		String[] dataNames = hierarchy.getDataNames();
+
+		if ( dataNames == null ) {
+			// Input file had no column names -- got to make them up ourselves.
+			try {
+				Instance instance = hierarchy.getRoot().getSubtreeInstances().get( 0 );
+				int dimCount = instance.getData().length;
+				dataNames = new String[dimCount];
+				for ( int i = 0; i < dimCount; ++i ) {
+					dataNames[i] = "dimension " + ( i + 1 );
+				}
+			}
+			catch ( IndexOutOfBoundsException e ) {
+				throw new RuntimeException( "Could not get an instance from the hierarchy. Is the hierarchy empty?" );
+			}
+		}
+
+		return dataNames;
+	}
+
+	/**
+	 * Creates a new, empty table used to hold processed instance data.
+	 * 
+	 * @param context
+	 *            the application context
+	 * @param dataNames
+	 *            array of names for instance features
+	 * @return the created table
+	 */
+	private static Table createEmptyInstanceTable( HVContext context, String[] dataNames )
+	{
+		Table table = new Table();
+
+		for ( int i = 0; i < dataNames.length; ++i ) {
+			table.addColumn( dataNames[i], double.class );
+		}
+
+		table.addColumn( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, prefuse.data.Node.class );
+		// table.addColumn( HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, boolean.class );
+		// table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
+		if ( context.getConfig().hasInstanceNameAttribute() ) {
+			table.addColumn( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, String.class );
+		}
+
+		return table;
+	}
+
+	/**
+	 * Processes raw hierarchy data and saves it in the specified table.
+	 * 
+	 * @param context
+	 *            the application context
+	 * @param featureCount
+	 *            number of instance features in the input file
+	 * @param table
+	 *            the table the processed data will be saved in.
+	 */
+	private static void processInstanceData( HVContext context, int featureCount, Table table )
+	{
+		// TODO: Implement some sort of culling so that we remove overlapping instances?
+		// Could use k-d trees maybe?
+
+		for ( Instance instance : context.getHierarchy().getRoot().getSubtreeInstances() ) {
+			int row = table.addRow();
+
+			double[] data = instance.getData();
+			for ( int i = 0; i < featureCount; ++i ) {
+				table.set( row, i, data[i] );
+			}
+
+			// TODO: Implement selecting either assign class or ground truth class, based on user setting
+			// Currently using assign class
+			prefuse.data.Node node = context.findGroup( instance.getNodeId() );
+
+			table.set( row, HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, node );
+			// table.set( row, HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, true );
+			// table.set( row, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, 0 );
+			if ( context.getConfig().hasInstanceNameAttribute() ) {
+				table.set( row, HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, instance.getInstanceName() );
+			}
+		}
+	}
+
 	public static Visualization createInstanceVisualization( HVContext context, Node group, int dimX, int dimY )
 	{
 		HVConfig config = context.getConfig();
-		int pointImageWidth = config.getInstanceWidth();
-		int pointImageHeight = config.getInstanceHeight();
 
 		// TODO: Make this a config property?
 		int pointSize = 3;
@@ -305,65 +407,35 @@ public class HierarchyProcessor
 
 				public Renderer getRenderer( VisualItem item )
 				{
-					if ( item.isInGroup( nameLabelsX ) ) {
+					if ( item.isInGroup( nameLabelsX ) )
 						return rendererAxisX;
-					}
-					if ( item.isInGroup( nameLabelsY ) ) {
+					if ( item.isInGroup( nameLabelsY ) )
 						return rendererAxisY;
-					}
 					return rendererPoint;
 				}
 			}
 		);
 
-		Table table = new Table();
-		table.addColumn( HVConstants.PREFUSE_NODE_PLOT_X_COLUMN_NAME, double.class );
-		table.addColumn( HVConstants.PREFUSE_NODE_PLOT_Y_COLUMN_NAME, double.class );
-		table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
-		table.addColumn( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, String.class );
+		Table table = context.getInstanceTable();
 
 		Node root = context.getHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root, dimX, dimY );
-
-		for ( Instance i : group.getSubtreeInstances() ) {
-			double sourceX = i.getData()[dimX];
-			double sourceY = i.getData()[dimY];
-
-			double normalizedX = Utils.normalize(
-				sourceX,
-				bounds.getMinX(), bounds.getMaxX(),
-				0, pointImageWidth
-			);
-			double normalizedY = Utils.normalize(
-				sourceY,
-				bounds.getMinY(), bounds.getMaxY(),
-				0, pointImageHeight
-			);
-
-			int row = table.addRow();
-			// NOTE: Prefuse shows (0, 0) in bottom-left corner.
-			// Might want to provide the option to invert Y for convenience?
-			table.set( row, 0, normalizedX );
-			table.set( row, 1, normalizedY );
-			table.set( row, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, 0 );
-			table.setString( row, HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME, i.getInstanceName() );
-		}
 
 		vis.addTable( HVConstants.INSTANCE_DATA_NAME, table );
 
 		AxisLayout axisX = new AxisLayout(
 			HVConstants.INSTANCE_DATA_NAME,
-			HVConstants.PREFUSE_NODE_PLOT_X_COLUMN_NAME,
+			table.getColumnName( dimX ),
 			Constants.X_AXIS, VisiblePredicate.TRUE
 		);
-		axisX.setRangeModel( new NumberRangeModel( 0, pointImageWidth, 0, pointImageWidth ) );
+		axisX.setRangeModel( new NumberRangeModel( bounds.getMinX(), bounds.getMaxX(), bounds.getMinX(), bounds.getMaxX() ) );
 
 		AxisLayout axisY = new AxisLayout(
 			HVConstants.INSTANCE_DATA_NAME,
-			HVConstants.PREFUSE_NODE_PLOT_Y_COLUMN_NAME,
+			table.getColumnName( dimY ),
 			Constants.Y_AXIS, VisiblePredicate.TRUE
 		);
-		axisY.setRangeModel( new NumberRangeModel( 0, pointImageHeight, 0, pointImageHeight ) );
+		axisY.setRangeModel( new NumberRangeModel( bounds.getMinY(), bounds.getMaxY(), bounds.getMinY(), bounds.getMaxY() ) );
 
 		AxisLabelLayout labelX = new AxisLabelLayout( nameLabelsX, axisX );
 		labelX.setNumberFormat( NumberFormat.getNumberInstance() );
@@ -373,58 +445,51 @@ public class HierarchyProcessor
 		labelY.setNumberFormat( NumberFormat.getNumberInstance() );
 		labelY.setScale( Constants.LINEAR_SCALE );
 
-		ColorAction colors = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
-		colors.setDefaultColor( Utils.rgba( Color.MAGENTA ) );
-		colors.add( getPredicateFor( ElementRole.CURRENT ), Utils.rgba( config.getCurrentGroupColor() ) );
-		colors.add( getPredicateFor( ElementRole.DIRECT_PARENT ), Utils.rgba( config.getParentGroupColor() ) );
-		colors.add( getPredicateFor( ElementRole.INDIRECT_PARENT ), Utils.rgba( config.getAncestorGroupColor() ) );
-		colors.add( getPredicateFor( ElementRole.CHILD ), Utils.rgba( config.getChildGroupColor() ) );
-		colors.add( getPredicateFor( ElementRole.OTHER ), Utils.rgba( config.getOtherGroupColor() ) );
+		ColorAction colorize = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
+		colorize.setDefaultColor( Utils.rgba( Color.MAGENTA ) );
+		colorize.add( getPredicateFor( ElementRole.CURRENT ), Utils.rgba( config.getCurrentGroupColor() ) );
+		colorize.add( getPredicateFor( ElementRole.DIRECT_PARENT ), Utils.rgba( config.getParentGroupColor() ) );
+		colorize.add( getPredicateFor( ElementRole.INDIRECT_PARENT ), Utils.rgba( config.getAncestorGroupColor() ) );
+		colorize.add( getPredicateFor( ElementRole.CHILD ), Utils.rgba( config.getChildGroupColor() ) );
+		colorize.add( getPredicateFor( ElementRole.OTHER ), Utils.rgba( config.getOtherGroupColor() ) );
 
-		ActionList actions = new ActionList();
-		actions.add( axisX );
-		actions.add( axisY );
-		actions.add( labelX );
-		actions.add( labelY );
-		actions.add(
-            new ColorAction(
-                HVConstants.INSTANCE_DATA_NAME,
-                VisualItem.FILLCOLOR,
-                ColorLib.color( Color.MAGENTA )
-            )
-        );
+		ActionList drawActions = new ActionList();
+		drawActions.add( axisX );
+		drawActions.add( axisY );
+		drawActions.add( labelX );
+		drawActions.add( labelY );
+		drawActions.add( colorize );
+		drawActions.add( new RepaintAction() );
 
-		//actions.add( colors );
-		actions.add( new RepaintAction() );
-
-		vis.putAction( "draw", actions );
+		vis.putAction( "draw", drawActions );
 		vis.putAction( "repaint", new RepaintAction() );
 
 		return vis;
 	}
 
+	/**
+	 * @param elementRole
+	 *            the {@link ElementRole} to test for
+	 * @return creates and returns a predicate which returns true for instances whose node's
+	 *         {@link ElementRole} is the same as the one passed in argument.
+	 */
 	private static ComparisonPredicate getPredicateFor( ElementRole elementRole )
 	{
 		return new ComparisonPredicate(
 			ComparisonPredicate.EQ,
-			// new ColumnExpression( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME ),
-			new InstanceNodeExpression( "test" ),
+			new InstanceNodeExpression(),
 			Literal.getLiteral( elementRole.getNumber() )
 		);
 	}
 
 
+	/**
+	 * Given a row from the instance data table, extracts the node to which that instance belongs and returns
+	 * its {@link ElementRole}.
+	 */
 	@SuppressWarnings("rawtypes")
 	private static class InstanceNodeExpression extends AbstractExpression implements Predicate
 	{
-		protected final String m_field;
-
-
-		public InstanceNodeExpression( String field )
-		{
-			m_field = field;
-		}
-
 		public Class getType( Schema s )
 		{
 			return int.class;
@@ -437,7 +502,7 @@ public class HierarchyProcessor
 
 		public int getInt( Tuple t )
 		{
-			prefuse.data.Node node = (prefuse.data.Node)t.get( m_field );
+			prefuse.data.Node node = (prefuse.data.Node)t.get( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME );
 			return node.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
 		}
 	}

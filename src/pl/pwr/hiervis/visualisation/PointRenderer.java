@@ -26,7 +26,7 @@ public class PointRenderer extends AbstractShapeRenderer
 		this.stringRenderer = new StringRenderer();
 		this.stringRenderer.setHorizontalAlignment( Constants.LEFT );
 		this.stringRenderer.setVerticalAlignment( Constants.BOTTOM );
-		this.stringRenderer.setTextField( HVConstants.PREFUSE_NODE_LABEL_COLUMN_NAME );
+		this.stringRenderer.setTextField( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME );
 	}
 
 	@Override
