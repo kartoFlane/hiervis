@@ -3,6 +3,7 @@ package pl.pwr.hiervis.visualisation;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.Ellipse2D;
 
 import pl.pwr.hiervis.core.HVConstants;
@@ -32,18 +33,18 @@ public class PointRenderer extends AbstractShapeRenderer
 	@Override
 	protected Shape getRawShape( VisualItem item )
 	{
-		Ellipse2D ellipse = new Ellipse2D.Double(
+		Shape shape = new Rectangle2D.Double(
 			item.getX() - pointSize * 0.5,
 			item.getY() - pointSize * 0.5,
 			pointSize, pointSize
 		);
 
 		if ( !drawLabels || stringRenderer.getText( item ) == null ) {
-			return ellipse;
+			return shape;
 		}
 		else {
 			Area a = new Area( stringRenderer.getRawShape( item ) );
-			a.add( new Area( ellipse ) );
+			a.add( new Area( shape ) );
 			return a;
 		}
 	}
