@@ -86,6 +86,8 @@ public class HVConfig
 	@SerializableField
 	private boolean useSubtree;
 	@SerializableField
+	private boolean useTrueClass;
+	@SerializableField
 	private String preferredLookAndFeel;
 
 
@@ -359,7 +361,6 @@ public class HVConfig
 	private JsonNode serializeField( JsonNodeFactory factory, Field f )
 		throws IllegalArgumentException, IllegalAccessException
 	{
-
 		if ( f.getType().equals( boolean.class ) ) {
 			return factory.booleanNode( f.getBoolean( this ) );
 		}
@@ -616,6 +617,16 @@ public class HVConfig
 	public boolean isUseSubtree()
 	{
 		return this.useSubtree;
+	}
+
+	public void setUseTrueClass( boolean useTrueClass )
+	{
+		this.useTrueClass = useTrueClass;
+	}
+
+	public boolean isUseTrueClass()
+	{
+		return this.useTrueClass;
 	}
 
 	public void setPreferredLookAndFeel( String lookAndFeel )

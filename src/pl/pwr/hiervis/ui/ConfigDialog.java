@@ -30,6 +30,7 @@ import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.ui.components.NumberDocument;
 import pl.pwr.hiervis.util.SwingUIUtils;
+import javax.swing.JCheckBox;
 
 
 @SuppressWarnings("serial")
@@ -49,6 +50,7 @@ public class ConfigDialog extends JDialog
 	private JComboBox<String> listLAF;
 
 	private HVConfig newConfig = null;
+	private JCheckBox cboxUseTrueClass;
 
 
 	public ConfigDialog( HVContext context, Window frame )
@@ -82,9 +84,9 @@ public class ConfigDialog extends JDialog
 		cTabs.addTab( "General", null, cGeneral, null );
 		GridBagLayout gbl_cGeneral = new GridBagLayout();
 		gbl_cGeneral.columnWidths = new int[] { 200, 0 };
-		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0, 0, 0 };
+		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 		gbl_cGeneral.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 1.0 };
+		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
 		cGeneral.setLayout( gbl_cGeneral );
 
 		JLabel lblLAF = new JLabel( "GUI Look And Feel (restart required):" );
@@ -98,7 +100,7 @@ public class ConfigDialog extends JDialog
 		listLAF = new JComboBox<String>();
 		GridBagConstraints gbc_listLAF = new GridBagConstraints();
 		gbc_listLAF.insets = new Insets( 0, 5, 5, 5 );
-		gbc_listLAF.fill = GridBagConstraints.BOTH;
+		gbc_listLAF.fill = GridBagConstraints.HORIZONTAL;
 		gbc_listLAF.gridx = 0;
 		gbc_listLAF.gridy = 1;
 		cGeneral.add( listLAF, gbc_listLAF );
@@ -237,6 +239,14 @@ public class ConfigDialog extends JDialog
 		lblPointHeight.setToolTipText( t );
 		txtPointHeight.setToolTipText( t );
 
+		cboxUseTrueClass = new JCheckBox( "Use true class" );
+		GridBagConstraints gbc_cboxVisTrueClass = new GridBagConstraints();
+		gbc_cboxVisTrueClass.fill = GridBagConstraints.HORIZONTAL;
+		gbc_cboxVisTrueClass.insets = new Insets( 0, 5, 5, 5 );
+		gbc_cboxVisTrueClass.gridx = 0;
+		gbc_cboxVisTrueClass.gridy = 4;
+		cGeneral.add( cboxUseTrueClass, gbc_cboxVisTrueClass );
+
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
 
@@ -251,6 +261,27 @@ public class ConfigDialog extends JDialog
 		txtTreeHeight.setText( "" + cfg.getTreeHeight() );
 		txtPointWidth.setText( "" + cfg.getInstanceWidth() );
 		txtPointHeight.setText( "" + cfg.getInstanceHeight() );
+
+		if ( cfg.hasTrueClassAttribute() ) {
+			cboxUseTrueClass.setEnabled( true );
+			cboxUseTrueClass.setSelected( cfg.isUseTrueClass() );
+
+			cboxUseTrueClass.setToolTipText(
+				SwingUIUtils.toHTML(
+					"If selected, instances will be grouped according to true class instead of assign class."
+				)
+			);
+		}
+		else {
+			cboxUseTrueClass.setEnabled( false );
+			cboxUseTrueClass.setSelected( false );
+
+			cboxUseTrueClass.setToolTipText(
+				SwingUIUtils.toHTML(
+					"Disabled: no hierarchy loaded, or hierarchy has no true class attribute."
+				)
+			);
+		}
 	}
 
 	private void createColorsTab( HVContext context, JTabbedPane cTabs )
@@ -482,6 +513,8 @@ public class ConfigDialog extends JDialog
 		newConfig.setTreeHeight( Integer.parseInt( getText( txtTreeHeight ) ) );
 		newConfig.setPointWidth( Integer.parseInt( getText( txtPointWidth ) ) );
 		newConfig.setPointHeight( Integer.parseInt( getText( txtPointHeight ) ) );
+
+		newConfig.setUseTrueClass( cboxUseTrueClass.isSelected() );
 	}
 
 	/**

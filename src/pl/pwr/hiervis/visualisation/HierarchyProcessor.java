@@ -365,6 +365,8 @@ public class HierarchyProcessor
 		// TODO: Implement some sort of culling so that we remove overlapping instances?
 		// Could use k-d trees maybe?
 
+		HVConfig config = context.getConfig();
+
 		for ( Instance instance : context.getHierarchy().getRoot().getSubtreeInstances() ) {
 			int row = table.addRow();
 
@@ -373,9 +375,11 @@ public class HierarchyProcessor
 				table.set( row, i, data[i] );
 			}
 
-			// TODO: Implement selecting either assign class or ground truth class, based on user setting
-			// Currently using assign class
-			prefuse.data.Node node = context.findGroup( instance.getNodeId() );
+			prefuse.data.Node node = context.findGroup(
+				config.isUseTrueClass()
+					? instance.getTrueClass()
+					: instance.getNodeId()
+			);
 
 			table.set( row, HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, node );
 			// table.set( row, HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, true );
