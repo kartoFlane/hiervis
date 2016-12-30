@@ -9,8 +9,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -96,6 +94,7 @@ public class VisualizerFrame extends JFrame
 		createMenu();
 		createGUI();
 
+		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelected );
 	}
 
@@ -234,10 +233,8 @@ public class VisualizerFrame extends JFrame
 					instanceDisplay.setEnabled( true );
 
 					log.trace( "Parsing..." );
-					Path path = Paths.get( file.getAbsolutePath() );
-
 					Hierarchy hierarchy = new GeneratedCSVReader().load(
-						path.toString(),
+						file.getAbsolutePath(),
 						context.getConfig().hasInstanceNameAttribute(),
 						context.getConfig().hasTrueClassAttribute(),
 						context.getConfig().hasDataNamesRow(),
@@ -247,9 +244,6 @@ public class VisualizerFrame extends JFrame
 
 					log.trace( "Switching hierarchy..." );
 					context.setHierarchy( hierarchy );
-
-					log.trace( "Reprocessing..." );
-					reprocess();
 
 					log.trace( "File selection finished." );
 				}
@@ -315,6 +309,15 @@ public class VisualizerFrame extends JFrame
 
 		Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
 		Utils.fitToBounds( instanceDisplay, Visualization.ALL_ITEMS, 0, 0 );
+	}
+
+	private void onHierarchyChanged( Hierarchy h )
+	{
+		// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
+		if ( context.isHierarchyDataLoaded() ) {
+			log.trace( "Reprocessing..." );
+			reprocess();
+		}
 	}
 
 	private void onNodeSelected( int row )
