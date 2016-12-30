@@ -319,19 +319,18 @@ public class VisualizerFrame extends JFrame
 
 	private void onNodeSelected( int row )
 	{
-		HierarchyProcessor.updateNodeRoles( context, context.getSelectedRow() ); // 7ms
+		HierarchyProcessor.updateNodeRoles( context, context.getSelectedRow() );
 
 		hierarchyDisplay.damageReport();
 		hierarchyDisplay.repaint();
 
 		Node group = context.findGroup( context.getSelectedRow() );
-		Visualization vis = context.createInstanceVisualization( group, 0, 1 ); // 56ms
+		Visualization vis = context.createInstanceVisualization( group, 0, 1 );
 
 		instanceDisplay.setVisualization( vis );
 		instanceDisplay.damageReport();
-		instanceDisplay.repaint();
 
 		vis.run( "draw" );
-		Utils.waitUntilActivitiesAreFinished(); // 100ms
+		Utils.waitUntilActivitiesAreFinished();
 	}
 }

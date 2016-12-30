@@ -138,25 +138,24 @@ public class Utils
 	}
 
 	/**
-	 * Calculates the smallest rectangle containing all points within
-	 * the specified group.
+	 * Returns a rectangle containing the smallest and largest values for each dimension in the specified node.
 	 * 
-	 * @param group
-	 *            the group for which the extents are to be computed
+	 * @param node
+	 *            the node for which the extents are to be computed
 	 * @param dimX
 	 *            index of the data dimension imaged on the X axis
 	 * @param dimY
 	 *            index of the data dimension imaged on the Y axis
 	 * @return the smallest bounding rectangle
 	 */
-	public static Rectangle2D calculateBoundingRectForCluster( Node group, int dimX, int dimY )
+	public static Rectangle2D calculateBoundingRectForCluster( Node node, int dimX, int dimY )
 	{
 		double minX = Double.MAX_VALUE;
 		double minY = Double.MAX_VALUE;
 		double maxX = Double.MIN_VALUE;
 		double maxY = Double.MIN_VALUE;
 
-		for ( Instance i : group.getSubtreeInstances() ) {
+		for ( Instance i : node.getSubtreeInstances() ) {
 			double x = i.getData()[dimX];
 			double y = i.getData()[dimY];
 
