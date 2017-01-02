@@ -37,6 +37,7 @@ import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.MeasureTask;
+import pl.pwr.hiervis.util.SwingUIUtils;
 
 
 /*
@@ -58,10 +59,11 @@ public class HierarchyStatisticsFrame extends JFrame
 	private HVContext context;
 
 	private JPanel cMeasures;
+	private JMenuItem mntmDump;
 
 	private WindowListener ownerListener;
+
 	private HashMap<String, JPanel> measurePanelMap = new HashMap<>();
-	private JMenuItem mntmDump;
 
 
 	public HierarchyStatisticsFrame( HVContext context, Window frame )
@@ -73,6 +75,8 @@ public class HierarchyStatisticsFrame extends JFrame
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		setMinimumSize( new Dimension( 370, 200 ) );
 		setSize( 370, 350 );
+
+		SwingUIUtils.addCloseCallback( frame, this );
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -92,23 +96,6 @@ public class HierarchyStatisticsFrame extends JFrame
 				}
 			}
 		};
-
-		owner.addWindowListener(
-			new WindowAdapter() {
-				@Override
-				public void windowClosing( WindowEvent e )
-				{
-					// Dispatch closing event instead of calling dispose() directly,
-					// so that event listeners are notified.
-					dispatchEvent(
-						new WindowEvent(
-							HierarchyStatisticsFrame.this,
-							WindowEvent.WINDOW_CLOSING
-						)
-					);
-				}
-			}
-		);
 
 		addWindowListener(
 			new WindowAdapter() {

@@ -160,7 +160,7 @@ public class HVContext
 	 * Returns a set of measures that have been computed thus far for the currently loaded hierarchy.
 	 * <p>
 	 * This method is not particularly thread-safe, as the map of measures might be updated with new entries
-	 * while you are processing the set. resulting in missed entries.
+	 * while you are processing the set, resulting in missed entries.
 	 * </p>
 	 * <p>
 	 * For a thread-safe alternative, see {@link #forComputedMeasures(Consumer)}

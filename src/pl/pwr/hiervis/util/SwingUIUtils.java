@@ -1,8 +1,11 @@
 package pl.pwr.hiervis.util;
 
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -225,6 +228,38 @@ public final class SwingUIUtils
 		else {
 			return root.getActionMap().get( actionKey );
 		}
+	}
+
+	/**
+	 * Creates and registers a {@link WindowListener} to {@code parent} window, which causes
+	 * the {@code child} window to close when the {@code parent} window is closed.
+	 * 
+	 * @param parent
+	 *            the window whose closing will cause child to close as well.
+	 * @param child
+	 *            the window that will be closed when parent is closed.
+	 * @return the created listener
+	 */
+	public static WindowListener addCloseCallback( Window parent, Window child )
+	{
+		WindowListener listener = new WindowAdapter() {
+			@Override
+			public void windowClosing( WindowEvent e )
+			{
+				// Dispatch closing event instead of calling dispose() directly,
+				// so that event listeners are notified.
+				child.dispatchEvent(
+					new WindowEvent(
+						child,
+						WindowEvent.WINDOW_CLOSING
+					)
+				);
+			}
+		};
+
+		parent.addWindowListener( listener );
+
+		return listener;
 	}
 
 	/**
