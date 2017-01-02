@@ -406,7 +406,7 @@ public class HierarchyProcessor
 			new RendererFactory() {
 				Renderer rendererAxisX = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
 				Renderer rendererAxisY = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
-				Renderer rendererPoint = new PointRenderer( pointSize );
+				Renderer rendererPoint = new PointRenderer( new Rectangle2D.Double( 0, 0, pointSize, pointSize ) );
 
 
 				public Renderer getRenderer( VisualItem item )

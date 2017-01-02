@@ -3,8 +3,7 @@ package pl.pwr.hiervis.visualisation;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Ellipse2D;
+import java.awt.geom.RectangularShape;
 
 import pl.pwr.hiervis.core.HVConstants;
 import prefuse.Constants;
@@ -14,15 +13,15 @@ import prefuse.visual.VisualItem;
 
 public class PointRenderer extends AbstractShapeRenderer
 {
-	protected int pointSize;
+	private final StringRenderer stringRenderer;
+	private final RectangularShape shape;
 
-	private StringRenderer stringRenderer;
 	private boolean drawLabels = false;
 
 
-	public PointRenderer( int pointSize )
+	public PointRenderer( RectangularShape shape )
 	{
-		this.pointSize = pointSize;
+		this.shape = shape;
 
 		this.stringRenderer = new StringRenderer();
 		this.stringRenderer.setHorizontalAlignment( Constants.LEFT );
@@ -33,10 +32,10 @@ public class PointRenderer extends AbstractShapeRenderer
 	@Override
 	protected Shape getRawShape( VisualItem item )
 	{
-		Shape shape = new Rectangle2D.Double(
-			item.getX() - pointSize * 0.5,
-			item.getY() - pointSize * 0.5,
-			pointSize, pointSize
+		shape.setFrame(
+			item.getX() - shape.getWidth() * 0.5,
+			item.getY() - shape.getHeight() * 0.5,
+			shape.getWidth(), shape.getHeight()
 		);
 
 		if ( !drawLabels || stringRenderer.getText( item ) == null ) {
