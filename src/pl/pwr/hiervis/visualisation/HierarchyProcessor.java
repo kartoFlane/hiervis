@@ -37,7 +37,6 @@ import prefuse.data.Tuple;
 import prefuse.data.expression.AbstractExpression;
 import prefuse.data.expression.ComparisonPredicate;
 import prefuse.data.expression.Literal;
-import prefuse.data.expression.Predicate;
 import prefuse.data.query.NumberRangeModel;
 import prefuse.render.AxisRenderer;
 import prefuse.render.DefaultRendererFactory;
@@ -492,7 +491,7 @@ public class HierarchyProcessor
 	 * its {@link ElementRole}.
 	 */
 	@SuppressWarnings("rawtypes")
-	private static class InstanceNodeExpression extends AbstractExpression implements Predicate
+	private static class InstanceNodeExpression extends AbstractExpression
 	{
 		public Class getType( Schema s )
 		{

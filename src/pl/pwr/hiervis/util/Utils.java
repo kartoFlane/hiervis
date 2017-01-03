@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -65,9 +67,30 @@ public class Utils
 		DisplayLib.fitViewToBounds( display, bounds, duration );
 	}
 
+	/**
+	 * Resets zoom of the specified display. Animated over the specified duration.
+	 * 
+	 * @param display
+	 *            the display to reset
+	 * @param duration
+	 *            the duration of animated transition
+	 */
 	public static void unzoom( Display display, int duration )
 	{
 		DisplayLib.fitViewToBounds( display, display.getBounds(), duration );
+	}
+
+	/**
+	 * Convenience method to set transform of a Display.
+	 */
+	public static void setTransform( Display display, AffineTransform transform )
+	{
+		try {
+			display.setTransform( transform );
+		}
+		catch ( NoninvertibleTransformException e ) {
+			throw new RuntimeException( "Implementation error: this should never happen.", e );
+		}
 	}
 
 	public static BufferedImage getDisplaySnapshot( Display dis )

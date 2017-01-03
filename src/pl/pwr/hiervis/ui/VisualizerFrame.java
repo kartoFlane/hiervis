@@ -8,7 +8,6 @@ import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.io.File;
 import java.io.IOException;
 
@@ -232,9 +231,6 @@ public class VisualizerFrame extends JFrame
 				if ( optionsDialog.hasConfigChanged() ) {
 					context.setConfig( optionsDialog.getConfig() );
 
-					hierarchyDisplay.setEnabled( true );
-					instanceDisplay.setEnabled( true );
-
 					log.trace( "Parsing..." );
 					Hierarchy hierarchy = new GeneratedCSVReader().load(
 						file.getAbsolutePath(),
@@ -308,10 +304,10 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
-		onNodeSelectionChanged( context.getSelectedRow() );
+		// Instance visualization will need to be updated to reflect config changes.
+		instanceDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 
-		Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
-		Utils.fitToBounds( instanceDisplay, Visualization.ALL_ITEMS, 0, 0 );
+		onNodeSelectionChanged( context.getSelectedRow() );
 	}
 
 	private void onHierarchyChanging( Hierarchy h )
@@ -320,15 +316,26 @@ public class VisualizerFrame extends JFrame
 		Utils.unzoom( instanceDisplay, 0 );
 		hierarchyDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 		instanceDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
+		hierarchyDisplay.setEnabled( false );
+		instanceDisplay.setEnabled( false );
 	}
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
 		// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
 		if ( context.isHierarchyDataLoaded() ) {
+			hierarchyDisplay.setEnabled( true );
+			instanceDisplay.setEnabled( true );
+
 			log.trace( "Reprocessing..." );
 			reprocess();
+
+			Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
+			Utils.fitToBounds( instanceDisplay, Visualization.ALL_ITEMS, 0, 0 );
 		}
+
+		// Try to coax the VM into reclaiming some of that freed memory.
+		System.gc();
 	}
 
 	private void onNodeSelectionChanged( int row )
@@ -349,20 +356,13 @@ public class VisualizerFrame extends JFrame
 			vis = context.createInstanceVisualization( group, 0, 1 );
 			instanceDisplay.setVisualization( vis );
 		}
-		else {
-			// Unzoom the display so that drawing is not botched.
-			Utils.unzoom( instanceDisplay, 0 );
-		}
 
+		// Unzoom the display so that drawing is not botched.
+		Utils.unzoom( instanceDisplay, 0 );
 		vis.run( "draw" );
 		Utils.waitUntilActivitiesAreFinished();
 
-		try {
-			// Restore the transform for user's convenience
-			instanceDisplay.setTransform( transform );
-		}
-		catch ( NoninvertibleTransformException e ) {
-			throw new RuntimeException( "Implementation error: this should never happen.", e );
-		}
+		// Restore the transform for user's convenience
+		Utils.setTransform( instanceDisplay, transform );
 	}
 }
