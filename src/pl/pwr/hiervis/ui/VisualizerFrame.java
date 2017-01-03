@@ -7,6 +7,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.io.File;
 import java.io.IOException;
 
@@ -94,8 +96,9 @@ public class VisualizerFrame extends JFrame
 		createMenu();
 		createGUI();
 
+		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
-		context.nodeSelectionChanged.addListener( this::onNodeSelected );
+		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
 	}
 
 	private void createGUI()
@@ -114,7 +117,7 @@ public class VisualizerFrame extends JFrame
 		gbc_cTreeViewer.gridy = 0;
 		getContentPane().add( cTreeViewer, gbc_cTreeViewer );
 
-		hierarchyDisplay = new Display( new Visualization() );
+		hierarchyDisplay = new Display( HVConstants.EMPTY_VISUALIZATION );
 
 		hierarchyDisplay.setEnabled( false );
 		hierarchyDisplay.setHighQuality( true );
@@ -141,7 +144,7 @@ public class VisualizerFrame extends JFrame
 		getContentPane().add( cNodeViewer, gbc_cNodeViewer );
 		cNodeViewer.setLayout( new BorderLayout( 0, 0 ) );
 
-		instanceDisplay = new Display( new Visualization() );
+		instanceDisplay = new Display( HVConstants.EMPTY_VISUALIZATION );
 
 		instanceDisplay.setEnabled( false );
 		instanceDisplay.setHighQuality( true );
@@ -305,10 +308,18 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
-		onNodeSelected( context.getSelectedRow() );
+		onNodeSelectionChanged( context.getSelectedRow() );
 
 		Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
 		Utils.fitToBounds( instanceDisplay, Visualization.ALL_ITEMS, 0, 0 );
+	}
+
+	private void onHierarchyChanging( Hierarchy h )
+	{
+		Utils.unzoom( hierarchyDisplay, 0 );
+		Utils.unzoom( instanceDisplay, 0 );
+		hierarchyDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
+		instanceDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 	}
 
 	private void onHierarchyChanged( Hierarchy h )
@@ -320,20 +331,38 @@ public class VisualizerFrame extends JFrame
 		}
 	}
 
-	private void onNodeSelected( int row )
+	private void onNodeSelectionChanged( int row )
 	{
 		HierarchyProcessor.updateNodeRoles( context, context.getSelectedRow() );
 
+		// Refresh the hierarchy display so that it reflects node roles correctly
 		hierarchyDisplay.damageReport();
 		hierarchyDisplay.repaint();
 
-		Node group = context.findGroup( context.getSelectedRow() );
-		Visualization vis = context.createInstanceVisualization( group, 0, 1 );
+		// However, instance display needs complete redrawing.
+		// Save the current display transform so that we can restore it.
+		AffineTransform transform = (AffineTransform)instanceDisplay.getTransform().clone();
 
-		instanceDisplay.setVisualization( vis );
-		instanceDisplay.damageReport();
+		Visualization vis = instanceDisplay.getVisualization();
+		if ( vis == HVConstants.EMPTY_VISUALIZATION ) {
+			Node group = context.findGroup( context.getSelectedRow() );
+			vis = context.createInstanceVisualization( group, 0, 1 );
+			instanceDisplay.setVisualization( vis );
+		}
+		else {
+			// Unzoom the display so that drawing is not botched.
+			Utils.unzoom( instanceDisplay, 0 );
+		}
 
 		vis.run( "draw" );
 		Utils.waitUntilActivitiesAreFinished();
+
+		try {
+			// Restore the transform for user's convenience
+			instanceDisplay.setTransform( transform );
+		}
+		catch ( NoninvertibleTransformException e ) {
+			throw new RuntimeException( "Implementation error: this should never happen.", e );
+		}
 	}
 }

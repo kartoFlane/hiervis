@@ -1,5 +1,8 @@
 package pl.pwr.hiervis.core;
 
+import prefuse.Visualization;
+
+
 public class HVConstants
 {
 	public static final String PREFUSE_NODE_ID_COLUMN_NAME = "id";
@@ -14,4 +17,6 @@ public class HVConstants
 
 	public static final String CSV_FILE_SEPARATOR = ";";
 	public static final String HIERARCHY_LEVEL_SEPARATOR = "\\.";
+
+	public static final Visualization EMPTY_VISUALIZATION = new Visualization();
 }

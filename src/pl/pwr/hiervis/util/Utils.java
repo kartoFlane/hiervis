@@ -65,6 +65,11 @@ public class Utils
 		DisplayLib.fitViewToBounds( display, bounds, duration );
 	}
 
+	public static void unzoom( Display display, int duration )
+	{
+		DisplayLib.fitViewToBounds( display, display.getBounds(), duration );
+	}
+
 	public static BufferedImage getDisplaySnapshot( Display dis )
 	{
 		BufferedImage img = null;
