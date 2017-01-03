@@ -10,6 +10,7 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -111,13 +112,13 @@ public final class HierarchyVisualizer
 				);
 			}
 			catch ( IOException e ) {
-				System.err.println( "Error while reading input file:" );
-				e.printStackTrace();
+				log.error( "Error while reading input file: ", e );
 			}
 		}
 		else {
-			log.error(
-				"Unrecognised extension of input file: '%s', only *.csv files are supported.%n",
+			log.printf(
+				Level.ERROR,
+				"Unrecognised extension of input file: '%s', only *.csv files are supported.",
 				config.getInputDataFilePath().getFileName()
 			);
 			System.exit( 1 );
@@ -162,19 +163,21 @@ public final class HierarchyVisualizer
 				}
 			}
 			catch ( ClassNotFoundException | UnsupportedLookAndFeelException e ) {
-				log.error(
-					"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
-					config.getPreferredLookAndFeel()
+				log.printf(
+					Level.ERROR,
+					"Could not find a matching L&F for name '%s'. Falling back to system default.",
+					prefLAF
 				);
 			}
 			catch ( Exception ex ) {
-				log.error( "Error occurred while setting preferred LAF: %s", ex );
+				log.error( "Unexpected error occurred while setting preferred L&F: ", ex );
 			}
 
 			if ( !successLAF ) {
-				log.info(
-					"Could not find a matching LAF for name '%s'. Falling back to system default.%n",
-					config.getPreferredLookAndFeel()
+				log.printf(
+					Level.INFO,
+					"Could not find a matching L&F for name '%s'. Falling back to system default.",
+					prefLAF
 				);
 			}
 		}
@@ -187,30 +190,30 @@ public final class HierarchyVisualizer
 			}
 			catch ( Exception ex ) {
 				// If THAT failed, fall back to cross-platform, ie. default Swing look.
-				log.info( "Could not set system default LAF. Falling back to cross-platform LAF.%n" );
+				log.info( "Could not set system default L&F. Falling back to cross-platform L&F." );
 
 				try {
 					UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName() );
 				}
 				catch ( Exception exc ) {
 					// Never happens.
-					log.error( "Error occurred while setting cross-platform LAF: %s", exc );
+					log.error( "Unexpected error occurred while setting cross-platform L&F: ", exc );
 				}
 			}
 
-			// Set the preferred LAF to the current one, so that we don't have to look it up again,
-			// and so that the correct LAF is selected in the config dialog.
+			// Set the preferred L&F to the current one, so that we don't have to look it up again,
+			// and so that the correct L&F is selected in the config dialog.
 			config.setPreferredLookAndFeel( UIManager.getLookAndFeel().getName() );
 		}
 
 		try {
-			// Due to some internal workings of Swing, default sounds are not played for non-default LAFs.
+			// Due to some internal workings of Swing, default sounds are not played for non-default L&Fs.
 			// Details: stackoverflow.com/questions/12128231/12156617#12156617
 			Object[] cueList = (Object[])UIManager.get( "AuditoryCues.cueList" );
 			UIManager.put( "AuditoryCues.playList", cueList );
 		}
 		catch ( Exception e ) {
-			log.error( "Error occurred while setting auditory cues list: %s", e );
+			log.error( "Unexpected error occurred while setting auditory cues list: ", e );
 		}
 
 		// Attempt to set the application name so that it displays correctly on all platforms.
@@ -226,7 +229,6 @@ public final class HierarchyVisualizer
 			awtAppClassNameField.set( xToolkit, APP_NAME );
 		}
 		catch ( Exception e ) {
-			log.trace( "Failed to set app name via toolkit reflection." );
 		}
 
 		// Ensure all popups are triggered from the event dispatch thread.
