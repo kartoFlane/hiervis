@@ -242,10 +242,8 @@ public final class SwingUIUtils
 	 */
 	public static WindowListener addCloseCallback( Window parent, Window child )
 	{
-		WindowListener listener = new WindowAdapter() {
-			@Override
-			public void windowClosing( WindowEvent e )
-			{
+		return addCloseCallback(
+			parent, () -> {
 				// Dispatch closing event instead of calling dispose() directly,
 				// so that event listeners are notified.
 				child.dispatchEvent(
@@ -255,10 +253,28 @@ public final class SwingUIUtils
 					)
 				);
 			}
+		);
+	}
+
+	/**
+	 * Creates and registers a {@link WindowListener} to {@code window}, which executes the callback expression.
+	 * 
+	 * @param window
+	 *            the window whose closing will cause the callback to be executed.
+	 * @param callback
+	 *            the callback to execute when the window closes.
+	 * @return the created listener
+	 */
+	public static WindowListener addCloseCallback( Window window, Runnable callback )
+	{
+		WindowListener listener = new WindowAdapter() {
+			@Override
+			public void windowClosing( WindowEvent e )
+			{
+				callback.run();
+			}
 		};
-
-		parent.addWindowListener( listener );
-
+		window.addWindowListener( listener );
 		return listener;
 	}
 
