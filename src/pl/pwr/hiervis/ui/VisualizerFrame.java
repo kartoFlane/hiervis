@@ -35,6 +35,7 @@ import pl.pwr.hiervis.ui.control.NodeSelectionControl;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.SubtreeDragControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
+import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
@@ -98,6 +99,8 @@ public class VisualizerFrame extends JFrame
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
+
+		SwingUIUtils.addCloseCallback( this, this::onWindowClosing );
 	}
 
 	private void createGUI()
@@ -267,7 +270,7 @@ public class VisualizerFrame extends JFrame
 	 */
 	private void openConfigDialog()
 	{
-		ConfigDialog dialog = new ConfigDialog( context, VisualizerFrame.this );
+		ConfigDialog dialog = new ConfigDialog( context, this );
 
 		// Make the dialog appear at the center of the screen
 		dialog.setLocationRelativeTo( null );
@@ -364,5 +367,10 @@ public class VisualizerFrame extends JFrame
 
 		// Restore the transform for user's convenience
 		Utils.setTransform( instanceDisplay, transform );
+	}
+
+	private void onWindowClosing()
+	{
+		if ( statsFrame != null ) statsFrame.dispose();
 	}
 }

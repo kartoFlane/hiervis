@@ -72,11 +72,9 @@ public class HierarchyStatisticsFrame extends JFrame
 		owner = frame;
 		this.context = context;
 
-		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
+		setDefaultCloseOperation( HIDE_ON_CLOSE );
 		setMinimumSize( new Dimension( 370, 200 ) );
 		setSize( 370, 350 );
-
-		SwingUIUtils.addCloseCallback( frame, this );
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -99,14 +97,6 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		addWindowListener(
 			new WindowAdapter() {
-				@Override
-				public void windowClosing( WindowEvent e )
-				{
-					context.getMeasureComputeThread().measureComputed.removeListener(
-						HierarchyStatisticsFrame.this::onMeasureComputed
-					);
-				}
-
 				@Override
 				public void windowDeactivated( WindowEvent e )
 				{
