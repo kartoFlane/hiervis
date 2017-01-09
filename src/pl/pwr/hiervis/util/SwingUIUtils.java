@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -316,16 +317,35 @@ public final class SwingUIUtils
 	}
 
 	/**
+	 * @return true if the user's system reports XFCE desktop environment.
+	 */
+	public static boolean isXFCE()
+	{
+		return System.getenv( "XDG_CURRENT_DESKTOP" ).toLowerCase( Locale.ENGLISH ).equals( "xfce" );
+	}
+
+	/**
+	 * @return true if the Java version installed on the user's system is identified as OpenJDK
+	 *         (lowercased version string contains 'open jdk' or 'openjdk')
+	 */
+	public static boolean isOpenJDK()
+	{
+		String vmName = System.getProperty( "java.vm.name" ).toLowerCase( Locale.ENGLISH );
+		return vmName.contains( "open jdk" ) || vmName.contains( "openjdk" );
+	}
+
+	/**
 	 * <p>
 	 * Turns the specified message into HTML code, for use with JLabels, tooltips and such,
 	 * to achieve multiline text.
 	 * </p>
 	 * 
+	 * <pre>
 	 * {@literal
-	 * Replaces '\n' with <br/>
-	, '>' and '<' with their HTML equivalents, and wraps
+	 * Replaces '\n' with '<br/>', '>' and '<' with their HTML equivalents, and wraps
 	 * the message in <head></head> tags.
 	 * }
+	 * </pre>
 	 */
 	public static String toHTML( String msg )
 	{

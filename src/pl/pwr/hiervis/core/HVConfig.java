@@ -47,6 +47,7 @@ public class HVConfig
 	private Path inputDataFilePath;
 	@SerializableField
 	private Path outputFolder;
+
 	@SerializableField
 	private Color currentGroupColor;
 	@SerializableField
@@ -59,6 +60,7 @@ public class HVConfig
 	private Color otherGroupColor;
 	@SerializableField
 	private Color backgroundColor;
+
 	@SerializableField
 	private int treeResolutionWidth;
 	@SerializableField
@@ -71,6 +73,7 @@ public class HVConfig
 	private double pointScalingFactor;
 	@SerializableField
 	private int numberOfHistogramBins;
+
 	@SerializableField
 	private boolean displayAllPoints;
 	@SerializableField
@@ -87,8 +90,11 @@ public class HVConfig
 	private boolean useSubtree;
 	@SerializableField
 	private boolean useTrueClass;
+
 	@SerializableField
 	private String preferredLookAndFeel;
+	@SerializableField
+	private boolean stopXfceLafChange;
 
 
 	/**
@@ -116,7 +122,10 @@ public class HVConfig
 		instanceNameAttribute = false;
 		skipVisualisations = false;
 		useSubtree = true;
+		useTrueClass = false;
+
 		preferredLookAndFeel = "";
+		stopXfceLafChange = false;
 	}
 
 	/**
@@ -637,6 +646,16 @@ public class HVConfig
 	public String getPreferredLookAndFeel()
 	{
 		return preferredLookAndFeel;
+	}
+
+	public void setStopXfceLafChange( boolean stopLafChange )
+	{
+		this.stopXfceLafChange = stopLafChange;
+	}
+
+	public boolean isStopXfceLafChange()
+	{
+		return this.stopXfceLafChange;
 	}
 
 	/*

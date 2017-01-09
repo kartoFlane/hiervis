@@ -4,12 +4,16 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.NoSuchElementException;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -90,6 +94,8 @@ public final class HierarchyVisualizer
 
 	private static void executeCLI( HVContext context, String[] args )
 	{
+		// TODO: Rework this whole method, or just scrap it.
+
 		try {
 			CmdLineParser parser = new CmdLineParser();
 			context.setConfig( parser.parse( args, context.getConfig() ) );
@@ -151,18 +157,49 @@ public final class HierarchyVisualizer
 		boolean successLAF = false;
 		String prefLAF = config.getPreferredLookAndFeel();
 
-		if ( prefLAF != null && !prefLAF.isEmpty() ) {
-			try {
-				// Try to use the user's preferred LAF, if we find it.
-				for ( LookAndFeelInfo info : UIManager.getInstalledLookAndFeels() ) {
-					if ( info.getName().equals( config.getPreferredLookAndFeel() ) ) {
-						UIManager.setLookAndFeel( info.getClassName() );
-						successLAF = true;
-						break;
+		if ( SystemUtils.IS_OS_UNIX && SwingUIUtils.isXFCE() && SwingUIUtils.isOpenJDK() ) {
+			// Unix systems running XFCE desktop environment with OpenJDK experience a complete freeze
+			// when running Java apps using the default Swing Look and Feel (Metal theme).
+			// (specifically, when a second dialog window is being displayed).
+			// Workaround is to use a different LAF.
+			log.info( "Detected Unix system running XFCE desktop environment and OpenJDK." );
+
+			if ( prefLAF == null || prefLAF.isEmpty() || prefLAF.equals( "Metal" ) ) {
+				if ( config.isStopXfceLafChange() ) {
+					log.trace( "Leaving LAF unchanged due to user override." );
+				}
+				else {
+					log.info( "Using non-Metal LAF." );
+
+					// Forcibly change LAF to something other than Metal
+					try {
+						prefLAF = Arrays.stream( UIManager.getInstalledLookAndFeels() )
+							.filter( laf -> !laf.getName().toLowerCase( Locale.ENGLISH ).equals( "metal" ) )
+							.findFirst()
+							.get().getName();
+
+						config.setPreferredLookAndFeel( prefLAF );
+					}
+					catch ( NoSuchElementException e ) {
+						log.error( "No LAFs other than Metal are installed." );
 					}
 				}
 			}
-			catch ( ClassNotFoundException | UnsupportedLookAndFeelException e ) {
+		}
+
+		if ( prefLAF != null && !prefLAF.isEmpty() ) {
+			try {
+				// Try to use the user's preferred LAF, if we find it.
+				final String fprefLAF = prefLAF;
+				LookAndFeelInfo lafInfo = Arrays.stream( UIManager.getInstalledLookAndFeels() )
+					.filter( laf -> laf.getName().equals( fprefLAF ) )
+					.findFirst()
+					.get();
+
+				UIManager.setLookAndFeel( lafInfo.getClassName() );
+				successLAF = true;
+			}
+			catch ( NoSuchElementException | ClassNotFoundException | UnsupportedLookAndFeelException e ) {
 				log.printf(
 					Level.ERROR,
 					"Could not find a matching L&F for name '%s'. Falling back to system default.",
@@ -217,18 +254,19 @@ public final class HierarchyVisualizer
 		}
 
 		// Attempt to set the application name so that it displays correctly on all platforms.
-		// Mac
-		System.setProperty( "com.apple.mrj.application.apple.menu.about.name", APP_NAME );
-		System.setProperty( "apple.awt.application.name", APP_NAME );
-
-		// Linux
-		try {
-			Toolkit xToolkit = Toolkit.getDefaultToolkit();
-			Field awtAppClassNameField = xToolkit.getClass().getDeclaredField( "awtAppClassName" );
-			awtAppClassNameField.setAccessible( true );
-			awtAppClassNameField.set( xToolkit, APP_NAME );
+		if ( SystemUtils.IS_OS_MAC ) {
+			System.setProperty( "com.apple.mrj.application.apple.menu.about.name", APP_NAME );
+			System.setProperty( "apple.awt.application.name", APP_NAME );
 		}
-		catch ( Exception e ) {
+		else if ( SystemUtils.IS_OS_LINUX ) {
+			try {
+				Toolkit xToolkit = Toolkit.getDefaultToolkit();
+				Field awtAppClassNameField = xToolkit.getClass().getDeclaredField( "awtAppClassName" );
+				awtAppClassNameField.setAccessible( true );
+				awtAppClassNameField.set( xToolkit, APP_NAME );
+			}
+			catch ( Exception e ) {
+			}
 		}
 
 		// Ensure all popups are triggered from the event dispatch thread.
@@ -247,7 +285,6 @@ public final class HierarchyVisualizer
 		VisualizerFrame frame = new VisualizerFrame( ctx );
 		// Make the frame appear at the center of the screen
 		frame.setLocationRelativeTo( null );
-
 		frame.setVisible( true );
 	}
 }
