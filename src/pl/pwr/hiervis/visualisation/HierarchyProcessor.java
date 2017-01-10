@@ -389,42 +389,49 @@ public class HierarchyProcessor
 		}
 	}
 
-	public static Visualization createInstanceVisualization( HVContext context, Node group, int dimX, int dimY )
+	public static Visualization createInstanceVisualization(
+		HVContext context, Node group, int pointSize,
+		int dimX, int dimY,
+		boolean withLabels )
 	{
 		HVConfig config = context.getConfig();
-
-		// TODO: Make this a config property?
-		int pointSize = 3;
-
 		Visualization vis = new Visualization();
 
 		String nameLabelsX = "labelsX";
 		String nameLabelsY = "labelsY";
 
-		vis.setRendererFactory(
-			new RendererFactory() {
-				Renderer rendererAxisX = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
-				Renderer rendererAxisY = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
-				Renderer rendererPoint = new PointRenderer( new Rectangle2D.Double( 0, 0, pointSize, pointSize ) );
+		if ( withLabels ) {
+			vis.setRendererFactory(
+				new RendererFactory() {
+					Renderer rendererAxisX = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
+					Renderer rendererAxisY = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
+					Renderer rendererPoint = new PointRenderer( new Rectangle2D.Double( 0, 0, pointSize, pointSize ) );
 
 
-				public Renderer getRenderer( VisualItem item )
-				{
-					if ( item.isInGroup( nameLabelsX ) )
-						return rendererAxisX;
-					if ( item.isInGroup( nameLabelsY ) )
-						return rendererAxisY;
-					return rendererPoint;
+					public Renderer getRenderer( VisualItem item )
+					{
+						if ( item.isInGroup( nameLabelsX ) )
+							return rendererAxisX;
+						if ( item.isInGroup( nameLabelsY ) )
+							return rendererAxisY;
+						return rendererPoint;
+					}
 				}
-			}
-		);
+			);
+		}
+		else {
+			vis.setRendererFactory(
+				new DefaultRendererFactory(
+					new PointRenderer( new Rectangle2D.Double( 0, 0, pointSize, pointSize ) )
+				)
+			);
+		}
 
 		Table table = context.getInstanceTable();
+		vis.addTable( HVConstants.INSTANCE_DATA_NAME, table );
 
 		Node root = context.getHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root, dimX, dimY );
-
-		vis.addTable( HVConstants.INSTANCE_DATA_NAME, table );
 
 		AxisLayout axisX = new AxisLayout(
 			HVConstants.INSTANCE_DATA_NAME,
@@ -440,14 +447,6 @@ public class HierarchyProcessor
 		);
 		axisY.setRangeModel( new NumberRangeModel( bounds.getMinY(), bounds.getMaxY(), bounds.getMinY(), bounds.getMaxY() ) );
 
-		AxisLabelLayout labelX = new AxisLabelLayout( nameLabelsX, axisX );
-		labelX.setNumberFormat( NumberFormat.getNumberInstance() );
-		labelX.setScale( Constants.LINEAR_SCALE );
-
-		AxisLabelLayout labelY = new AxisLabelLayout( nameLabelsY, axisY );
-		labelY.setNumberFormat( NumberFormat.getNumberInstance() );
-		labelY.setScale( Constants.LINEAR_SCALE );
-
 		ColorAction colorize = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
 		colorize.setDefaultColor( Utils.rgba( Color.MAGENTA ) );
 		colorize.add( getPredicateFor( ElementRole.CURRENT ), Utils.rgba( config.getCurrentGroupColor() ) );
@@ -459,8 +458,20 @@ public class HierarchyProcessor
 		ActionList drawActions = new ActionList();
 		drawActions.add( axisX );
 		drawActions.add( axisY );
-		drawActions.add( labelX );
-		drawActions.add( labelY );
+
+		if ( withLabels ) {
+			AxisLabelLayout labelX = new AxisLabelLayout( nameLabelsX, axisX );
+			labelX.setNumberFormat( NumberFormat.getNumberInstance() );
+			labelX.setScale( Constants.LINEAR_SCALE );
+
+			AxisLabelLayout labelY = new AxisLabelLayout( nameLabelsY, axisY );
+			labelY.setNumberFormat( NumberFormat.getNumberInstance() );
+			labelY.setScale( Constants.LINEAR_SCALE );
+
+			drawActions.add( labelX );
+			drawActions.add( labelY );
+		}
+
 		drawActions.add( colorize );
 		drawActions.add( new RepaintAction() );
 

@@ -351,7 +351,7 @@ public class VisualizerFrame extends JFrame
 		Visualization vis = instanceDisplay.getVisualization();
 		if ( vis == HVConstants.EMPTY_VISUALIZATION ) {
 			Node group = context.findGroup( context.getSelectedRow() );
-			vis = context.createInstanceVisualization( group, 0, 1 );
+			vis = HierarchyProcessor.createInstanceVisualization( context, group, 3, 0, 1, true );
 			instanceDisplay.setVisualization( vis );
 		}
 

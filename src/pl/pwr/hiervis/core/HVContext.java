@@ -200,11 +200,6 @@ public class HVContext
 		return HierarchyProcessor.createTreeVisualization( this );
 	}
 
-	public Visualization createInstanceVisualization( Node group, int dimX, int dimY )
-	{
-		return HierarchyProcessor.createInstanceVisualization( this, group, dimX, dimY );
-	}
-
 	/**
 	 * Finds the hierarchy group at the specified row.
 	 * 
