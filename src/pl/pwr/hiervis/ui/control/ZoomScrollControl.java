@@ -54,25 +54,23 @@ public class ZoomScrollControl extends AbstractZoomControl
 	@Override
 	public void itemWheelMoved( VisualItem item, MouseWheelEvent e )
 	{
-		mouseWheelMoved( e );
+		if ( m_zoomOverItem )
+			mouseWheelMoved( e );
 	}
 
 	@Override
 	public void mousePressed( MouseEvent e )
 	{
-		Display d = (Display)e.getSource();
+		Display d = (Display)e.getComponent();
 		d.requestFocus();
 	}
 
 	@Override
 	public void mouseWheelMoved( MouseWheelEvent e )
 	{
-		Display d = (Display)e.getSource();
+		Display d = (Display)e.getComponent();
 		d.requestFocus();
-
-		double dz = -e.getWheelRotation() * zoomStep;
-
-		zoom( d, e.getPoint(), 1 + dz, false );
+		zoom( d, e.getPoint(), 1 - zoomStep * e.getWheelRotation(), false );
 	}
 
 	@Override

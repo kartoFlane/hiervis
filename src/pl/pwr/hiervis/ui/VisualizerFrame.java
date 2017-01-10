@@ -60,9 +60,6 @@ public class VisualizerFrame extends JFrame
 	private Display hierarchyDisplay;
 	private Display instanceDisplay;
 
-	private ZoomScrollControl hierarchyZoomControl;
-	private ZoomScrollControl instanceZoomControl;
-
 
 	public VisualizerFrame( HVContext context )
 	{
@@ -132,8 +129,7 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.addControlListener( new NodeSelectionControl( context ) );
 		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
 		hierarchyDisplay.addControlListener( new PanControl( new Class[] { NodeItem.class } ) );
-		hierarchyZoomControl = new ZoomScrollControl();
-		hierarchyDisplay.addControlListener( hierarchyZoomControl );
+		hierarchyDisplay.addControlListener( new ZoomScrollControl() );
 		cTreeViewer.setLayout( new BorderLayout( 0, 0 ) );
 		cTreeViewer.add( hierarchyDisplay );
 
@@ -157,8 +153,7 @@ public class VisualizerFrame extends JFrame
 		);
 
 		instanceDisplay.addControlListener( new PanControl( true ) );
-		instanceZoomControl = new ZoomScrollControl();
-		instanceDisplay.addControlListener( instanceZoomControl );
+		instanceDisplay.addControlListener( new ZoomScrollControl() );
 		instanceDisplay.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
 		cNodeViewer.add( instanceDisplay );
 	}
