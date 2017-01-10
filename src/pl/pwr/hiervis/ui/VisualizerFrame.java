@@ -56,6 +56,7 @@ public class VisualizerFrame extends JFrame
 	private HVContext context;
 
 	private HierarchyStatisticsFrame statsFrame = null;
+	private InstanceVisualizationsFrame visFrame = null;
 
 	private Display hierarchyDisplay;
 	private Display instanceDisplay;
@@ -202,6 +203,24 @@ public class VisualizerFrame extends JFrame
 				// Restore the frame if it was minimized
 				statsFrame.setExtendedState( JFrame.NORMAL );
 				statsFrame.setVisible( true );
+			}
+		);
+
+		JMenuItem mntmVis = new JMenuItem( "Instance Visualizations" );
+		mnView.add( mntmVis );
+
+		mntmVis.addActionListener(
+			e -> {
+				if ( visFrame == null ) {
+					visFrame = new InstanceVisualizationsFrame( context, this );
+					visFrame.setLocationRelativeTo( null );
+				}
+
+				// Restore the frame if it was minimized
+				visFrame.setExtendedState( JFrame.NORMAL );
+				visFrame.setVisible( true );
+
+				visFrame.updateFrameSize();
 			}
 		);
 	}
@@ -367,5 +386,6 @@ public class VisualizerFrame extends JFrame
 	private void onWindowClosing()
 	{
 		if ( statsFrame != null ) statsFrame.dispose();
+		if ( visFrame != null ) visFrame.dispose();
 	}
 }

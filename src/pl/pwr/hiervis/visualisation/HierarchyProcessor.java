@@ -300,7 +300,7 @@ public class HierarchyProcessor
 	 *            the hierarchy to get the names for
 	 * @return array of names for instance features
 	 */
-	private static String[] getFeatureNames( Hierarchy hierarchy )
+	public static String[] getFeatureNames( Hierarchy hierarchy )
 	{
 		String[] dataNames = hierarchy.getDataNames();
 
