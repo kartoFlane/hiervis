@@ -22,13 +22,18 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
+import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.ui.components.MouseWheelEventBubbler;
+import pl.pwr.hiervis.ui.control.PanControl;
+import pl.pwr.hiervis.ui.control.ZoomScrollControl;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;
+import prefuse.controls.ToolTipControl;
 
 
 @SuppressWarnings("serial")
@@ -65,9 +70,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
-		SwingUIUtils.addCloseCallback( this, this::onWindowClosing );
-
 		dimensionVisibilityToggled.addListener( this::onDimensionVisibilityToggled );
+		SwingUIUtils.addCloseCallback( this, this::onWindowClosing );
 	}
 
 	// ----------------------------------------------------------------------------------------
@@ -125,15 +129,13 @@ public class InstanceVisualizationsFrame extends JFrame
 		display.setHighQuality( true );
 		display.setBackground( context.getConfig().getBackgroundColor() );
 
-		// Remove mouse wheel listeners so that the display doesn't needlessly consume them,
-		// allowing the parent scroll pane to scroll even when the mouse cursor is over a display.
-		for ( MouseWheelListener l : display.getMouseWheelListeners() ) {
-			display.removeMouseWheelListener( l );
-		}
+		display.addControlListener( new PanControl( true ) );
+		display.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
+		ZoomScrollControl zoomControl = new ZoomScrollControl();
+		zoomControl.setModifierControl( true );
+		display.addControlListener( zoomControl );
 
-		// display.addControlListener( new PanControl( true ) );
-		// display.addControlListener( new ZoomScrollControl() );
-		// display.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
+		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() ) );
 
 		display.setSize( visWidth, visHeight );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
@@ -257,8 +259,8 @@ public class InstanceVisualizationsFrame extends JFrame
 	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> args )
 	{
 		// Unpack event arguments
-		int dim = args.getKey();
-		boolean horizontal = args.getValue();
+		int dim = args.getLeft();
+		boolean horizontal = args.getRight();
 
 		Node node = context.findGroup( context.getSelectedRow() );
 
