@@ -41,7 +41,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	// TODO: Move this to config, but make modifiable in the vis frame
 	private int visWidth = 200;
 	private int visHeight = 200;
-	private int pointSize = 1;
+	private int pointSize = 3;
 
 	private HashMap<Pair<Integer, Integer>, Display> displayMap;
 	private HashMap<Pair<Integer, Integer>, Boolean> visibilityMap;
@@ -115,11 +115,11 @@ public class InstanceVisualizationsFrame extends JFrame
 		scrollPane.setViewportView( cViewport );
 
 		if ( context.isHierarchyDataLoaded() ) {
-			createVisualizations();
+			createDisplays();
 		}
 	}
 
-	private Display createInstanceDisplay( Visualization vis )
+	private Display createInstanceDisplayFor( Visualization vis )
 	{
 		Display display = new Display( vis );
 		display.setHighQuality( true );
@@ -142,7 +142,27 @@ public class InstanceVisualizationsFrame extends JFrame
 		return display;
 	}
 
-	private void createVisualizations()
+	private void createInstanceDisplayFor( Node node, int x, int y )
+	{
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.insets = new Insets( 5, 5, 5, 5 );
+		constraints.gridx = x;
+		constraints.gridy = y;
+
+		Visualization vis = HierarchyProcessor.createInstanceVisualization(
+			context, node, pointSize, x, y, false
+		);
+		Display display = createInstanceDisplayFor( vis );
+
+		displayMap.put( ImmutablePair.of( x, y ), display );
+		visibilityMap.put( ImmutablePair.of( x, y ), true );
+
+		cViewport.add( display, constraints );
+
+		vis.run( "draw" );
+	}
+
+	private void createDisplays()
 	{
 		// TODO: Make this a config property?
 		final boolean includeFlippedDims = true;
@@ -154,9 +174,9 @@ public class InstanceVisualizationsFrame extends JFrame
 			String dimName = dataNames[i];
 
 			JCheckBox cboxX = new JCheckBox( dimName );
-			cboxX.setSelected( true );
+			cboxX.setSelected( false );
 			JCheckBox cboxY = new JCheckBox( dimName );
-			cboxY.setSelected( true );
+			cboxY.setSelected( false );
 
 			final int d = i;
 			cboxX.addActionListener( e -> setDimensionVisibility( d, true, cboxX.isSelected() ) );
@@ -175,35 +195,19 @@ public class InstanceVisualizationsFrame extends JFrame
 		gbl_cViewport.rowWeights[dims] = Double.MIN_VALUE;
 		cViewport.setLayout( gbl_cViewport );
 
-		Node node = context.findGroup( context.getSelectedRow() );
-
 		for ( int y = 0; y < dims; ++y ) {
-			// HVConstants.INSTANCE_DATA_NAME
 			// Column count is equal to row count, so we can use y here.
 			gbl_cViewport.columnWidths[y] = visWidth;
 			gbl_cViewport.rowHeights[y] = visHeight;
 
 			for ( int x = 0; x < dims; ++x ) {
 				if ( x == y ) {
+					// TODO: Histogram
 					continue;
 				}
 				else if ( !includeFlippedDims || ( includeFlippedDims && x > y ) ) {
-					GridBagConstraints constraints = new GridBagConstraints();
-					constraints.insets = new Insets( 5, 5, 5, 5 );
-					constraints.gridx = x;
-					constraints.gridy = y;
-
-					Visualization vis = HierarchyProcessor.createInstanceVisualization(
-						context, node, pointSize, x, y, false
-					);
-					Display display = createInstanceDisplay( vis );
-
-					displayMap.put( ImmutablePair.of( x, y ), display );
-					visibilityMap.put( ImmutablePair.of( x, y ), true );
-
-					cViewport.add( display, constraints );
-
-					vis.run( "draw" );
+					displayMap.put( ImmutablePair.of( x, y ), null );
+					visibilityMap.put( ImmutablePair.of( x, y ), false );
 				}
 			}
 		}
@@ -250,10 +254,42 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	// ----------------------------------------------------------------------------------------
 
-	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> p )
+	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> args )
 	{
-		for ( Entry<Pair<Integer, Integer>, Display> entry : displayMap.entrySet() ) {
-			entry.getValue().setVisible( visibilityMap.get( entry.getKey() ) );
+		// Unpack event arguments
+		int dim = args.getKey();
+		boolean horizontal = args.getValue();
+
+		Node node = context.findGroup( context.getSelectedRow() );
+
+		for ( Pair<Integer, Integer> pair : visibilityMap.keySet() ) {
+			int x = pair.getLeft();
+			int y = pair.getRight();
+
+			if ( ( horizontal && x == dim ) ||
+				( !horizontal && y == dim ) ) {
+
+				if ( x == y ) {
+					// TODO: Histogram
+					continue;
+				}
+				else {
+					Display display = displayMap.getOrDefault( pair, null );
+					boolean vis = visibilityMap.get( pair );
+
+					if ( display == null ) {
+						// Lazily create the requested display.
+						createInstanceDisplayFor( node, x, y );
+					}
+					else {
+						// If the display was previously hidden, redraw it.
+						display.setVisible( vis );
+						if ( vis ) {
+							redrawDisplay( display );
+						}
+					}
+				}
+			}
 		}
 
 		revalidate();
@@ -276,7 +312,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
-		createVisualizations();
+		createDisplays();
 
 		revalidate();
 		repaint();
@@ -287,10 +323,18 @@ public class InstanceVisualizationsFrame extends JFrame
 		for ( Entry<Pair<Integer, Integer>, Display> entry : displayMap.entrySet() ) {
 			Display display = entry.getValue();
 
-			// Unzoom the display so that drawing is not botched.
-			Utils.unzoom( display, 0 );
-			display.getVisualization().run( "draw" );
+			// Don't redraw hidden displays.
+			if ( visibilityMap.get( entry.getKey() ) ) {
+				redrawDisplay( display );
+			}
 		}
+	}
+
+	private static void redrawDisplay( Display d )
+	{
+		// Unzoom the display so that drawing is not botched.
+		Utils.unzoom( d, 0 );
+		d.getVisualization().run( "draw" );
 	}
 
 	private void onWindowClosing()
