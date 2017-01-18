@@ -1,5 +1,6 @@
 package pl.pwr.hiervis.ui;
 
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
@@ -7,11 +8,15 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -23,6 +28,8 @@ import javax.swing.plaf.basic.BasicLabelUI;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
@@ -44,18 +51,23 @@ import prefuse.controls.ToolTipControl;
 @SuppressWarnings("serial")
 public class InstanceVisualizationsFrame extends JFrame
 {
+	private static final Logger log = LogManager.getLogger( InstanceVisualizationsFrame.class );
+
 	public final Event<Pair<Integer, Boolean>> dimensionVisibilityToggled = new Event<>();
 
 	private HVContext context;
 
-	// TODO: Move this to config, but make modifiable in the vis frame
+	// TODO: Move this to config, but make modifiable in the vis frame?
 	private int visWidth = 200;
 	private int visHeight = 200;
 	private int pointSize = 3;
 	private Insets displayInsets = new Insets( 5, 5, 5, 5 );
 
 	private HashMap<Pair<Integer, Integer>, Display> displayMap;
-	private HashMap<Pair<Integer, Integer>, Boolean> visibilityMap;
+	private Map<Integer, JComponent> dimHolderMap;
+
+	private JCheckBox[] cboxesHorizontal;
+	private JCheckBox[] cboxesVertical;
 
 	private JPanel cDimsH;
 	private JPanel cDimsV;
@@ -64,13 +76,24 @@ public class InstanceVisualizationsFrame extends JFrame
 	private JPanel cViewport;
 
 
+	/*
+	 * TODO
+	 * - dimension headers need to update to reflect display sizes
+	 * - checkboxes need to wrap around when there's a large number of them, or scroll
+	 * - visualizations *sometimes* have the wrong initial size; need to force max vis area
+	 * - seem to recall seeing the scrollview being stretched out by many visualizations
+	 * and then not shrinking correctly after they were hidden
+	 * - histograms
+	 * - double click to open large frame to show only that vis in large mode
+	 */
+
 	public InstanceVisualizationsFrame( HVContext context, Frame owner )
 	{
 		super( "Instance Visualizations" );
 		this.context = context;
 
 		displayMap = new HashMap<>();
-		visibilityMap = new HashMap<>();
+		dimHolderMap = new HashMap<>();
 
 		setDefaultCloseOperation( HIDE_ON_CLOSE );
 
@@ -80,7 +103,6 @@ public class InstanceVisualizationsFrame extends JFrame
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
 		dimensionVisibilityToggled.addListener( this::onDimensionVisibilityToggled );
-		SwingUIUtils.addCloseCallback( this, this::onWindowClosing );
 	}
 
 	// ----------------------------------------------------------------------------------------
@@ -122,6 +144,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		getContentPane().add( scrollPane, gbc_cScrollVis );
 
 		cViewport = new JPanel();
+		cViewport.setLayout( new BoxLayout( cViewport, BoxLayout.Y_AXIS ) );
+
 		scrollPane.setViewportView( cViewport );
 
 		cCols = new JPanel();
@@ -140,10 +164,17 @@ public class InstanceVisualizationsFrame extends JFrame
 		scrollPane.getVerticalScrollBar().setUnitIncrement( 16 );
 
 		if ( context.isHierarchyDataLoaded() ) {
-			createDisplays();
+			updateUI();
 		}
 	}
 
+	/**
+	 * Creates a properly configured, interactable display which can be used to show instance visualizations.
+	 * 
+	 * @param vis
+	 *            the visualization to create the display for.
+	 * @return the display
+	 */
 	private Display createInstanceDisplayFor( Visualization vis )
 	{
 		Display display = new Display( vis );
@@ -158,40 +189,255 @@ public class InstanceVisualizationsFrame extends JFrame
 
 		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() ) );
 
-		display.setSize( visWidth, visHeight );
+		// display.setMaximumSize( new Dimension( visWidth, visHeight ) );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
+		display.setSize( visWidth, visHeight );
+
 		Utils.unzoom( display, 0 );
 
 		return display;
 	}
 
-	private void createInstanceDisplayFor( Node node, int x, int y )
+	/**
+	 * Creates an instance display for the specified dimensions and the specified node
+	 * 
+	 * @param node
+	 *            node that is currently selected in the hierarchy view
+	 * @param dimX
+	 *            dimension number on the X axis (0 based)
+	 * @param dimY
+	 *            dimension number on the Y axis (0 based)
+	 * @return the display
+	 */
+	private Display createInstanceDisplayFor( Node node, int dimX, int dimY )
 	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.insets = displayInsets;
-		constraints.gridx = x;
-		constraints.gridy = y;
+		Visualization vis = null;
 
-		Visualization vis = HierarchyProcessor.createInstanceVisualization(
-			context, node, pointSize, x, y, false
-		);
+		if ( dimX == dimY ) {
+			// TODO: Histogram
+			vis = new Visualization();
+		}
+		else {
+			vis = HierarchyProcessor.createInstanceVisualization(
+				context, node, pointSize, dimX, dimY, false
+			);
+		}
+
 		Display display = createInstanceDisplayFor( vis );
+		display.setAlignmentX( 0 );
+		display.setAlignmentY( 0 );
 
-		displayMap.put( ImmutablePair.of( x, y ), display );
-		visibilityMap.put( ImmutablePair.of( x, y ), true );
-
-		cViewport.add( display, constraints );
+		displayMap.put( ImmutablePair.of( dimX, dimY ), display );
 
 		vis.run( "draw" );
+
+		return display;
 	}
 
-	private void createDisplays()
+	/**
+	 * @param dim
+	 *            the dimension number to return the index for (0 based)
+	 * @param horizontal
+	 *            whether to return index for horizontal or vertical axis
+	 * @return index of the leftmost / topmost strut separating the compartment from others.
+	 *         (add 1 to this in order to get the index of the display)
+	 */
+	private int dimToIndex( int dim, boolean horizontal )
 	{
-		// TODO: Make this a config property?
-		final boolean includeFlippedDims = true;
+		JCheckBox[] arr = horizontal
+			? cboxesHorizontal
+			: cboxesVertical;
 
+		int visiblePrevCount = 0;
+		for ( int i = 0; i < dim; ++i ) {
+			if ( arr[i].isSelected() )
+				++visiblePrevCount;
+		}
+
+		return visiblePrevCount * 3;
+	}
+
+	/**
+	 * @param dimY
+	 *            the dimension number to return the holder for (0 based)
+	 * @return the holder component for the specified Y dimension
+	 */
+	private JComponent getOrCreateDisplayHolder( int dimY )
+	{
+		JComponent holder = dimHolderMap.getOrDefault( dimY, null );
+
+		if ( holder == null ) {
+			holder = createDisplayHolder( dimY );
+
+			int iy = dimToIndex( dimY, false ) + 1; // +1 to skip the first strut
+
+			cViewport.add( Box.createVerticalStrut( 5 ), iy - 1 );
+			cViewport.add( holder, iy );
+			cViewport.add( Box.createVerticalStrut( 5 ), iy + 1 );
+
+			dimHolderMap.put( dimY, holder );
+		}
+
+		return holder;
+	}
+
+	/**
+	 * Sets the visibility of the display for the specified dimensions.
+	 * 
+	 * @param dimX
+	 *            the dimensions number of X axis (0 based)
+	 * @param dimY
+	 *            the dimensions number of Y axis (0 based)
+	 * @param vis
+	 *            whether to make the dispay visible or not
+	 */
+	private void setDisplayVisible( int dimX, int dimY, boolean vis )
+	{
+		Display display = displayMap.get( ImmutablePair.of( dimX, dimY ) );
+
+		if ( vis && !display.isVisible() ) {
+			showDisplay( display, dimX, dimY );
+		}
+		else if ( !vis && display.isVisible() ) {
+			hideDisplay( display, dimX, dimY );
+		}
+	}
+
+	/**
+	 * Inserts the specified display as the specified dimensions
+	 * (automatically figures correct indices to physically insert the component at)
+	 * 
+	 * @param display
+	 *            the display to insert
+	 * @param dimX
+	 *            the dimension number of X axis (0 based)
+	 * @param dimY
+	 *            the dimension number of Y axis (0 based)
+	 */
+	private void showDisplay( Display display, int dimX, int dimY )
+	{
+		JComponent holder = getOrCreateDisplayHolder( dimY );
+
+		int ix = dimToIndex( dimX, true );
+
+		holder.add( Box.createHorizontalStrut( 5 ), ix );
+		holder.add( display, ix + 1 );
+		holder.add( Box.createHorizontalStrut( 5 ), ix + 2 );
+
+		display.setVisible( true );
+	}
+
+	/**
+	 * Removes the specified display from the UI.
+	 * If no displays are visible in the Y-th row, the holder is also removed.
+	 * 
+	 * @param display
+	 *            the display to remove
+	 * @param dimX
+	 *            the dimension number of X axis (0 based).
+	 *            Currently unused.
+	 * @param dimY
+	 *            the dimension number of Y axis (0 based).
+	 *            Used to figure the number of children below which the holder should be removed.
+	 */
+	private void hideDisplay( Display display, int dimX, int dimY )
+	{
+		// TODO: Rework this method, could completely remove dimX/dimY args?
+
+		Container holder = display.getParent();
+
+		// -1 to get the index of the first strut
+		int ix = SwingUIUtils.getComponentIndex( display ) - 1;
+		int iy = SwingUIUtils.getComponentIndex( holder ) - 1;
+
+		holder.remove( ix ); // left strut
+		holder.remove( ix ); // display itself
+		holder.remove( ix ); // right strut
+
+		display.setVisible( false );
+
+		holder.revalidate();
+
+		int count = holder.getComponentCount();
+		if ( count <= dimY * 3 ) {
+			dimHolderMap.remove( dimY );
+			cViewport.remove( iy ); // top strut
+			cViewport.remove( iy ); // holder itself
+			cViewport.remove( iy ); // bottom strut
+
+			cViewport.revalidate();
+		}
+	}
+
+	/**
+	 * @param horizontal
+	 *            if true, visibility will be determined by checking the horizontal checkboxes.
+	 *            If false, vertical ones will be used instead.
+	 * @return array of dimension numbers whose checkboxes are currently checked.
+	 *         Ordered from left-to-right (if horizontal is true) / top-to-bottom (if false).
+	 */
+	private int[] getVisibleDimensions( boolean horizontal )
+	{
+		JCheckBox[] arr = horizontal
+			? cboxesHorizontal
+			: cboxesVertical;
+
+		int count = (int)Arrays.stream( arr ).filter( cbox -> cbox.isSelected() ).count();
+		int[] result = new int[count];
+
+		int j = 0;
+		for ( int i = 0; i < arr.length; ++i ) {
+			if ( arr[i].isSelected() )
+				result[j++] = i;
+		}
+
+		return result;
+	}
+
+	private void updateUI()
+	{
 		String[] dataNames = HierarchyProcessor.getFeatureNames( context.getHierarchy() );
+
+		updateCheckboxes( dataNames );
+
+		int[] visDimsH = getVisibleDimensions( true );
+		int[] visDimsV = getVisibleDimensions( false );
+
+		updateLabels( dataNames, visDimsH, visDimsV );
+	}
+
+	private void updateCheckboxes( String[] dataNames )
+	{
+		cDimsH.removeAll();
+		cDimsV.removeAll();
 		int dims = dataNames.length;
+
+		cboxesHorizontal = new JCheckBox[dims];
+		cboxesVertical = new JCheckBox[dims];
+
+		for ( int i = 0; i < dims; ++i ) {
+			JCheckBox cboxH = new JCheckBox( dataNames[i] );
+			JCheckBox cboxV = new JCheckBox( dataNames[i] );
+
+			cboxH.setSelected( false );
+			cboxV.setSelected( false );
+
+			final int d = i;
+			cboxH.addActionListener( e -> dimensionVisibilityToggled.broadcast( ImmutablePair.of( d, true ) ) );
+			cboxV.addActionListener( e -> dimensionVisibilityToggled.broadcast( ImmutablePair.of( d, false ) ) );
+
+			cDimsH.add( cboxH );
+			cDimsV.add( cboxV );
+
+			cboxesHorizontal[i] = cboxH;
+			cboxesVertical[i] = cboxV;
+		}
+	}
+
+	private void updateLabels( String[] dataNames, int[] visibleDimsH, int[] visibleDimsV )
+	{
+		cCols.removeAll();
+		cRows.removeAll();
 
 		int h = new JLabel( " " ).getPreferredSize().height;
 		int insetsH = displayInsets.left + displayInsets.right;
@@ -199,62 +445,42 @@ public class InstanceVisualizationsFrame extends JFrame
 		Dimension labelSizeH = new Dimension( visWidth + insetsH, h );
 		Dimension labelSizeV = new Dimension( h, visHeight + insetsV );
 
-		cCols.setPreferredSize( new Dimension( ( visWidth + insetsH ) * dims, h ) );
-		cRows.setPreferredSize( new Dimension( h, ( visHeight + insetsV ) * dims ) );
+		cCols.setPreferredSize( new Dimension( ( visWidth + insetsH ) * visibleDimsH.length, h ) );
+		cRows.setPreferredSize( new Dimension( h, ( visHeight + insetsV ) * visibleDimsV.length ) );
+
+		for ( int i = 0; i < visibleDimsH.length; ++i ) {
+			JLabel lbl = new JLabel( dataNames[visibleDimsH[i]] );
+			lbl.setHorizontalAlignment( SwingConstants.CENTER );
+			lbl.setMaximumSize( labelSizeH );
+			cCols.add( lbl );
+		}
 
 		BasicLabelUI verticalUI = new VerticalLabelUI( false );
-		for ( int i = 0; i < dims; ++i ) {
-			String dimName = dataNames[i];
+		for ( int i = 0; i < visibleDimsV.length; ++i ) {
+			JLabel lbl = new JLabel( dataNames[visibleDimsV[i]] );
+			lbl.setUI( verticalUI );
+			lbl.setHorizontalAlignment( SwingConstants.CENTER );
+			lbl.setMaximumSize( labelSizeV );
+			cRows.add( lbl );
+		}
+	}
 
-			JCheckBox cboxH = new JCheckBox( dimName );
-			cboxH.setSelected( false );
-			JCheckBox cboxV = new JCheckBox( dimName );
-			cboxV.setSelected( false );
+	private JComponent createDisplayHolder( int dimY )
+	{
+		JComponent result = Box.createHorizontalBox();
+		result.setAlignmentX( 0 );
+		result.setAlignmentY( 0 );
 
-			final int d = i;
-			cboxH.addActionListener( e -> setDimensionVisibility( d, true, cboxH.isSelected() ) );
-			cboxV.addActionListener( e -> setDimensionVisibility( d, false, cboxV.isSelected() ) );
-
-			cDimsH.add( cboxH );
-			cDimsV.add( cboxV );
-
-			JLabel lblH = new JLabel( dimName );
-			lblH.setHorizontalAlignment( SwingConstants.CENTER );
-			lblH.setMaximumSize( labelSizeH );
-			cCols.add( lblH );
-
-			JLabel lblV = new JLabel( dimName );
-			lblV.setUI( verticalUI );
-			lblV.setHorizontalAlignment( SwingConstants.CENTER );
-			lblV.setMaximumSize( labelSizeV );
-			cRows.add( lblV );
+		for ( int x = 0; x < dimY; ++x ) {
+			result.add( Box.createHorizontalStrut( 5 ) );
+			Box box = Box.createHorizontalBox();
+			box.add( Box.createHorizontalStrut( visWidth ) );
+			box.add( Box.createHorizontalGlue() );
+			result.add( box );
+			result.add( Box.createHorizontalStrut( 5 ) );
 		}
 
-		GridBagLayout gbl_cViewport = new GridBagLayout();
-		gbl_cViewport.columnWidths = new int[dims + 1];
-		gbl_cViewport.rowHeights = new int[dims + 1];
-		gbl_cViewport.columnWeights = new double[dims + 1];
-		gbl_cViewport.columnWeights[dims] = Double.MIN_VALUE;
-		gbl_cViewport.rowWeights = new double[dims + 1];
-		gbl_cViewport.rowWeights[dims] = Double.MIN_VALUE;
-		cViewport.setLayout( gbl_cViewport );
-
-		for ( int y = 0; y < dims; ++y ) {
-			// Column count is equal to row count, so we can use y here.
-			gbl_cViewport.columnWidths[y] = visWidth;
-			gbl_cViewport.rowHeights[y] = visHeight;
-
-			for ( int x = 0; x < dims; ++x ) {
-				if ( x == y ) {
-					// TODO: Histogram
-					continue;
-				}
-				else if ( !includeFlippedDims || ( includeFlippedDims && x > y ) ) {
-					displayMap.put( ImmutablePair.of( x, y ), null );
-					visibilityMap.put( ImmutablePair.of( x, y ), false );
-				}
-			}
-		}
+		return result;
 	}
 
 	public void updateFrameSize()
@@ -285,56 +511,53 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 	}
 
-	private void setDimensionVisibility( int d, boolean horizontal, boolean visible )
+	private boolean isDisplayVisible( int x, int y )
 	{
-		for ( Pair<Integer, Integer> pair : visibilityMap.keySet() ) {
-			if ( ( horizontal && pair.getLeft() == d ) || ( !horizontal && pair.getRight() == d ) ) {
-				visibilityMap.put( pair, visible );
-			}
-		}
-
-		dimensionVisibilityToggled.broadcast( ImmutablePair.of( d, horizontal ) );
+		return cboxesHorizontal[x].isSelected() && cboxesVertical[y].isSelected();
 	}
 
 	// ----------------------------------------------------------------------------------------
 
 	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> args )
 	{
+		// TODO: Make this a config property?
+		final boolean includeFlippedDims = false;
+
 		// Unpack event arguments
 		int dim = args.getLeft();
 		boolean horizontal = args.getRight();
 
 		Node node = context.findGroup( context.getSelectedRow() );
 
-		for ( Pair<Integer, Integer> pair : visibilityMap.keySet() ) {
-			int x = pair.getLeft();
-			int y = pair.getRight();
+		for ( int i = 0; i < cboxesVertical.length; ++i ) {
+			int x = horizontal ? dim : i;
+			int y = horizontal ? i : dim;
 
-			if ( ( horizontal && x == dim ) ||
-				( !horizontal && y == dim ) ) {
+			Display display = displayMap.get( ImmutablePair.of( x, y ) );
+			boolean vis = isDisplayVisible( x, y );
 
-				if ( x == y ) {
-					// TODO: Histogram
-					continue;
-				}
-				else {
-					Display display = displayMap.getOrDefault( pair, null );
-					boolean vis = visibilityMap.get( pair );
-
-					if ( display == null ) {
+			if ( display == null ) {
+				if ( vis ) {
+					if ( includeFlippedDims || ( !includeFlippedDims && x >= y ) ) {
 						// Lazily create the requested display.
-						createInstanceDisplayFor( node, x, y );
-					}
-					else {
-						// If the display was previously hidden, redraw it.
-						display.setVisible( vis );
-						if ( vis ) {
-							redrawDisplay( display );
-						}
+						display = createInstanceDisplayFor( node, x, y );
+						showDisplay( display, x, y );
 					}
 				}
 			}
+			else {
+				// If the display was previously hidden, redraw it.
+				setDisplayVisible( x, y, vis );
+				if ( vis ) {
+					redrawDisplay( display );
+				}
+			}
 		}
+
+		int[] visDimsH = getVisibleDimensions( true );
+		int[] visDimsV = getVisibleDimensions( false );
+		String[] dataNames = HierarchyProcessor.getFeatureNames( context.getHierarchy() );
+		updateLabels( dataNames, visDimsH, visDimsV );
 
 		revalidate();
 		repaint();
@@ -344,11 +567,10 @@ public class InstanceVisualizationsFrame extends JFrame
 	{
 		// Clear all visualizations
 		displayMap.clear();
-		visibilityMap.clear();
+		dimHolderMap.clear();
 
 		cDimsH.removeAll();
 		cDimsV.removeAll();
-
 		cCols.removeAll();
 		cRows.removeAll();
 		cViewport.removeAll();
@@ -359,7 +581,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
-		createDisplays();
+		updateUI();
 
 		revalidate();
 		repaint();
@@ -371,7 +593,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			Display display = entry.getValue();
 
 			// Don't redraw hidden displays.
-			if ( visibilityMap.get( entry.getKey() ) ) {
+			if ( display.isVisible() ) {
 				redrawDisplay( display );
 			}
 		}
@@ -382,9 +604,5 @@ public class InstanceVisualizationsFrame extends JFrame
 		// Unzoom the display so that drawing is not botched.
 		Utils.unzoom( d, 0 );
 		d.getVisualization().run( "draw" );
-	}
-
-	private void onWindowClosing()
-	{
 	}
 }
