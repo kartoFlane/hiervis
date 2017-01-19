@@ -1,5 +1,7 @@
 package pl.pwr.hiervis.ui;
 
+import java.awt.Adjustable;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -8,6 +10,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +57,15 @@ public class InstanceVisualizationsFrame extends JFrame
 {
 	private static final Logger log = LogManager.getLogger( InstanceVisualizationsFrame.class );
 
+	private static final int defaultLabelHeight = new JLabel( " " ).getPreferredSize().height;
+	private static final int visWidthMin = 100;
+	private static final int visWidthMax = 1000;
+	private static final int visHeightMin = 100;
+	private static final int visHeightMax = 1000;
+	private static final int visZoomIncrement = 5;
+
 	public final Event<Pair<Integer, Boolean>> dimensionVisibilityToggled = new Event<>();
+
 
 	private HVContext context;
 
@@ -162,6 +174,70 @@ public class InstanceVisualizationsFrame extends JFrame
 
 		scrollPane.getHorizontalScrollBar().setUnitIncrement( 16 );
 		scrollPane.getVerticalScrollBar().setUnitIncrement( 16 );
+
+		// Remove and replace the original listener to prevent the view from scrolling
+		// when using control+scroll to resize all visible Displays
+		scrollPane.removeMouseWheelListener( scrollPane.getMouseWheelListeners()[0] );
+		scrollPane.addMouseWheelListener(
+			new MouseWheelListener() {
+				@Override
+				public void mouseWheelMoved( MouseWheelEvent e )
+				{
+					if ( e.isControlDown() ) {
+						visWidth -= e.getWheelRotation() * visZoomIncrement;
+						visHeight -= e.getWheelRotation() * visZoomIncrement;
+
+						visWidth = Utils.clamp( visWidthMin, visWidth, visWidthMax );
+						visHeight = Utils.clamp( visHeightMin, visHeight, visHeightMax );
+
+						for ( Display display : displayMap.values() ) {
+							display.setPreferredSize( new Dimension( visWidth, visHeight ) );
+							display.setSize( visWidth, visHeight );
+						}
+
+						int insetsH = displayInsets.left + displayInsets.right;
+						int insetsV = displayInsets.top + displayInsets.bottom;
+
+						int[] visDimsH = getVisibleDimensions( true );
+						int[] visDimsV = getVisibleDimensions( false );
+
+						Dimension labelSizeH = new Dimension( visWidth + insetsH, defaultLabelHeight );
+						Dimension labelSizeV = new Dimension( defaultLabelHeight, visHeight + insetsV );
+
+						cCols.setPreferredSize( new Dimension( ( visWidth + insetsH ) * visDimsH.length, defaultLabelHeight ) );
+						cRows.setPreferredSize( new Dimension( defaultLabelHeight, ( visHeight + insetsV ) * visDimsV.length ) );
+
+						for ( Component c : cCols.getComponents() ) {
+							JLabel lbl = (JLabel)c;
+							lbl.setMaximumSize( labelSizeH );
+						}
+						for ( Component c : cRows.getComponents() ) {
+							JLabel lbl = (JLabel)c;
+							lbl.setMaximumSize( labelSizeV );
+						}
+
+						cCols.revalidate();
+						cRows.revalidate();
+						scrollPane.revalidate();
+						repaint();
+					}
+
+					// Source: http://stackoverflow.com/q/8351143
+					else if ( e.isShiftDown() || !scrollPane.getVerticalScrollBar().isVisible() ) {
+						// Horizontal scrolling
+						Adjustable adj = scrollPane.getHorizontalScrollBar();
+						int scroll = e.getUnitsToScroll() * adj.getBlockIncrement();
+						adj.setValue( adj.getValue() + scroll );
+					}
+					else {
+						// Vertical scrolling
+						Adjustable adj = scrollPane.getVerticalScrollBar();
+						int scroll = e.getUnitsToScroll() * adj.getBlockIncrement();
+						adj.setValue( adj.getValue() + scroll );
+					}
+				}
+			}
+		);
 
 		if ( context.isHierarchyDataLoaded() ) {
 			updateUI();
@@ -439,14 +515,13 @@ public class InstanceVisualizationsFrame extends JFrame
 		cCols.removeAll();
 		cRows.removeAll();
 
-		int h = new JLabel( " " ).getPreferredSize().height;
 		int insetsH = displayInsets.left + displayInsets.right;
 		int insetsV = displayInsets.top + displayInsets.bottom;
-		Dimension labelSizeH = new Dimension( visWidth + insetsH, h );
-		Dimension labelSizeV = new Dimension( h, visHeight + insetsV );
+		Dimension labelSizeH = new Dimension( visWidth + insetsH, defaultLabelHeight );
+		Dimension labelSizeV = new Dimension( defaultLabelHeight, visHeight + insetsV );
 
-		cCols.setPreferredSize( new Dimension( ( visWidth + insetsH ) * visibleDimsH.length, h ) );
-		cRows.setPreferredSize( new Dimension( h, ( visHeight + insetsV ) * visibleDimsV.length ) );
+		cCols.setPreferredSize( new Dimension( ( visWidth + insetsH ) * visibleDimsH.length, defaultLabelHeight ) );
+		cRows.setPreferredSize( new Dimension( defaultLabelHeight, ( visHeight + insetsV ) * visibleDimsV.length ) );
 
 		for ( int i = 0; i < visibleDimsH.length; ++i ) {
 			JLabel lbl = new JLabel( dataNames[visibleDimsH[i]] );
