@@ -240,9 +240,10 @@ public class InstanceVisualizationsFrame extends JFrame
 		);
 
 		if ( context.isHierarchyDataLoaded() ) {
-			updateUI();
+			recreateUI();
 		}
 	}
+
 
 	/**
 	 * Creates a properly configured, interactable display which can be used to show instance visualizations.
@@ -470,19 +471,19 @@ public class InstanceVisualizationsFrame extends JFrame
 		return result;
 	}
 
-	private void updateUI()
+	private void recreateUI()
 	{
 		String[] dataNames = HierarchyProcessor.getFeatureNames( context.getHierarchy() );
 
-		updateCheckboxes( dataNames );
+		recreateCheckboxes( dataNames );
 
 		int[] visDimsH = getVisibleDimensions( true );
 		int[] visDimsV = getVisibleDimensions( false );
 
-		updateLabels( dataNames, visDimsH, visDimsV );
+		recreateLabels( dataNames, visDimsH, visDimsV );
 	}
 
-	private void updateCheckboxes( String[] dataNames )
+	private void recreateCheckboxes( String[] dataNames )
 	{
 		cDimsH.removeAll();
 		cDimsV.removeAll();
@@ -510,7 +511,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 	}
 
-	private void updateLabels( String[] dataNames, int[] visibleDimsH, int[] visibleDimsV )
+	private void recreateLabels( String[] dataNames, int[] visibleDimsH, int[] visibleDimsV )
 	{
 		cCols.removeAll();
 		cRows.removeAll();
@@ -632,7 +633,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		int[] visDimsH = getVisibleDimensions( true );
 		int[] visDimsV = getVisibleDimensions( false );
 		String[] dataNames = HierarchyProcessor.getFeatureNames( context.getHierarchy() );
-		updateLabels( dataNames, visDimsH, visDimsV );
+		recreateLabels( dataNames, visDimsH, visDimsV );
 
 		revalidate();
 		repaint();
@@ -656,7 +657,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
-		updateUI();
+		recreateUI();
 
 		revalidate();
 		repaint();
