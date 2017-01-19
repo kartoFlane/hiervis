@@ -1,5 +1,7 @@
 package pl.pwr.hiervis.util;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -229,6 +231,25 @@ public final class SwingUIUtils
 		else {
 			return root.getActionMap().get( actionKey );
 		}
+	}
+
+	/**
+	 * @param component
+	 *            the component whose index is to be returned
+	 * @return index of the specified component in its parent
+	 * @author http://www.java2s.com/Code/Java/Swing-JFC/GetComponentIndex.htm
+	 */
+	public static final int getComponentIndex( Component component )
+	{
+		if ( component != null && component.getParent() != null ) {
+			Container c = component.getParent();
+			for ( int i = 0; i < c.getComponentCount(); i++ ) {
+				if ( c.getComponent( i ) == component )
+					return i;
+			}
+		}
+
+		return -1;
 	}
 
 	/**
