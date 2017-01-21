@@ -73,8 +73,8 @@ public class HierarchyStatisticsFrame extends JFrame
 		this.context = context;
 
 		setDefaultCloseOperation( HIDE_ON_CLOSE );
-		setMinimumSize( new Dimension( 370, 200 ) );
-		setSize( 370, 350 );
+		setMinimumSize( new Dimension( 400, 200 ) );
+		setSize( 400, 350 );
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -207,7 +207,14 @@ public class HierarchyStatisticsFrame extends JFrame
 			createPendingMeasurePanel( MeasureTask.height ),
 			createPendingMeasurePanel( MeasureTask.averagePathLength ),
 
-			createSeparatorPanel( "Internal" ),
+			createSeparatorPanel( "Histograms" ),
+			createPendingMeasurePanel( MeasureTask.nodesPerLevel ),
+			createPendingMeasurePanel( MeasureTask.leavesPerLevel ),
+			createPendingMeasurePanel( MeasureTask.instancesPerLevel ),
+			createPendingMeasurePanel( MeasureTask.childrenPerNodePerLevel ),
+			createPendingMeasurePanel( MeasureTask.numberOfChildren ),
+
+			createSeparatorPanel( "Internal Measures" ),
 			createPendingMeasurePanel( MeasureTask.varianceDeviation ),
 			createPendingMeasurePanel( MeasureTask.varianceDeviation2 ),
 			createPendingMeasurePanel( MeasureTask.flatWithinBetween ),
@@ -216,14 +223,7 @@ public class HierarchyStatisticsFrame extends JFrame
 			createPendingMeasurePanel( MeasureTask.flatDunn3 ),
 			createPendingMeasurePanel( MeasureTask.flatDunn4 ),
 			createPendingMeasurePanel( MeasureTask.flatDaviesBouldin ),
-			createPendingMeasurePanel( MeasureTask.flatCalinskiHarabasz ),
-
-			createSeparatorPanel( "Histograms" ),
-			createPendingMeasurePanel( MeasureTask.nodesPerLevel ),
-			createPendingMeasurePanel( MeasureTask.leavesPerLevel ),
-			createPendingMeasurePanel( MeasureTask.instancesPerLevel ),
-			createPendingMeasurePanel( MeasureTask.childrenPerNodePerLevel ),
-			createPendingMeasurePanel( MeasureTask.numberOfChildren )
+			createPendingMeasurePanel( MeasureTask.flatCalinskiHarabasz )
 		);
 	}
 
