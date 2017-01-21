@@ -41,7 +41,6 @@ import pl.pwr.hiervis.ui.components.MouseWheelEventBubbler;
 import pl.pwr.hiervis.ui.components.VerticalLabelUI;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
-import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
@@ -63,8 +62,6 @@ public class InstanceVisualizationsFrame extends JFrame
 	private static final int visZoomIncrement = 5;
 
 	private static final Insets displayInsets = new Insets( 5, 5, 5, 5 );
-
-	public final Event<Pair<Integer, Boolean>> dimensionVisibilityToggled = new Event<>();
 
 	private HVContext context;
 
@@ -90,7 +87,6 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	/*
 	 * TODO
-	 * - checkboxes need to wrap around when there's a large number of them, or scroll
 	 * - visualizations *sometimes* have the wrong initial size; need to force max vis area
 	 * - histograms
 	 * - double click to open large frame to show only that vis in large mode
@@ -110,7 +106,6 @@ public class InstanceVisualizationsFrame extends JFrame
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
-		dimensionVisibilityToggled.addListener( this::onDimensionVisibilityToggled );
 
 		if ( context.isHierarchyDataLoaded() ) {
 			recreateUI();
@@ -340,8 +335,8 @@ public class InstanceVisualizationsFrame extends JFrame
 			cboxV.setSelected( false );
 
 			final int d = i;
-			cboxH.addActionListener( e -> dimensionVisibilityToggled.broadcast( ImmutablePair.of( d, true ) ) );
-			cboxV.addActionListener( e -> dimensionVisibilityToggled.broadcast( ImmutablePair.of( d, false ) ) );
+			cboxH.addActionListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, true ) ) );
+			cboxV.addActionListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, false ) ) );
 
 			cDimsH.add( cboxH );
 			cDimsV.add( cboxV );
