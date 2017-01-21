@@ -6,13 +6,13 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -71,8 +71,6 @@ public class InstanceVisualizationsFrame extends JFrame
 	// TODO: Move this to config, but make modifiable in the vis frame?
 	private int pointSize = 3;
 
-	private HashMap<Pair<Integer, Integer>, Display> displayMap;
-
 	private JCheckBox[] cboxesHorizontal;
 	private JCheckBox[] cboxesVertical;
 
@@ -96,8 +94,6 @@ public class InstanceVisualizationsFrame extends JFrame
 	{
 		super( "Instance Visualizations" );
 		this.context = context;
-
-		displayMap = new HashMap<>();
 
 		setDefaultCloseOperation( HIDE_ON_CLOSE );
 
@@ -271,9 +267,8 @@ public class InstanceVisualizationsFrame extends JFrame
 						visHeight = Utils.clamp( visHeightMin, visHeight, visHeightMax );
 
 						// Update the displays' preferred sizes so they can shrink to the new size
-						for ( Display display : displayMap.values() ) {
-							display.setPreferredSize( new Dimension( visWidth, visHeight ) );
-						}
+						Dimension d = new Dimension( visWidth, visHeight );
+						forEachDisplay( display -> display.setPreferredSize( d ) );
 
 						updateViewportLayout();
 						updateLabelLayout( true );
@@ -524,7 +519,6 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 
 		Display display = createInstanceDisplayFor( vis );
-		displayMap.put( ImmutablePair.of( dimX, dimY ), display );
 
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 		cViewport.add(
@@ -578,6 +572,39 @@ public class InstanceVisualizationsFrame extends JFrame
 		return cboxesHorizontal[x].isSelected() && cboxesVertical[y].isSelected();
 	}
 
+	/**
+	 * @param dimX
+	 *            dimension number on the X axis (0 based)
+	 * @param dimY
+	 *            dimension number on the Y axis (0 based)
+	 * @return the display associated with the specified dimensions, or null if it wasn't created yet.
+	 */
+	private Display getDisplay( int dimX, int dimY )
+	{
+		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
+		Component result = null;
+
+		for ( Component c : cViewport.getComponents() ) {
+			GridBagConstraints gbc = layout.getConstraints( c );
+			if ( gbc.gridx == dimX && gbc.gridy == dimY ) {
+				result = c;
+				break;
+			}
+		}
+
+		return (Display)result;
+	}
+
+	/**
+	 * Executes the specified function for each existing display in the grid.
+	 */
+	private void forEachDisplay( Consumer<Display> func )
+	{
+		for ( Component c : cViewport.getComponents() ) {
+			func.accept( (Display)c );
+		}
+	}
+
 	private static void redrawDisplay( Display d )
 	{
 		// Unzoom the display so that drawing is not botched.
@@ -604,7 +631,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			int y = horizontal ? i : dim;
 
 			boolean vis = shouldDisplayBeVisible( x, y );
-			Display display = displayMap.get( ImmutablePair.of( x, y ) );
+			Display display = getDisplay( x, y );
 
 			if ( display == null ) {
 				if ( vis ) {
@@ -637,9 +664,6 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onHierarchyChanging( Hierarchy h )
 	{
-		// Clear all visualizations
-		displayMap.clear();
-
 		cDimsH.removeAll();
 		cDimsV.removeAll();
 		cCols.removeAll();
@@ -668,13 +692,13 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onNodeSelectionChanged( int row )
 	{
-		for ( Entry<Pair<Integer, Integer>, Display> entry : displayMap.entrySet() ) {
-			Display display = entry.getValue();
-
-			// Don't redraw hidden displays.
-			if ( display.isVisible() ) {
-				redrawDisplay( display );
+		forEachDisplay(
+			display -> {
+				// Don't redraw hidden displays.
+				if ( display.isVisible() ) {
+					redrawDisplay( display );
+				}
 			}
-		}
+		);
 	}
 }
