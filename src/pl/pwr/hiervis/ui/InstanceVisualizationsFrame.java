@@ -6,21 +6,24 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicLabelUI;
@@ -39,6 +42,7 @@ import pl.pwr.hiervis.ui.components.VerticalLabelUI;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
 import pl.pwr.hiervis.util.Event;
+import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
@@ -80,6 +84,8 @@ public class InstanceVisualizationsFrame extends JFrame
 	private JPanel cCols;
 	private JPanel cRows;
 	private JPanel cViewport;
+	private JScrollPane scrollPaneH;
+	private JScrollPane scrollPaneV;
 
 
 	/*
@@ -105,6 +111,10 @@ public class InstanceVisualizationsFrame extends JFrame
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
 		dimensionVisibilityToggled.addListener( this::onDimensionVisibilityToggled );
+
+		if ( context.isHierarchyDataLoaded() ) {
+			recreateUI();
+		}
 	}
 
 	public void updateFrameSize()
@@ -141,38 +151,98 @@ public class InstanceVisualizationsFrame extends JFrame
 	private void createGUI()
 	{
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 0, 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 0, 0, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.columnWidths = new int[] { 0, 0 };
+		gridBagLayout.rowHeights = new int[] { 0, 0 };
+		gridBagLayout.columnWeights = new double[] { 0.0, 1.0 };
+		gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
 		getContentPane().setLayout( gridBagLayout );
 
+		createCheckboxHolders();
+		createVisualizationHolder();
+	}
+
+	private void createCheckboxHolders()
+	{
+		// TODO: Implement actuall toggling functionality
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
+		// Horizontal
+		JPanel cHorizontal = new JPanel();
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWidths = new int[] { 0, 0, 0 };
+		layout.rowHeights = new int[] { 0 };
+		layout.columnWeights = new double[] { 0.0, 0.0, 1.0 };
+		layout.rowWeights = new double[] { 1.0 };
+		cHorizontal.setLayout( layout );
+
+		getContentPane().add( cHorizontal, builder.position( 1, 0 ).fillHorizontal().build() );
+
+		JCheckBox cboxAllH = new JCheckBox( "Toggle All" );
+		cHorizontal.add(
+			cboxAllH,
+			builder.position( 0, 0 ).anchorWest().build()
+		);
+		cHorizontal.add(
+			new JSeparator( SwingConstants.VERTICAL ),
+			builder.position( 1, 0 ).fillVertical().build()
+		);
+
 		cDimsH = new JPanel();
-		GridBagConstraints gbc_cDimsH = new GridBagConstraints();
-		gbc_cDimsH.anchor = GridBagConstraints.WEST;
-		gbc_cDimsH.fill = GridBagConstraints.VERTICAL;
-		gbc_cDimsH.insets = new Insets( 5, 5, 5, 5 );
-		gbc_cDimsH.gridx = 1;
-		gbc_cDimsH.gridy = 0;
-		getContentPane().add( cDimsH, gbc_cDimsH );
 		cDimsH.setLayout( new BoxLayout( cDimsH, BoxLayout.X_AXIS ) );
 
+		scrollPaneH = new JScrollPane( cDimsH );
+		scrollPaneH.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
+		scrollPaneH.setBorder( BorderFactory.createEmptyBorder() );
+		scrollPaneH.getHorizontalScrollBar().setUnitIncrement( 16 );
+
+		cHorizontal.add(
+			scrollPaneH,
+			builder.position( 2, 0 ).anchorWest().fill().build()
+		);
+
+		// Vertical
+		JPanel cVertical = new JPanel();
+		layout = new GridBagLayout();
+		layout.columnWidths = new int[] { 0 };
+		layout.rowHeights = new int[] { 0, 0, 0 };
+		layout.columnWeights = new double[] { 1.0 };
+		layout.rowWeights = new double[] { 0.0, 0.0, 1.0 };
+		cVertical.setLayout( layout );
+
+		getContentPane().add( cVertical, builder.position( 0, 1 ).fillVertical().build() );
+
+		JCheckBox cboxAllV = new JCheckBox( "Toggle All" );
+		cVertical.add(
+			cboxAllV,
+			builder.position( 0, 0 ).anchorNorth().build()
+		);
+		cVertical.add(
+			new JSeparator( SwingConstants.HORIZONTAL ),
+			builder.position( 0, 1 ).fillHorizontal().build()
+		);
+
 		cDimsV = new JPanel();
-		GridBagConstraints gbc_cDimsV = new GridBagConstraints();
-		gbc_cDimsV.anchor = GridBagConstraints.NORTH;
-		gbc_cDimsV.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cDimsV.insets = new Insets( 5, 5, 5, 5 );
-		gbc_cDimsV.gridx = 0;
-		gbc_cDimsV.gridy = 1;
-		getContentPane().add( cDimsV, gbc_cDimsV );
 		cDimsV.setLayout( new BoxLayout( cDimsV, BoxLayout.Y_AXIS ) );
 
+		scrollPaneV = new JScrollPane( cDimsV );
+		scrollPaneV.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+		scrollPaneV.setBorder( BorderFactory.createEmptyBorder() );
+		scrollPaneV.getVerticalScrollBar().setUnitIncrement( 16 );
+
+		cVertical.add(
+			scrollPaneV,
+			builder.position( 0, 2 ).anchorNorth().fill().build()
+		);
+	}
+
+	private void createVisualizationHolder()
+	{
 		JScrollPane scrollPane = new JScrollPane();
-		GridBagConstraints gbc_cScrollVis = new GridBagConstraints();
-		gbc_cScrollVis.fill = GridBagConstraints.BOTH;
-		gbc_cScrollVis.gridx = 1;
-		gbc_cScrollVis.gridy = 1;
-		getContentPane().add( scrollPane, gbc_cScrollVis );
+
+		getContentPane().add(
+			scrollPane,
+			new GridBagConstraintsBuilder().position( 1, 1 ).fill().build()
+		);
 
 		cViewport = new JPanel();
 		scrollPane.setViewportView( cViewport );
@@ -236,12 +306,11 @@ public class InstanceVisualizationsFrame extends JFrame
 				}
 			}
 		);
-
-		if ( context.isHierarchyDataLoaded() ) {
-			recreateUI();
-		}
 	}
 
+	/**
+	 * Recreates the UI, updating it to match the currently loaded hierarchy's data.
+	 */
 	private void recreateUI()
 	{
 		String[] dataNames = HierarchyProcessor.getFeatureNames( context.getHierarchy() );
@@ -280,6 +349,21 @@ public class InstanceVisualizationsFrame extends JFrame
 			cboxesHorizontal[i] = cboxH;
 			cboxesVertical[i] = cboxV;
 		}
+
+		updateCheckboxViewport();
+	}
+
+	private void updateCheckboxViewport()
+	{
+		// Find the widest checkbox's width
+		int w = Arrays.stream( cboxesVertical ).mapToInt( cbox -> cbox.getPreferredSize().width ).max().getAsInt();
+		int h = cboxesHorizontal[0].getPreferredSize().height;
+
+		w += scrollPaneV.getVerticalScrollBar().getPreferredSize().width;
+		h += scrollPaneH.getHorizontalScrollBar().getPreferredSize().height;
+
+		scrollPaneH.setPreferredSize( new Dimension( 0, h ) );
+		scrollPaneV.setPreferredSize( new Dimension( w, 0 ) );
 	}
 
 	private void recreateLabels( String[] dataNames )
@@ -295,18 +379,20 @@ public class InstanceVisualizationsFrame extends JFrame
 		Insets insetsH = new Insets( 0, 5, 0, 5 );
 		Insets insetsV = new Insets( 5, 0, 5, 0 );
 
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
 		BasicLabelUI verticalUI = new VerticalLabelUI( false );
 		for ( int i = 0; i < dims; ++i ) {
 			JLabel lblH = new JLabel( dataNames[i] );
 			lblH.setHorizontalAlignment( SwingConstants.CENTER );
 			lblH.setVisible( false );
-			cCols.add( lblH, createGridConstraintsFor( i, 0, insetsH ) );
+			cCols.add( lblH, builder.position( i, 0 ).insets( insetsH ).build() );
 
 			JLabel lblV = new JLabel( dataNames[i] );
 			lblV.setUI( verticalUI );
 			lblV.setHorizontalAlignment( SwingConstants.CENTER );
 			lblV.setVisible( false );
-			cRows.add( lblV, createGridConstraintsFor( 0, i, insetsV ) );
+			cRows.add( lblV, builder.position( 0, i ).insets( insetsV ).build() );
 		}
 
 		updateLabelLayout( true );
@@ -418,29 +504,6 @@ public class InstanceVisualizationsFrame extends JFrame
 	}
 
 	/**
-	 * Creates a new constraint used with GridBagLayout, used to position an element correctly.
-	 * 
-	 * @param gridPosX
-	 *            position of the item on the grid in X axis
-	 * @param gridPosY
-	 *            position of the item on the grid in Y axis
-	 * @param insets
-	 *            insets for the item, ie. the distance between this and bordering items
-	 * @return the constraints
-	 */
-	private GridBagConstraints createGridConstraintsFor( int gridPosX, int gridPosY, Insets insets )
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.insets = insets;
-		constraints.gridx = gridPosX;
-		constraints.gridy = gridPosY;
-
-		return constraints;
-	}
-
-	/**
 	 * Creates an instance display for the specified dimensions and the specified node
 	 * 
 	 * @param node
@@ -468,7 +531,11 @@ public class InstanceVisualizationsFrame extends JFrame
 		Display display = createInstanceDisplayFor( vis );
 		displayMap.put( ImmutablePair.of( dimX, dimY ), display );
 
-		cViewport.add( display, createGridConstraintsFor( dimX, dimY, displayInsets ) );
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+		cViewport.add(
+			display,
+			builder.position( dimX, dimY ).insets( displayInsets ).fill().build()
+		);
 
 		vis.run( "draw" );
 
