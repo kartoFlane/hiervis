@@ -176,6 +176,18 @@ public class HVContext
 	}
 
 	/**
+	 * @param identifier
+	 *            identifier of the task to look for
+	 * @return true if the task is already computed, false otherwise
+	 */
+	public boolean isMeasureComputed( String identifier )
+	{
+		synchronized ( measureMap ) {
+			return measureMap.containsKey( identifier );
+		}
+	}
+
+	/**
 	 * Performs the specified function on the set of measures that have been computed thus far for
 	 * the currently loaded hierarchy.
 	 * <p>

@@ -37,7 +37,6 @@ import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.MeasureTask;
-import pl.pwr.hiervis.util.SwingUIUtils;
 
 
 /*
@@ -201,13 +200,37 @@ public class HierarchyStatisticsFrame extends JFrame
 	private void createMesurePanels()
 	{
 		addMeasurePanels(
+			createBulkTaskPanel(
+				"Calculate All",
+				MeasureTask.numberOfNodes, MeasureTask.numberOfLeaves,
+				MeasureTask.height, MeasureTask.averagePathLength,
+				MeasureTask.nodesPerLevel, MeasureTask.leavesPerLevel,
+				MeasureTask.instancesPerLevel, MeasureTask.childrenPerNodePerLevel,
+				MeasureTask.numberOfChildren,
+				MeasureTask.varianceDeviation, MeasureTask.varianceDeviation2,
+				MeasureTask.flatWithinBetween, MeasureTask.flatDunn1,
+				MeasureTask.flatDunn2, MeasureTask.flatDunn3, MeasureTask.flatDunn4,
+				MeasureTask.flatDaviesBouldin, MeasureTask.flatCalinskiHarabasz
+			),
+
 			createSeparatorPanel( "Statistics" ),
+			createBulkTaskPanel(
+				"Calculate All Statistics",
+				MeasureTask.numberOfNodes, MeasureTask.numberOfLeaves,
+				MeasureTask.height, MeasureTask.averagePathLength
+			),
 			createPendingMeasurePanel( MeasureTask.numberOfNodes ),
 			createPendingMeasurePanel( MeasureTask.numberOfLeaves ),
 			createPendingMeasurePanel( MeasureTask.height ),
 			createPendingMeasurePanel( MeasureTask.averagePathLength ),
 
 			createSeparatorPanel( "Histograms" ),
+			createBulkTaskPanel(
+				"Calculate All Histograms",
+				MeasureTask.nodesPerLevel, MeasureTask.leavesPerLevel,
+				MeasureTask.instancesPerLevel, MeasureTask.childrenPerNodePerLevel,
+				MeasureTask.numberOfChildren
+			),
 			createPendingMeasurePanel( MeasureTask.nodesPerLevel ),
 			createPendingMeasurePanel( MeasureTask.leavesPerLevel ),
 			createPendingMeasurePanel( MeasureTask.instancesPerLevel ),
@@ -215,6 +238,13 @@ public class HierarchyStatisticsFrame extends JFrame
 			createPendingMeasurePanel( MeasureTask.numberOfChildren ),
 
 			createSeparatorPanel( "Internal Measures" ),
+			createBulkTaskPanel(
+				"Calculate All Internal Measures",
+				MeasureTask.varianceDeviation, MeasureTask.varianceDeviation2,
+				MeasureTask.flatWithinBetween, MeasureTask.flatDunn1,
+				MeasureTask.flatDunn2, MeasureTask.flatDunn3, MeasureTask.flatDunn4,
+				MeasureTask.flatDaviesBouldin, MeasureTask.flatCalinskiHarabasz
+			),
 			createPendingMeasurePanel( MeasureTask.varianceDeviation ),
 			createPendingMeasurePanel( MeasureTask.varianceDeviation2 ),
 			createPendingMeasurePanel( MeasureTask.flatWithinBetween ),
@@ -299,6 +329,46 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasure.setBorder( new TitledBorder( null, task.identifier, TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
 
+		cMeasure.add( createTaskButton( task ), BorderLayout.NORTH );
+		measurePanelMap.put( task.identifier, cMeasure );
+
+		return cMeasure;
+	}
+
+	private JPanel createBulkTaskPanel( String title, MeasureTask... tasks )
+	{
+		JPanel cMeasure = new JPanel();
+		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
+		cMeasure.add( createTaskButton( title, tasks ), BorderLayout.NORTH );
+
+		return cMeasure;
+	}
+
+	private JButton createTaskButton( String title, MeasureTask... tasks )
+	{
+		JButton button = new JButton();
+		button.addActionListener(
+			( e ) -> {
+				button.setEnabled( false );
+
+				for ( MeasureTask task : tasks ) {
+					if ( !context.isMeasureComputed( task.identifier ) &&
+						!context.getMeasureComputeThread().isMeasurePending( task.identifier ) ) {
+
+						context.getMeasureComputeThread().postTask( task );
+					}
+				}
+			}
+		);
+
+		button.setEnabled( context.isHierarchyDataLoaded() );
+		button.setText( title );
+
+		return button;
+	}
+
+	private JButton createTaskButton( MeasureTask task )
+	{
 		JButton button = new JButton();
 		button.addActionListener(
 			( e ) -> {
@@ -314,11 +384,7 @@ public class HierarchyStatisticsFrame extends JFrame
 			}
 		);
 		updateTaskButton( button, false );
-
-		cMeasure.add( button, BorderLayout.NORTH );
-		measurePanelMap.put( task.identifier, cMeasure );
-
-		return cMeasure;
+		return button;
 	}
 
 	private void updateTaskButton( JButton button, boolean pending )
