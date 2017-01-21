@@ -59,12 +59,12 @@ public class InstanceVisualizationsFrame extends JFrame
 	private static final int visWidthMax = 1000;
 	private static final int visHeightMin = 100;
 	private static final int visHeightMax = 1000;
-	private static final int visZoomIncrement = 5;
 
 	private static final Insets displayInsets = new Insets( 5, 5, 5, 5 );
 
 	private HVContext context;
 
+	private int visZoomIncrement = 5;
 	private int visWidth = 200;
 	private int visHeight = 200;
 
@@ -84,13 +84,6 @@ public class InstanceVisualizationsFrame extends JFrame
 	private JCheckBox cboxAllH;
 	private JCheckBox cboxAllV;
 
-
-	/*
-	 * TODO
-	 * - visualizations *sometimes* have the wrong initial size; need to force max vis area
-	 * - histograms
-	 * - double click to open large frame to show only that vis in large mode
-	 */
 
 	public InstanceVisualizationsFrame( HVContext context, Frame owner )
 	{
@@ -283,6 +276,10 @@ public class InstanceVisualizationsFrame extends JFrame
 						visWidth = Utils.clamp( visWidthMin, visWidth, visWidthMax );
 						visHeight = Utils.clamp( visHeightMin, visHeight, visHeightMax );
 
+						// Update the zoom increment so that we don't have to scroll 10000 times when
+						// the displays are already large.
+						visZoomIncrement = getZoomIncrement( Math.max( visWidth, visHeight ) );
+
 						// Update the displays' preferred sizes so they can shrink to the new size
 						Dimension d = new Dimension( visWidth, visHeight );
 						forEachDisplay( display -> display.setPreferredSize( d ) );
@@ -313,6 +310,11 @@ public class InstanceVisualizationsFrame extends JFrame
 				}
 			}
 		);
+	}
+
+	private int getZoomIncrement( int w )
+	{
+		return w <= 300 ? 5 : w <= 500 ? 10 : 20;
 	}
 
 	/**
