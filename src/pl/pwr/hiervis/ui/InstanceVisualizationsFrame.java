@@ -81,6 +81,8 @@ public class InstanceVisualizationsFrame extends JFrame
 	private JPanel cViewport;
 	private JScrollPane scrollPaneH;
 	private JScrollPane scrollPaneV;
+	private JCheckBox cboxAllH;
+	private JCheckBox cboxAllV;
 
 
 	/*
@@ -154,7 +156,6 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void createCheckboxHolders()
 	{
-		// TODO: Implement actuall toggling functionality
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 
 		// Horizontal
@@ -168,7 +169,15 @@ public class InstanceVisualizationsFrame extends JFrame
 
 		getContentPane().add( cHorizontal, builder.position( 1, 0 ).fillHorizontal().build() );
 
-		JCheckBox cboxAllH = new JCheckBox( "Toggle All" );
+		cboxAllH = new JCheckBox( "Toggle All" );
+		cboxAllH.setEnabled( context.isHierarchyDataLoaded() );
+		cboxAllH.addItemListener(
+			e -> {
+				for ( JCheckBox cbox : cboxesHorizontal )
+					cbox.setSelected( !cbox.isSelected() );
+			}
+		);
+
 		cHorizontal.add(
 			cboxAllH,
 			builder.position( 0, 0 ).anchorWest().build()
@@ -202,7 +211,15 @@ public class InstanceVisualizationsFrame extends JFrame
 
 		getContentPane().add( cVertical, builder.position( 0, 1 ).fillVertical().build() );
 
-		JCheckBox cboxAllV = new JCheckBox( "Toggle All" );
+		cboxAllV = new JCheckBox( "Toggle All" );
+		cboxAllV.setEnabled( context.isHierarchyDataLoaded() );
+		cboxAllV.addItemListener(
+			e -> {
+				for ( JCheckBox cbox : cboxesVertical )
+					cbox.setSelected( !cbox.isSelected() );
+			}
+		);
+
 		cVertical.add(
 			cboxAllV,
 			builder.position( 0, 0 ).anchorNorth().build()
@@ -330,8 +347,8 @@ public class InstanceVisualizationsFrame extends JFrame
 			cboxV.setSelected( false );
 
 			final int d = i;
-			cboxH.addActionListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, true ) ) );
-			cboxV.addActionListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, false ) ) );
+			cboxH.addItemListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, true ) ) );
+			cboxV.addItemListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, false ) ) );
 
 			cDimsH.add( cboxH );
 			cDimsV.add( cboxV );
@@ -341,6 +358,9 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 
 		updateCheckboxViewport();
+
+		scrollPaneH.revalidate();
+		scrollPaneV.revalidate();
 	}
 
 	private void updateCheckboxViewport()
@@ -664,6 +684,9 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onHierarchyChanging( Hierarchy h )
 	{
+		cboxAllH.setEnabled( false );
+		cboxAllV.setEnabled( false );
+
 		cDimsH.removeAll();
 		cDimsV.removeAll();
 		cCols.removeAll();
@@ -681,6 +704,9 @@ public class InstanceVisualizationsFrame extends JFrame
 	private void onHierarchyChanged( Hierarchy h )
 	{
 		recreateUI();
+
+		cboxAllH.setEnabled( true );
+		cboxAllV.setEnabled( true );
 
 		cDimsH.revalidate();
 		cDimsV.revalidate();
