@@ -4,8 +4,6 @@ import java.awt.Adjustable;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -54,6 +52,9 @@ public class InstanceVisualizationsFrame extends JFrame
 {
 	private static final Logger log = LogManager.getLogger( InstanceVisualizationsFrame.class );
 
+	private static final int defaultFrameWidth = 800;
+	private static final int defaultFrameHeight = 800;
+
 	private static final int defaultLabelHeight = new JLabel( " " ).getPreferredSize().height;
 	private static final int visWidthMin = 100;
 	private static final int visWidthMax = 1000;
@@ -91,6 +92,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		this.context = context;
 
 		setDefaultCloseOperation( HIDE_ON_CLOSE );
+		setSize( defaultFrameWidth, defaultFrameHeight );
 
 		createGUI();
 
@@ -100,34 +102,6 @@ public class InstanceVisualizationsFrame extends JFrame
 
 		if ( context.isHierarchyDataLoaded() ) {
 			recreateUI();
-		}
-	}
-
-	public void updateFrameSize()
-	{
-		// TODO: Tweak this further so it behaves more reasonably / intuitively.
-
-		pack();
-		Dimension d = getPreferredSize();
-
-		if ( d.width < visWidth || d.height < visHeight ) {
-			d = new Dimension( visWidth, visHeight );
-			setPreferredSize( d );
-			setSize( d );
-		}
-		else {
-			// https://stackoverflow.com/questions/3680221/how-can-i-get-screen-resolution-in-java
-			GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-			int screenW = gd.getDisplayMode().getWidth();
-			int screenH = gd.getDisplayMode().getHeight();
-
-			if ( d.width > screenW || d.height > screenH ) {
-				d = new Dimension( screenW / 2, screenH / 2 );
-				setPreferredSize( d );
-				setSize( d );
-
-				setExtendedState( getExtendedState() | JFrame.MAXIMIZED_BOTH );
-			}
 		}
 	}
 

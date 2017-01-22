@@ -219,8 +219,6 @@ public class VisualizerFrame extends JFrame
 				// Restore the frame if it was minimized
 				visFrame.setExtendedState( JFrame.NORMAL );
 				visFrame.setVisible( true );
-
-				visFrame.updateFrameSize();
 			}
 		);
 	}
