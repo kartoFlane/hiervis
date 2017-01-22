@@ -7,6 +7,8 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
@@ -557,6 +559,15 @@ public class InstanceVisualizationsFrame extends JFrame
 		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() ) );
 
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
+
+		display.addComponentListener(
+			new ComponentAdapter() {
+				public void componentResized( ComponentEvent e )
+				{
+					redrawDisplayIfVisible( display );
+				}
+			}
+		);
 
 		Utils.unzoom( display, 0 );
 
