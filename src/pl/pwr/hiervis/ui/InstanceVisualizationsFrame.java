@@ -145,7 +145,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllH.addItemListener(
 			e -> {
 				for ( JCheckBox cbox : cboxesHorizontal )
-					cbox.setSelected( !cbox.isSelected() );
+					cbox.setSelected( cboxAllH.isSelected() );
 			}
 		);
 
@@ -187,7 +187,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllV.addItemListener(
 			e -> {
 				for ( JCheckBox cbox : cboxesVertical )
-					cbox.setSelected( !cbox.isSelected() );
+					cbox.setSelected( cboxAllV.isSelected() );
 			}
 		);
 
