@@ -353,7 +353,9 @@ public class InstanceVisualizationsFrame extends JFrame
 		h += scrollPaneH.getHorizontalScrollBar().getPreferredSize().height;
 
 		scrollPaneH.setPreferredSize( new Dimension( 0, h ) );
+		scrollPaneH.setMinimumSize( new Dimension( 0, h ) );
 		scrollPaneV.setPreferredSize( new Dimension( w, 0 ) );
+		scrollPaneV.setMinimumSize( new Dimension( w, 0 ) );
 	}
 
 	private void recreateLabels( String[] dataNames )
