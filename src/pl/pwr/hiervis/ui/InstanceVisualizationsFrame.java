@@ -337,8 +337,8 @@ public class InstanceVisualizationsFrame extends JFrame
 
 		updateCheckboxViewport();
 
-		scrollPaneH.revalidate();
-		scrollPaneV.revalidate();
+		revalidate();
+		repaint();
 	}
 
 	private void updateCheckboxViewport()
@@ -545,7 +545,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	private Display createInstanceDisplayFor( Visualization vis )
 	{
 		Display display = new Display( vis );
-		display.setHighQuality( true );
+		display.setHighQuality( context.getHierarchy().getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
 		display.setBackground( context.getConfig().getBackgroundColor() );
 
 		display.addControlListener( new PanControl( true ) );

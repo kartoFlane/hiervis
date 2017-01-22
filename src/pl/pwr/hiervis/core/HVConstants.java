@@ -19,4 +19,11 @@ public class HVConstants
 	public static final String HIERARCHY_LEVEL_SEPARATOR = "\\.";
 
 	public static final Visualization EMPTY_VISUALIZATION = new Visualization();
+
+	/*
+	 * Instance count constants, used to decide whether we want to sacrifice
+	 * some features for better user experience.
+	 */
+	public static final int INSTANCE_COUNT_MED = 50000;
+	public static final int INSTANCE_COUNT_HIGH = 100000;
 }
