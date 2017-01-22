@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
+import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.ui.components.MouseWheelEventBubbler;
@@ -99,6 +100,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
+		context.configChanged.addListener( this::onConfigChanged );
 
 		if ( context.isHierarchyDataLoaded() ) {
 			recreateUI();
@@ -489,18 +491,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 	}
 
-	/**
-	 * Creates an instance display for the specified dimensions and the specified node
-	 * 
-	 * @param node
-	 *            node that is currently selected in the hierarchy view
-	 * @param dimX
-	 *            dimension number on the X axis (0 based)
-	 * @param dimY
-	 *            dimension number on the Y axis (0 based)
-	 * @return container serving as a holder for the display.
-	 */
-	private Display createInstanceDisplayFor( Node node, int dimX, int dimY )
+	private Visualization createVisualizationFor( Node node, int dimX, int dimY )
 	{
 		Visualization vis = null;
 
@@ -514,6 +505,23 @@ public class InstanceVisualizationsFrame extends JFrame
 			);
 		}
 
+		return vis;
+	}
+
+	/**
+	 * Creates an instance display for the specified dimensions and the specified node
+	 * 
+	 * @param node
+	 *            node that is currently selected in the hierarchy view
+	 * @param dimX
+	 *            dimension number on the X axis (0 based)
+	 * @param dimY
+	 *            dimension number on the Y axis (0 based)
+	 * @return container serving as a holder for the display.
+	 */
+	private Display createInstanceDisplayFor( Node node, int dimX, int dimY )
+	{
+		Visualization vis = createVisualizationFor( node, dimX, dimY );
 		Display display = createInstanceDisplayFor( vis );
 
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
@@ -601,11 +609,13 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 	}
 
-	private static void redrawDisplay( Display d )
+	private void redrawDisplayIfVisible( Display d )
 	{
-		// Unzoom the display so that drawing is not botched.
-		Utils.unzoom( d, 0 );
-		d.getVisualization().run( "draw" );
+		if ( d.isVisible() ) {
+			// Unzoom the display so that drawing is not botched.
+			Utils.unzoom( d, 0 );
+			d.getVisualization().run( "draw" );
+		}
 	}
 
 	// ----------------------------------------------------------------------------------------
@@ -639,10 +649,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			}
 			else {
 				display.setVisible( vis );
-				if ( vis ) {
-					// If the display was previously hidden, redraw it.
-					redrawDisplay( display );
-				}
+				redrawDisplayIfVisible( display );
 			}
 		}
 
@@ -694,12 +701,24 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onNodeSelectionChanged( int row )
 	{
+		forEachDisplay( this::redrawDisplayIfVisible );
+	}
+
+	private void onConfigChanged( HVConfig cfg )
+	{
+		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
+		Node node = context.findGroup( context.getSelectedRow() );
+
 		forEachDisplay(
 			display -> {
-				// Don't redraw hidden displays.
-				if ( display.isVisible() ) {
-					redrawDisplay( display );
-				}
+				GridBagConstraints gbc = layout.getConstraints( display );
+				int dimX = gbc.gridx;
+				int dimY = gbc.gridy;
+
+				display.setVisualization( createVisualizationFor( node, dimX, dimY ) );
+				display.setBackground( cfg.getBackgroundColor() );
+
+				redrawDisplayIfVisible( display );
 			}
 		);
 	}
