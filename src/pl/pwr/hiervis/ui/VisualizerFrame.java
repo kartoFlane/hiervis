@@ -1,13 +1,7 @@
 package pl.pwr.hiervis.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
 
@@ -16,7 +10,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -24,7 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
-import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.HierarchyVisualizer;
 import pl.pwr.hiervis.core.HVConfig;
@@ -41,7 +33,6 @@ import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.Control;
-import prefuse.controls.ToolTipControl;
 import prefuse.visual.NodeItem;
 
 
@@ -50,8 +41,8 @@ public class VisualizerFrame extends JFrame
 {
 	private static final Logger log = LogManager.getLogger( VisualizerFrame.class );
 
-	private static final int defaultFrameWidth = 1200;
-	private static final int defaultFrameHeight = 900;
+	private static final int defaultFrameWidth = 600;
+	private static final int defaultFrameHeight = 600;
 
 	private HVContext context;
 
@@ -59,7 +50,6 @@ public class VisualizerFrame extends JFrame
 	private InstanceVisualizationsFrame visFrame = null;
 
 	private Display hierarchyDisplay;
-	private Display instanceDisplay;
 
 
 	public VisualizerFrame( HVContext context )
@@ -73,7 +63,6 @@ public class VisualizerFrame extends JFrame
 
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		setSize( defaultFrameWidth, defaultFrameHeight );
-		setMinimumSize( new Dimension( defaultFrameWidth, defaultFrameHeight / 2 ) );
 
 		addWindowListener(
 			new WindowAdapter() {
@@ -103,20 +92,6 @@ public class VisualizerFrame extends JFrame
 
 	private void createGUI()
 	{
-		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWeights = new double[] { 1.0, 1.0 };
-		gridBagLayout.rowWeights = new double[] { 1.0 };
-		getContentPane().setLayout( gridBagLayout );
-
-		JPanel cTreeViewer = new JPanel();
-
-		GridBagConstraints gbc_cTreeViewer = new GridBagConstraints();
-		gbc_cTreeViewer.insets = new Insets( 0, 0, 2, 0 );
-		gbc_cTreeViewer.fill = GridBagConstraints.BOTH;
-		gbc_cTreeViewer.gridx = 0;
-		gbc_cTreeViewer.gridy = 0;
-		getContentPane().add( cTreeViewer, gbc_cTreeViewer );
-
 		hierarchyDisplay = new Display( HVConstants.EMPTY_VISUALIZATION );
 
 		hierarchyDisplay.setEnabled( false );
@@ -131,32 +106,8 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
 		hierarchyDisplay.addControlListener( new PanControl( new Class[] { NodeItem.class } ) );
 		hierarchyDisplay.addControlListener( new ZoomScrollControl() );
-		cTreeViewer.setLayout( new BorderLayout( 0, 0 ) );
-		cTreeViewer.add( hierarchyDisplay );
 
-		JPanel cNodeViewer = new JPanel();
-		GridBagConstraints gbc_cNodeViewer = new GridBagConstraints();
-		gbc_cNodeViewer.insets = new Insets( 0, 2, 0, 0 );
-		gbc_cNodeViewer.fill = GridBagConstraints.BOTH;
-		gbc_cNodeViewer.gridx = 1;
-		gbc_cNodeViewer.gridy = 0;
-		getContentPane().add( cNodeViewer, gbc_cNodeViewer );
-		cNodeViewer.setLayout( new BorderLayout( 0, 0 ) );
-
-		instanceDisplay = new Display( HVConstants.EMPTY_VISUALIZATION );
-
-		instanceDisplay.setEnabled( false );
-		instanceDisplay.setHighQuality( true );
-		instanceDisplay.setBackground( context.getConfig().getBackgroundColor() );
-		instanceDisplay.setSize(
-			context.getConfig().getInstanceWidth(),
-			context.getConfig().getInstanceHeight()
-		);
-
-		instanceDisplay.addControlListener( new PanControl( true ) );
-		instanceDisplay.addControlListener( new ZoomScrollControl() );
-		instanceDisplay.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
-		cNodeViewer.add( instanceDisplay );
+		getContentPane().add( hierarchyDisplay );
 	}
 
 	private void createMenu()
@@ -319,20 +270,14 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
-		// Instance visualization will need to be updated to reflect config changes.
-		instanceDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
-
 		onNodeSelectionChanged( context.getSelectedRow() );
 	}
 
 	private void onHierarchyChanging( Hierarchy h )
 	{
 		Utils.unzoom( hierarchyDisplay, 0 );
-		Utils.unzoom( instanceDisplay, 0 );
 		hierarchyDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
-		instanceDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 		hierarchyDisplay.setEnabled( false );
-		instanceDisplay.setEnabled( false );
 	}
 
 	private void onHierarchyChanged( Hierarchy h )
@@ -340,13 +285,11 @@ public class VisualizerFrame extends JFrame
 		// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
 		if ( context.isHierarchyDataLoaded() ) {
 			hierarchyDisplay.setEnabled( true );
-			instanceDisplay.setEnabled( true );
 
 			log.trace( "Reprocessing..." );
 			reprocess();
 
 			Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
-			Utils.fitToBounds( instanceDisplay, Visualization.ALL_ITEMS, 0, 0 );
 		}
 
 		// Try to coax the VM into reclaiming some of that freed memory.
@@ -360,25 +303,6 @@ public class VisualizerFrame extends JFrame
 		// Refresh the hierarchy display so that it reflects node roles correctly
 		hierarchyDisplay.damageReport();
 		hierarchyDisplay.repaint();
-
-		// However, instance display needs complete redrawing.
-		// Save the current display transform so that we can restore it.
-		AffineTransform transform = (AffineTransform)instanceDisplay.getTransform().clone();
-
-		Visualization vis = instanceDisplay.getVisualization();
-		if ( vis == HVConstants.EMPTY_VISUALIZATION ) {
-			Node group = context.findGroup( context.getSelectedRow() );
-			vis = HierarchyProcessor.createInstanceVisualization( context, group, 3, 0, 1, true );
-			instanceDisplay.setVisualization( vis );
-		}
-
-		// Unzoom the display so that drawing is not botched.
-		Utils.unzoom( instanceDisplay, 0 );
-		vis.run( "draw" );
-		Utils.waitUntilActivitiesAreFinished();
-
-		// Restore the transform for user's convenience
-		Utils.setTransform( instanceDisplay, transform );
 	}
 
 	private void onWindowClosing()
