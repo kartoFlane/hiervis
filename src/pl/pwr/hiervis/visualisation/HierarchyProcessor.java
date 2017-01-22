@@ -50,7 +50,24 @@ import prefuse.visual.expression.VisiblePredicate;
 
 public class HierarchyProcessor
 {
-	public static Pair<Tree, TreeLayoutData> buildHierarchyTree( HVConfig config, Node sourceRoot )
+	/**
+	 * Processes the currently loaded {@link Hierarchy} and creates a {@link Tree} structure
+	 * used to visualize {@link Node}s in that hierarchy.
+	 * 
+	 * @param config
+	 *            the application config
+	 * @param sourceRoot
+	 *            the root node of the hierarchy
+	 * @param availableWidth
+	 *            the width the layout has to work with
+	 * @param availableHeight
+	 *            the height the layout has to work with
+	 * @return a tuple of the Tree structure representing the hierarchy, and TreeLayoutData
+	 *         associated with it, containing information as to how visualize the tree.
+	 */
+	public static Pair<Tree, TreeLayoutData> buildHierarchyTree(
+		HVConfig config, Node sourceRoot,
+		int availableWidth, int availableHeight )
 	{
 		Tree tree = new Tree();
 		tree.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
@@ -104,7 +121,11 @@ public class HierarchyProcessor
 		// Tree is complete, now find the max tree width
 		maxTreeWidth = Collections.max( treeLevelToWidth.values() );
 
-		TreeLayoutData layoutData = new TreeLayoutData( config, tree, maxTreeDepth, maxTreeWidth );
+		TreeLayoutData layoutData = new TreeLayoutData(
+			config, tree,
+			maxTreeDepth, maxTreeWidth,
+			availableWidth, availableHeight
+		);
 
 		return Pair.of( tree, layoutData );
 	}
@@ -228,9 +249,6 @@ public class HierarchyProcessor
 		TreeLayoutData layoutData = context.getTreeLayoutData();
 		HVConfig config = context.getConfig();
 
-		int hierarchyImageWidth = config.getTreeWidth();
-		int hierarchyImageHeight = config.getTreeHeight();
-
 		Visualization vis = new Visualization();
 
 		if ( context.isHierarchyDataLoaded() ) {
@@ -255,8 +273,13 @@ public class HierarchyProcessor
 				layoutData.getSiblingSpace(),
 				layoutData.getSubtreeSpace()
 			);
-			treeLayout.setLayoutBounds( new Rectangle2D.Float( 0, 0, hierarchyImageWidth, hierarchyImageHeight ) );
 			treeLayout.setRootNodeOffset( 0 );// 0.5*finalSizeOfNodes);//offset is set in order to show all nodes on images
+			treeLayout.setLayoutBounds(
+				new Rectangle2D.Double(
+					0, 0,
+					layoutData.getLayoutWidth(), layoutData.getLayoutHeight()
+				)
+			);
 			ActionList layout = new ActionList();
 			layout.add( treeLayout );
 			layout.add( new RepaintAction() );

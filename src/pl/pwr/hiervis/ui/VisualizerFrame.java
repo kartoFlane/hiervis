@@ -97,10 +97,6 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setEnabled( false );
 		hierarchyDisplay.setHighQuality( true );
 		hierarchyDisplay.setBackground( context.getConfig().getBackgroundColor() );
-		hierarchyDisplay.setSize(
-			context.getConfig().getTreeWidth(),
-			context.getConfig().getTreeHeight()
-		);
 
 		hierarchyDisplay.addControlListener( new NodeSelectionControl( context ) );
 		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );

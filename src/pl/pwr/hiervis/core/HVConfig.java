@@ -62,14 +62,6 @@ public class HVConfig
 	private Color backgroundColor;
 
 	@SerializableField
-	private int treeResolutionWidth;
-	@SerializableField
-	private int treeResolutionHeight;
-	@SerializableField
-	private int pointResolutionWidth;
-	@SerializableField
-	private int pointResolutionHeight;
-	@SerializableField
 	private double pointScalingFactor;
 	@SerializableField
 	private int numberOfHistogramBins;
@@ -103,10 +95,6 @@ public class HVConfig
 	public HVConfig()
 	{
 		// Setup default values.
-		treeResolutionWidth = 1000;
-		treeResolutionHeight = 1000;
-		pointResolutionWidth = 600;
-		pointResolutionHeight = 600;
 		numberOfHistogramBins = 5;
 		pointScalingFactor = 1;
 
@@ -476,46 +464,6 @@ public class HVConfig
 	public void setAncestorGroupColor( Color ancestorColor )
 	{
 		this.ancestorGroupColor = ancestorColor;
-	}
-
-	public int getTreeWidth()
-	{
-		return treeResolutionWidth;
-	}
-
-	public void setTreeWidth( int imageWidth )
-	{
-		this.treeResolutionWidth = imageWidth;
-	}
-
-	public int getTreeHeight()
-	{
-		return treeResolutionHeight;
-	}
-
-	public void setTreeHeight( int imageHeight )
-	{
-		this.treeResolutionHeight = imageHeight;
-	}
-
-	public int getInstanceWidth()
-	{
-		return pointResolutionWidth;
-	}
-
-	public void setPointWidth( int imageWidth )
-	{
-		this.pointResolutionWidth = imageWidth;
-	}
-
-	public int getInstanceHeight()
-	{
-		return pointResolutionHeight;
-	}
-
-	public void setPointHeight( int imageHeight )
-	{
-		this.pointResolutionHeight = imageHeight;
 	}
 
 	public double getPointScallingFactor()

@@ -86,8 +86,12 @@ public class HistogramGraph extends Display
 	 * @param nodeImgBorderWidth
 	 * @param nodeImgRightBorderWidth
 	 */
-	public HistogramGraph( HistogramTable currentHistoTable, HistogramTable directParentHistoTable,
-		String startingField, int width, int height, HVConfig params, int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
+	public HistogramGraph(
+		HistogramTable currentHistoTable, HistogramTable directParentHistoTable,
+		String startingField,
+		int width, int height,
+		HVConfig params,
+		int nodeImgLeftBorderWidth, int nodeImgRightBorderWidth )
 	{
 		super( new Visualization() );
 

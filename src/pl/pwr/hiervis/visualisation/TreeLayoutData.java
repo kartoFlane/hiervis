@@ -15,6 +15,9 @@ public class TreeLayoutData
 	private int nodeSize;
 	private int treeOrientation;
 
+	private int layoutWidth;
+	private int layoutHeight;
+
 	/** The spacing to maintain between depth levels of the tree. */
 	private double depthSpace;
 	/** The spacing to maintain between sibling nodes. */
@@ -23,7 +26,10 @@ public class TreeLayoutData
 	private double subtreeSpace;
 
 
-	public TreeLayoutData( HVConfig config, Tree tree, int treeDepth, int treeWidth )
+	public TreeLayoutData(
+		HVConfig config, Tree tree,
+		int treeDepth, int treeWidth,
+		int availableWidth, int availableHeight )
 	{
 		final double nodeSizeToDepthSpaceRatio = 2.0;
 		final double nodeSizeToSiblingsSpaceRatio = 4.0;
@@ -37,17 +43,17 @@ public class TreeLayoutData
 		siblingSpace = 0.0;
 		subtreeSpace = 0.0;
 
-		int hierarchyImageWidth = config.getTreeWidth();
-		int hierarchyImageHeight = config.getTreeHeight();
+		layoutWidth = availableWidth;
+		layoutHeight = availableHeight;
 
-		depthSpace = hierarchyImageHeight
+		depthSpace = layoutHeight
 			/ (double)( nodeSizeToDepthSpaceRatio * treeDepth + nodeSizeToDepthSpaceRatio + treeDepth );
 		depthSpace = Math.max( 1.0, depthSpace );
 
 		// based on above calculation - compute "optimal" size of each node on image
 		heightBasedSizeOfNodes = (int)( nodeSizeToDepthSpaceRatio * depthSpace );
 
-		siblingSpace = ( hierarchyImageWidth ) / ( treeWidth * nodeSizeToSiblingsSpaceRatio + treeWidth - 1.0 );
+		siblingSpace = ( layoutWidth ) / ( treeWidth * nodeSizeToSiblingsSpaceRatio + treeWidth - 1.0 );
 		siblingSpace = Math.max( 1.0, siblingSpace );
 
 		subtreeSpace = siblingSpace;
@@ -57,13 +63,13 @@ public class TreeLayoutData
 		if ( widthBasedSizeOfNodes < heightBasedSizeOfNodes ) {
 			nodeSize = widthBasedSizeOfNodes;
 			// assume maximum possible size
-			depthSpace = ( hierarchyImageHeight - treeDepth * nodeSize - nodeSize ) / (double)treeDepth;
+			depthSpace = ( layoutHeight - treeDepth * nodeSize - nodeSize ) / (double)treeDepth;
 			depthSpace = Math.max( 1.0, depthSpace );
 		}
 		else {
 			nodeSize = heightBasedSizeOfNodes;
 			// assume maximum possible size
-			siblingSpace = ( hierarchyImageWidth - treeWidth * nodeSize ) / ( treeWidth - 1.0 );
+			siblingSpace = ( layoutWidth - treeWidth * nodeSize ) / ( treeWidth - 1.0 );
 			siblingSpace = Math.max( 1.0, siblingSpace );
 			subtreeSpace = siblingSpace;
 		}
@@ -77,6 +83,16 @@ public class TreeLayoutData
 	public int getTreeOrientation()
 	{
 		return treeOrientation;
+	}
+
+	public int getLayoutWidth()
+	{
+		return layoutWidth;
+	}
+
+	public int getLayoutHeight()
+	{
+		return layoutHeight;
 	}
 
 	/**

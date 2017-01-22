@@ -124,22 +124,6 @@ public class CmdLineParser
 			.withLongOpt( "other-group-color" )
 			.create( "og" );
 
-		Option imageWidth = OptionBuilder
-			.withArgName( "pixel number" )
-			.hasArgs( 1 )
-			.isRequired( false )
-			.withDescription( "width of the output images in pixels. Default: 800 px." )
-			.withLongOpt( "images-width" )
-			.create( "w" );
-
-		Option imageHeight = OptionBuilder
-			.withArgName( "pixel number" )
-			.hasArgs( 1 )
-			.isRequired( false )
-			.withDescription( "height of the output images in pixels. Default: 600 px." )
-			.withLongOpt( "images-height" )
-			.create( "ht" );
-
 		Option pointScale = OptionBuilder
 			.withArgName( "real number" )
 			.hasArgs( 1 )
@@ -196,8 +180,6 @@ public class CmdLineParser
 		options.addOption( parentGroup );
 		options.addOption( parentAncestorsGroup );
 		options.addOption( otherGroup );
-		options.addOption( imageWidth );
-		options.addOption( imageHeight );
 		options.addOption( pointScale );
 		options.addOption( binsNumber );
 		options.addOption( help );
@@ -252,19 +234,6 @@ public class CmdLineParser
 		config.setParentGroupColor( parseColor( cmd.getOptionValue( "pg", "blue" ), false ) );
 		config.setAncestorGroupColor( parseColor( cmd.getOptionValue( "pa", "lightBlue" ), false ) );
 		config.setOtherGroupColor( parseColor( cmd.getOptionValue( "og", "lightGray" ), false ) );
-
-		config.setTreeWidth(
-			parsePositiveIntegerParameter(
-				cmd.getOptionValue( "w", "800" ),
-				"Image width should be a positive integer number pointing number of pixels."
-			)
-		);
-		config.setTreeHeight(
-			parsePositiveIntegerParameter(
-				cmd.getOptionValue( "ht", "600" ),
-				"Image height should be a positive integer number pointing number of pixels."
-			)
-		);
 
 		config.setPointScallingFactor(
 			parsePositiveDoubleParameter(

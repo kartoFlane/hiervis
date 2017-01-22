@@ -13,34 +13,26 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
 
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.ui.components.NumberDocument;
 import pl.pwr.hiervis.util.SwingUIUtils;
-import javax.swing.JCheckBox;
 
 
 @SuppressWarnings("serial")
 public class ConfigDialog extends JDialog
 {
-	private JTextField txtTreeWidth;
-	private JTextField txtTreeHeight;
-	private JTextField txtPointWidth;
-	private JTextField txtPointHeight;
-
 	private JLabel lblColorSelectedNode;
 	private JLabel lblColorChildGroup;
 	private JLabel lblColorParentGroup;
@@ -48,9 +40,10 @@ public class ConfigDialog extends JDialog
 	private JLabel lblColorOtherGroup;
 	private JLabel lblColorBackground;
 	private JComboBox<String> listLAF;
+	private JCheckBox cboxUseTrueClass;
+
 
 	private HVConfig newConfig = null;
-	private JCheckBox cboxUseTrueClass;
 
 
 	public ConfigDialog( HVContext context, Window frame )
@@ -84,9 +77,9 @@ public class ConfigDialog extends JDialog
 		cTabs.addTab( "General", null, cGeneral, null );
 		GridBagLayout gbl_cGeneral = new GridBagLayout();
 		gbl_cGeneral.columnWidths = new int[] { 200, 0 };
-		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0 };
 		gbl_cGeneral.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
+		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0 };
 		cGeneral.setLayout( gbl_cGeneral );
 
 		JLabel lblLAF = new JLabel( "GUI Look And Feel (restart required):" );
@@ -113,154 +106,18 @@ public class ConfigDialog extends JDialog
 			SwingUIUtils.toHTML( "The look and feel used by the application's GUI.\nRequires restart." )
 		);
 
-		JPanel cTreeResolution = new JPanel();
-		cTreeResolution.setBorder(
-			new TitledBorder(
-				UIManager.getBorder( "TitledBorder.border" ),
-				"Hierarchy visualization resolution"
-			)
-		);
-
-		GridBagConstraints gbc_cTreeResolution = new GridBagConstraints();
-		gbc_cTreeResolution.insets = new Insets( 5, 5, 5, 5 );
-		gbc_cTreeResolution.fill = GridBagConstraints.BOTH;
-		gbc_cTreeResolution.gridx = 0;
-		gbc_cTreeResolution.gridy = 2;
-		cGeneral.add( cTreeResolution, gbc_cTreeResolution );
-		GridBagLayout gbl_cTreeResolution = new GridBagLayout();
-		gbl_cTreeResolution.columnWidths = new int[] { 0, 150, 0 };
-		gbl_cTreeResolution.rowHeights = new int[] { 0, 0, 0 };
-		gbl_cTreeResolution.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gbl_cTreeResolution.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
-		cTreeResolution.setLayout( gbl_cTreeResolution );
-
-		JLabel lblTreeWidth = new JLabel( "Width:" );
-		GridBagConstraints gbc_lblTreeWidth = new GridBagConstraints();
-		gbc_lblTreeWidth.anchor = GridBagConstraints.WEST;
-		gbc_lblTreeWidth.insets = new Insets( 5, 5, 5, 0 );
-		gbc_lblTreeWidth.gridx = 0;
-		gbc_lblTreeWidth.gridy = 0;
-		cTreeResolution.add( lblTreeWidth, gbc_lblTreeWidth );
-
-		txtTreeWidth = new JTextField();
-		txtTreeWidth.setColumns( 6 );
-		txtTreeWidth.setHorizontalAlignment( SwingConstants.RIGHT );
-		GridBagConstraints gbc_txtTreeWidth = new GridBagConstraints();
-		gbc_txtTreeWidth.anchor = GridBagConstraints.EAST;
-		gbc_txtTreeWidth.insets = new Insets( 5, 0, 5, 5 );
-		gbc_txtTreeWidth.gridx = 1;
-		gbc_txtTreeWidth.gridy = 0;
-		cTreeResolution.add( txtTreeWidth, gbc_txtTreeWidth );
-
-		JLabel lblTreeHeight = new JLabel( "Height:" );
-		GridBagConstraints gbc_lblTreeHeight = new GridBagConstraints();
-		gbc_lblTreeHeight.anchor = GridBagConstraints.WEST;
-		gbc_lblTreeHeight.insets = new Insets( 0, 5, 0, 0 );
-		gbc_lblTreeHeight.gridx = 0;
-		gbc_lblTreeHeight.gridy = 1;
-		cTreeResolution.add( lblTreeHeight, gbc_lblTreeHeight );
-
-		txtTreeHeight = new JTextField();
-		txtTreeHeight.setColumns( 6 );
-		txtTreeHeight.setHorizontalAlignment( SwingConstants.RIGHT );
-		GridBagConstraints gbc_txtTreeHeight = new GridBagConstraints();
-		gbc_txtTreeHeight.anchor = GridBagConstraints.EAST;
-		gbc_txtTreeHeight.insets = new Insets( 0, 5, 5, 5 );
-		gbc_txtTreeHeight.gridx = 1;
-		gbc_txtTreeHeight.gridy = 1;
-		cTreeResolution.add( txtTreeHeight, gbc_txtTreeHeight );
-
-		String t = SwingUIUtils.toHTML( "Area that the tree visualization has to work with." );
-		lblTreeWidth.setToolTipText( t );
-		txtTreeWidth.setToolTipText( t );
-		lblTreeHeight.setToolTipText( t );
-		txtTreeHeight.setToolTipText( t );
-
-		JPanel cPointResolution = new JPanel();
-		cPointResolution.setBorder(
-			new TitledBorder(
-				UIManager.getBorder( "TitledBorder.border" ),
-				"Point visualization resolution"
-			)
-		);
-
-		GridBagConstraints gbc_cPointResolution = new GridBagConstraints();
-		gbc_cPointResolution.insets = new Insets( 0, 5, 5, 5 );
-		gbc_cPointResolution.fill = GridBagConstraints.BOTH;
-		gbc_cPointResolution.gridx = 0;
-		gbc_cPointResolution.gridy = 3;
-		cGeneral.add( cPointResolution, gbc_cPointResolution );
-		GridBagLayout gbl_cPointResolution = new GridBagLayout();
-		gbl_cPointResolution.columnWidths = new int[] { 0, 150, 0 };
-		gbl_cPointResolution.rowHeights = new int[] { 0, 0, 0 };
-		gbl_cPointResolution.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gbl_cPointResolution.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
-		cPointResolution.setLayout( gbl_cPointResolution );
-
-		JLabel lblPointWidth = new JLabel( "Width:" );
-		GridBagConstraints gbc_lblPointWidth = new GridBagConstraints();
-		gbc_lblPointWidth.anchor = GridBagConstraints.WEST;
-		gbc_lblPointWidth.insets = new Insets( 5, 5, 5, 0 );
-		gbc_lblPointWidth.gridx = 0;
-		gbc_lblPointWidth.gridy = 0;
-		cPointResolution.add( lblPointWidth, gbc_lblPointWidth );
-
-		txtPointWidth = new JTextField();
-		txtPointWidth.setColumns( 6 );
-		txtPointWidth.setHorizontalAlignment( SwingConstants.RIGHT );
-		GridBagConstraints gbc_txtPointWidth = new GridBagConstraints();
-		gbc_txtPointWidth.anchor = GridBagConstraints.EAST;
-		gbc_txtPointWidth.insets = new Insets( 5, 0, 5, 5 );
-		gbc_txtPointWidth.gridx = 1;
-		gbc_txtPointWidth.gridy = 0;
-		cPointResolution.add( txtPointWidth, gbc_txtPointWidth );
-
-		JLabel lblPointHeight = new JLabel( "Height:" );
-		GridBagConstraints gbc_lblPointHeight = new GridBagConstraints();
-		gbc_lblPointHeight.anchor = GridBagConstraints.WEST;
-		gbc_lblPointHeight.insets = new Insets( 0, 5, 0, 0 );
-		gbc_lblPointHeight.gridx = 0;
-		gbc_lblPointHeight.gridy = 1;
-		cPointResolution.add( lblPointHeight, gbc_lblPointHeight );
-
-		txtPointHeight = new JTextField();
-		txtPointHeight.setColumns( 6 );
-		txtPointHeight.setHorizontalAlignment( SwingConstants.RIGHT );
-		GridBagConstraints gbc_txtPointHeight = new GridBagConstraints();
-		gbc_txtPointHeight.anchor = GridBagConstraints.EAST;
-		gbc_txtPointHeight.insets = new Insets( 0, 5, 5, 5 );
-		gbc_txtPointHeight.gridx = 1;
-		gbc_txtPointHeight.gridy = 1;
-		cPointResolution.add( txtPointHeight, gbc_txtPointHeight );
-
-		t = SwingUIUtils.toHTML( "Resolution of the node instances visualization." );
-		lblPointWidth.setToolTipText( t );
-		txtPointWidth.setToolTipText( t );
-		lblPointHeight.setToolTipText( t );
-		txtPointHeight.setToolTipText( t );
-
 		cboxUseTrueClass = new JCheckBox( "Use true class" );
 		GridBagConstraints gbc_cboxVisTrueClass = new GridBagConstraints();
 		gbc_cboxVisTrueClass.fill = GridBagConstraints.HORIZONTAL;
 		gbc_cboxVisTrueClass.insets = new Insets( 0, 5, 5, 5 );
 		gbc_cboxVisTrueClass.gridx = 0;
-		gbc_cboxVisTrueClass.gridy = 4;
+		gbc_cboxVisTrueClass.gridy = 2;
 		cGeneral.add( cboxUseTrueClass, gbc_cboxVisTrueClass );
 
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
 
 		listLAF.setSelectedItem( cfg.getPreferredLookAndFeel() );
-
-		txtTreeWidth.setDocument( new NumberDocument( 4 ) );
-		txtTreeHeight.setDocument( new NumberDocument( 4 ) );
-		txtPointWidth.setDocument( new NumberDocument( 4 ) );
-		txtPointHeight.setDocument( new NumberDocument( 4 ) );
-
-		txtTreeWidth.setText( "" + cfg.getTreeWidth() );
-		txtTreeHeight.setText( "" + cfg.getTreeHeight() );
-		txtPointWidth.setText( "" + cfg.getInstanceWidth() );
-		txtPointHeight.setText( "" + cfg.getInstanceHeight() );
 
 		if ( cfg.hasTrueClassAttribute() ) {
 			cboxUseTrueClass.setEnabled( true );
@@ -509,11 +366,6 @@ public class ConfigDialog extends JDialog
 		newConfig.setBackgroundColor( lblColorBackground.getBackground() );
 
 		newConfig.setPreferredLookAndFeel( listLAF.getSelectedItem().toString() );
-		newConfig.setTreeWidth( Integer.parseInt( getText( txtTreeWidth ) ) );
-		newConfig.setTreeHeight( Integer.parseInt( getText( txtTreeHeight ) ) );
-		newConfig.setPointWidth( Integer.parseInt( getText( txtPointWidth ) ) );
-		newConfig.setPointHeight( Integer.parseInt( getText( txtPointHeight ) ) );
-
 		newConfig.setUseTrueClass( cboxUseTrueClass.isSelected() );
 	}
 

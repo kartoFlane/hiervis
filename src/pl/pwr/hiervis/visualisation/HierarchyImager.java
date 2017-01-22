@@ -38,17 +38,18 @@ public class HierarchyImager
 		throw new RuntimeException( "Attempted to instantiate a static class: " + getClass().getName() );
 	}
 
-	public static void process( HVContext context, HierarchyStatistics stats )
+	public static void process( HVContext context, HierarchyStatistics stats, int iw, int ih )
 	{
 		Hierarchy input = context.getHierarchy();
 		HVConfig config = context.getConfig();
+
 
 		int nodeImgLeftBorderWidth = 5;
 		int nodeImgRightBorderWidth = 30;// this value determine the width of labels on the OY axis
 		int nodeImgTopBorderHeight = 5;
 		int nodeImgBottomBorderHeight = 30;// this value determine the width of labels on the OX axis
-		int nodeImgFinalWidth = (int)( config.getInstanceWidth() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
-		int nodeImgFinalHeight = (int)( config.getInstanceHeight() + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
+		int nodeImgFinalWidth = (int)( iw + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
+		int nodeImgFinalHeight = (int)( ih + Math.max( 1.0, config.getPointScallingFactor() / 2 ) );
 
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( input.getRoot(), 0, 1 );
 
@@ -67,7 +68,7 @@ public class HierarchyImager
 				if ( config.getBackgroundColor() != null )
 					nodeImg = ImageUtils.setBackgroud( nodeImg, config.getBackgroundColor() );
 
-				nodeImg = fillImage( nodeImg, n, config, bounds, allPoints );
+				nodeImg = fillImage( nodeImg, n, iw, ih, config, bounds, allPoints );
 				nodeImg = ImageUtils.addBorder(
 					nodeImg,
 					nodeImgLeftBorderWidth, nodeImgRightBorderWidth,
@@ -97,15 +98,15 @@ public class HierarchyImager
 				System.out.println( "Horizontal histogram..." );
 				BufferedImage horizontalHistogram = createHorizontalHistogram(
 					histogramTable, directParentHistogramTable, config,
-					nodeImgFinalWidth,
-					nodeImgFinalHeight, nodeImgLeftBorderWidth, nodeImgRightBorderWidth
+					nodeImgFinalWidth, nodeImgFinalHeight,
+					nodeImgLeftBorderWidth, nodeImgRightBorderWidth
 				);
 
 				System.out.println( "Vertical histogram..." );
 				BufferedImage verticalHistogram = createVerticalHistogram(
 					histogramTable, directParentHistogramTable, config,
-					nodeImgFinalWidth,
-					nodeImgFinalHeight, nodeImgTopBorderHeight, nodeImgBottomBorderHeight
+					nodeImgFinalWidth, nodeImgFinalHeight,
+					nodeImgTopBorderHeight, nodeImgBottomBorderHeight
 				);
 
 				System.out.println( "Statistics..." );
@@ -188,12 +189,12 @@ public class HierarchyImager
 		);
 	}
 
-	private static BufferedImage createPointImage( HVContext context, Node node )
+	private static BufferedImage createPointImage( HVContext context, Node node, int w, int h )
 	{
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( node, 0, 1 );
-		int nodeImgFinalWidth = (int)( context.getConfig().getInstanceWidth() +
+		int nodeImgFinalWidth = (int)( w +
 			Math.max( 1.0, context.getConfig().getPointScallingFactor() / 2 ) );
-		int nodeImgFinalHeight = (int)( context.getConfig().getInstanceHeight() +
+		int nodeImgFinalHeight = (int)( h +
 			Math.max( 1.0, context.getConfig().getPointScallingFactor() / 2 ) );
 
 		LinkedList<Instance> allPoints = null;
@@ -206,7 +207,7 @@ public class HierarchyImager
 		if ( context.getConfig().getBackgroundColor() != null )
 			nodeImg = ImageUtils.setBackgroud( nodeImg, context.getConfig().getBackgroundColor() );
 
-		nodeImg = fillImage( nodeImg, node, context.getConfig(), bounds, allPoints );
+		nodeImg = fillImage( nodeImg, node, w, h, context.getConfig(), bounds, allPoints );
 
 		return nodeImg;
 	}
@@ -354,9 +355,8 @@ public class HierarchyImager
 
 	private static BufferedImage fillImage(
 		BufferedImage nodeImg,
-		Node node,
-		HVConfig config,
-		Rectangle2D bounds,
+		Node node, int w, int h,
+		HVConfig config, Rectangle2D bounds,
 		LinkedList<Instance> allPoints )
 	{
 
@@ -369,7 +369,7 @@ public class HierarchyImager
 					allPoints,
 					config.getOtherGroupColor(),
 					config.getPointScallingFactor(),
-					config.getInstanceWidth(), config.getInstanceHeight(),
+					w, h,
 					bounds
 				);
 
@@ -379,7 +379,7 @@ public class HierarchyImager
 						node,
 						config.getAncestorGroupColor(),
 						config.getPointScallingFactor(),
-						config.getInstanceWidth(), config.getInstanceHeight(),
+						w, h,
 						bounds
 					);
 
@@ -388,7 +388,7 @@ public class HierarchyImager
 						node.getParent().getNodeInstances(),
 						config.getParentGroupColor(),
 						config.getPointScallingFactor(),
-						config.getInstanceWidth(), config.getInstanceHeight(),
+						w, h,
 						bounds
 					);
 				}
@@ -399,7 +399,7 @@ public class HierarchyImager
 				node.getSubtreeInstances(),
 				config.getChildGroupColor(),
 				config.getPointScallingFactor(),
-				config.getInstanceWidth(), config.getInstanceHeight(),
+				w, h,
 				bounds
 			);
 			drawPoints(
@@ -407,7 +407,7 @@ public class HierarchyImager
 				node.getNodeInstances(),
 				config.getCurrentGroupColor(),
 				config.getPointScallingFactor(),
-				config.getInstanceWidth(), config.getInstanceHeight(),
+				w, h,
 				bounds
 			);
 		}
