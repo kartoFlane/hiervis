@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -213,6 +214,7 @@ public class HierarchyStatisticsFrame extends JFrame
 				MeasureTask.flatDaviesBouldin, MeasureTask.flatCalinskiHarabasz
 			),
 
+			createFillerPanel( 10 ),
 			createSeparatorPanel( "Statistics" ),
 			createBulkTaskPanel(
 				"Calculate All Statistics",
@@ -224,6 +226,7 @@ public class HierarchyStatisticsFrame extends JFrame
 			createPendingMeasurePanel( MeasureTask.height ),
 			createPendingMeasurePanel( MeasureTask.averagePathLength ),
 
+			createFillerPanel( 10 ),
 			createSeparatorPanel( "Histograms" ),
 			createBulkTaskPanel(
 				"Calculate All Histograms",
@@ -237,6 +240,7 @@ public class HierarchyStatisticsFrame extends JFrame
 			createPendingMeasurePanel( MeasureTask.childrenPerNodePerLevel ),
 			createPendingMeasurePanel( MeasureTask.numberOfChildren ),
 
+			createFillerPanel( 10 ),
 			createSeparatorPanel( "Internal Measures" ),
 			createBulkTaskPanel(
 				"Calculate All Internal Measures",
@@ -283,6 +287,15 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		cMeasures.revalidate();
 		cMeasures.repaint();
+	}
+
+	private JPanel createFillerPanel( int height )
+	{
+		JPanel cFiller = new JPanel();
+
+		cFiller.add( Box.createVerticalStrut( height ) );
+
+		return cFiller;
 	}
 
 	private JPanel createSeparatorPanel( String title )
