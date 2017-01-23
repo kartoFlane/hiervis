@@ -82,6 +82,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	private JPanel cDimsV;
 	private JPanel cCols;
 	private JPanel cRows;
+	private JScrollPane scrollPane;
 	private JPanel cViewport;
 	private JScrollPane scrollPaneH;
 	private JScrollPane scrollPaneV;
@@ -216,7 +217,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void createVisualizationHolder()
 	{
-		JScrollPane scrollPane = new JScrollPane();
+		scrollPane = new JScrollPane();
 
 		getContentPane().add(
 			scrollPane,
@@ -224,6 +225,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		);
 
 		cViewport = new JPanel();
+		cViewport.setLayout( new GridBagLayout() );
+
 		scrollPane.setViewportView( cViewport );
 
 		cCols = new JPanel();
@@ -247,7 +250,11 @@ public class InstanceVisualizationsFrame extends JFrame
 				@Override
 				public void mouseWheelMoved( MouseWheelEvent e )
 				{
-					if ( e.isControlDown() ) {
+					if ( e.isControlDown() && displaysVisible() ) {
+						Display dis = getFirstVisibleDisplay();
+						visWidth = Math.min( dis.getSize().width, dis.getSize().height );
+						visHeight = visWidth;
+
 						visWidth -= e.getWheelRotation() * visZoomIncrement;
 						visHeight -= e.getWheelRotation() * visZoomIncrement;
 
@@ -256,7 +263,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 						// Update the zoom increment so that we don't have to scroll 10000 times when
 						// the displays are already large.
-						visZoomIncrement = getZoomIncrement( Math.max( visWidth, visHeight ) );
+						visZoomIncrement = getZoomIncrement( Math.min( visWidth, visHeight ) );
 
 						// Update the displays' preferred sizes so they can shrink to the new size
 						Dimension d = new Dimension( visWidth, visHeight );
@@ -566,7 +573,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			new ComponentAdapter() {
 				public void componentResized( ComponentEvent e )
 				{
-					redrawDisplayIfVisible( display );
+					redrawDisplayIfVisible( (Display)e.getComponent() );
 				}
 			}
 		);
@@ -612,6 +619,22 @@ public class InstanceVisualizationsFrame extends JFrame
 		return (Display)result;
 	}
 
+	private Display getFirstVisibleDisplay()
+	{
+		for ( Component c : cViewport.getComponents() ) {
+			if ( c.isVisible() ) {
+				return (Display)c;
+			}
+		}
+
+		return null;
+	}
+
+	private boolean displaysVisible()
+	{
+		return cViewport.getComponentCount() > 0;
+	}
+
 	/**
 	 * Executes the specified function for each existing display in the grid.
 	 */
@@ -636,8 +659,14 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> args )
 	{
-		// TODO: Make this a config property?
-		final boolean includeFlippedDims = false;
+		// Setting this to true will cause displays for inverted dimensions to also be created
+		// ie. a square matrix of dimensions will be created
+		// (as opposed to an upper triangle matrix when this constant is set to false)
+		boolean includeFlippedDims = false;
+		// Setting to to true will cause the displays to be shrunk to allow the newly added
+		// displays to fit inside the viewport, if possible.
+		boolean squishDisplays = false;
+		// -----------------------------------------------------------------------------------
 
 		// Unpack event arguments
 		int dim = args.getLeft();
@@ -652,29 +681,49 @@ public class InstanceVisualizationsFrame extends JFrame
 			boolean vis = shouldDisplayBeVisible( x, y );
 			Display display = getDisplay( x, y );
 
-			if ( display == null ) {
-				if ( vis ) {
-					if ( includeFlippedDims || ( !includeFlippedDims && x >= y ) ) {
-						// Lazily create the requested display.
-						display = createInstanceDisplayFor( node, x, y );
-					}
-				}
-			}
-			else {
+			if ( display != null ) {
 				display.setVisible( vis );
 				redrawDisplayIfVisible( display );
+			}
+			else if ( vis ) {
+				if ( includeFlippedDims || ( !includeFlippedDims && x >= y ) ) {
+					// Lazily create the requested display.
+					display = createInstanceDisplayFor( node, x, y );
+				}
 			}
 		}
 
 		Component c = horizontal ? cCols.getComponent( dim ) : cRows.getComponent( dim );
 		c.setVisible( horizontal ? cboxesHorizontal[dim].isSelected() : cboxesVertical[dim].isSelected() );
 
+		if ( squishDisplays && displaysVisible() ) {
+			int countH = (int)Arrays.stream( cboxesHorizontal ).filter( cbox -> cbox.isSelected() ).count();
+			int countV = (int)Arrays.stream( cboxesVertical ).filter( cbox -> cbox.isSelected() ).count();
+
+			Dimension viewportSize = scrollPane.getViewport().getSize();
+			Dimension newVisSize = new Dimension(
+				( viewportSize.width - countH * ( displayInsets.left + displayInsets.right ) ) / countH,
+				( viewportSize.height - countV * ( displayInsets.top + displayInsets.bottom ) ) / countV
+			);
+
+			newVisSize.width = Utils.clamp( visWidthMin, newVisSize.width, visWidthMax );
+			newVisSize.height = Utils.clamp( visHeightMin, newVisSize.height, visHeightMax );
+
+			if ( ( newVisSize.width + displayInsets.left + displayInsets.right ) * countH <= viewportSize.width )
+				visWidth = newVisSize.width;
+			if ( ( newVisSize.height + displayInsets.top + displayInsets.bottom ) * countV <= viewportSize.height )
+				visHeight = newVisSize.height;
+
+			Dimension d = new Dimension( visWidth, visHeight );
+			forEachDisplay( display -> display.setPreferredSize( d ) );
+		}
+
 		updateViewportLayout();
 		updateLabelLayout( horizontal );
 
 		cCols.revalidate();
 		cRows.revalidate();
-		cViewport.revalidate();
+		revalidate();
 		repaint();
 	}
 
