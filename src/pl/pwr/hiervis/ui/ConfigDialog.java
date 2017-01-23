@@ -18,6 +18,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -27,20 +28,23 @@ import javax.swing.border.LineBorder;
 
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.SwingUIUtils;
 
 
 @SuppressWarnings("serial")
 public class ConfigDialog extends JDialog
 {
+	private JComboBox<String> listLAF;
+	private JSlider sldPointSize;
+	private JCheckBox cboxUseTrueClass;
+
 	private JLabel lblColorSelectedNode;
 	private JLabel lblColorChildGroup;
 	private JLabel lblColorParentGroup;
 	private JLabel lblColorAncestorGroup;
 	private JLabel lblColorOtherGroup;
 	private JLabel lblColorBackground;
-	private JComboBox<String> listLAF;
-	private JCheckBox cboxUseTrueClass;
 
 
 	private HVConfig newConfig = null;
@@ -77,26 +81,18 @@ public class ConfigDialog extends JDialog
 		cTabs.addTab( "General", null, cGeneral, null );
 		GridBagLayout gbl_cGeneral = new GridBagLayout();
 		gbl_cGeneral.columnWidths = new int[] { 200, 0 };
-		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0 };
+		gbl_cGeneral.rowHeights = new int[] { 0, 0, 0, 0, 0, 0 };
 		gbl_cGeneral.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0 };
+		gbl_cGeneral.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
 		cGeneral.setLayout( gbl_cGeneral );
 
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
 		JLabel lblLAF = new JLabel( "GUI Look And Feel (restart required):" );
-		GridBagConstraints gbc_lblLookAndFeel = new GridBagConstraints();
-		gbc_lblLookAndFeel.fill = GridBagConstraints.HORIZONTAL;
-		gbc_lblLookAndFeel.insets = new Insets( 5, 5, 5, 5 );
-		gbc_lblLookAndFeel.gridx = 0;
-		gbc_lblLookAndFeel.gridy = 0;
-		cGeneral.add( lblLAF, gbc_lblLookAndFeel );
+		cGeneral.add( lblLAF, builder.fillHorizontal().insets( 5 ).position( 0, 0 ).build() );
 
 		listLAF = new JComboBox<String>();
-		GridBagConstraints gbc_listLAF = new GridBagConstraints();
-		gbc_listLAF.insets = new Insets( 0, 5, 5, 5 );
-		gbc_listLAF.fill = GridBagConstraints.HORIZONTAL;
-		gbc_listLAF.gridx = 0;
-		gbc_listLAF.gridy = 1;
-		cGeneral.add( listLAF, gbc_listLAF );
+		cGeneral.add( listLAF, builder.fillHorizontal().insets( 0, 5, 10, 5 ).position( 0, 1 ).build() );
 
 		for ( LookAndFeelInfo info : UIManager.getInstalledLookAndFeels() ) {
 			listLAF.addItem( info.getName() );
@@ -106,18 +102,33 @@ public class ConfigDialog extends JDialog
 			SwingUIUtils.toHTML( "The look and feel used by the application's GUI.\nRequires restart." )
 		);
 
+		JLabel lblPointSize = new JLabel( "Instance size:" );
+		cGeneral.add( lblPointSize, builder.fillHorizontal().insets( 5 ).position( 0, 2 ).build() );
+
+		sldPointSize = new JSlider( 1, 5 );
+		sldPointSize.setPaintLabels( true );
+		sldPointSize.setSnapToTicks( true );
+		sldPointSize.setPaintTicks( true );
+		sldPointSize.setMajorTickSpacing( 1 );
+		cGeneral.add( sldPointSize, builder.fillHorizontal().insets( 0, 5, 10, 5 ).position( 0, 3 ).build() );
+
+		sldPointSize.setToolTipText(
+			SwingUIUtils.toHTML( "Size of an individual data point in instance visualizations, in pixels." )
+		);
+
 		cboxUseTrueClass = new JCheckBox( "Use true class" );
 		GridBagConstraints gbc_cboxVisTrueClass = new GridBagConstraints();
 		gbc_cboxVisTrueClass.fill = GridBagConstraints.HORIZONTAL;
 		gbc_cboxVisTrueClass.insets = new Insets( 0, 5, 5, 5 );
 		gbc_cboxVisTrueClass.gridx = 0;
-		gbc_cboxVisTrueClass.gridy = 2;
-		cGeneral.add( cboxUseTrueClass, gbc_cboxVisTrueClass );
+		gbc_cboxVisTrueClass.gridy = 3;
+		cGeneral.add( cboxUseTrueClass, builder.fillHorizontal().insets( 0, 5, 0, 5 ).position( 0, 4 ).build() );
 
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
 
 		listLAF.setSelectedItem( cfg.getPreferredLookAndFeel() );
+		sldPointSize.setValue( cfg.getPointSize() );
 
 		if ( cfg.hasTrueClassAttribute() ) {
 			cboxUseTrueClass.setEnabled( true );
@@ -156,122 +167,58 @@ public class ConfigDialog extends JDialog
 		gbl_cColors.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		cColors.setLayout( gbl_cColors );
 
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
 		JLabel lblSelectedNodeColor = new JLabel( "Selected node color:" );
-		GridBagConstraints gbc_lblSelectedNodeColor = new GridBagConstraints();
-		gbc_lblSelectedNodeColor.anchor = GridBagConstraints.WEST;
-		gbc_lblSelectedNodeColor.insets = new Insets( 5, 5, 5, 5 );
-		gbc_lblSelectedNodeColor.gridx = 0;
-		gbc_lblSelectedNodeColor.gridy = 0;
-		cColors.add( lblSelectedNodeColor, gbc_lblSelectedNodeColor );
+		cColors.add( lblSelectedNodeColor, builder.anchorWest().insets( 5 ).position( 0, 0 ).build() );
 
 		lblColorSelectedNode = new JLabel();
-		GridBagConstraints gbc_lblColorSelectedNode = new GridBagConstraints();
-		gbc_lblColorSelectedNode.anchor = GridBagConstraints.EAST;
-		gbc_lblColorSelectedNode.fill = GridBagConstraints.VERTICAL;
-		gbc_lblColorSelectedNode.insets = new Insets( 5, 0, 5, 5 );
-		gbc_lblColorSelectedNode.gridx = 1;
-		gbc_lblColorSelectedNode.gridy = 0;
-		cColors.add( lblColorSelectedNode, gbc_lblColorSelectedNode );
 		lblColorSelectedNode.setOpaque( true );
 		lblColorSelectedNode.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorSelectedNode.setPreferredSize( colorLabelDim );
+		cColors.add( lblColorSelectedNode, builder.anchorEast().fillVertical().insets( 5, 0, 5, 5 ).position( 1, 0 ).build() );
 
 		JLabel lblChildGroupColor = new JLabel( "Child group color:" );
-		GridBagConstraints gbc_lblChildGroupColor = new GridBagConstraints();
-		gbc_lblChildGroupColor.insets = new Insets( 0, 5, 5, 5 );
-		gbc_lblChildGroupColor.anchor = GridBagConstraints.WEST;
-		gbc_lblChildGroupColor.gridx = 0;
-		gbc_lblChildGroupColor.gridy = 1;
-		cColors.add( lblChildGroupColor, gbc_lblChildGroupColor );
+		cColors.add( lblChildGroupColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 1 ).build() );
 
 		lblColorChildGroup = new JLabel();
-		GridBagConstraints gbc_lblColorChildGroup = new GridBagConstraints();
-		gbc_lblColorChildGroup.anchor = GridBagConstraints.EAST;
-		gbc_lblColorChildGroup.fill = GridBagConstraints.VERTICAL;
-		gbc_lblColorChildGroup.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblColorChildGroup.gridx = 1;
-		gbc_lblColorChildGroup.gridy = 1;
-		cColors.add( lblColorChildGroup, gbc_lblColorChildGroup );
 		lblColorChildGroup.setOpaque( true );
 		lblColorChildGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorChildGroup.setPreferredSize( colorLabelDim );
+		cColors.add( lblColorChildGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 1 ).build() );
 
 		JLabel lblParentGroupColor = new JLabel( "Parent group color:" );
-		GridBagConstraints gbc_lblParentGroupColor = new GridBagConstraints();
-		gbc_lblParentGroupColor.insets = new Insets( 0, 5, 5, 5 );
-		gbc_lblParentGroupColor.anchor = GridBagConstraints.WEST;
-		gbc_lblParentGroupColor.gridx = 0;
-		gbc_lblParentGroupColor.gridy = 2;
-		cColors.add( lblParentGroupColor, gbc_lblParentGroupColor );
+		cColors.add( lblParentGroupColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 2 ).build() );
 
 		lblColorParentGroup = new JLabel();
-		GridBagConstraints gbc_lblColorParentGroup = new GridBagConstraints();
-		gbc_lblColorParentGroup.anchor = GridBagConstraints.EAST;
-		gbc_lblColorParentGroup.fill = GridBagConstraints.VERTICAL;
-		gbc_lblColorParentGroup.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblColorParentGroup.gridx = 1;
-		gbc_lblColorParentGroup.gridy = 2;
-		cColors.add( lblColorParentGroup, gbc_lblColorParentGroup );
 		lblColorParentGroup.setOpaque( true );
 		lblColorParentGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorParentGroup.setPreferredSize( colorLabelDim );
+		cColors.add( lblColorParentGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 2 ).build() );
 
 		JLabel lblAncestorGroupColor = new JLabel( "Ancestor group color:" );
-		GridBagConstraints gbc_lblAncestorGroupColor = new GridBagConstraints();
-		gbc_lblAncestorGroupColor.anchor = GridBagConstraints.WEST;
-		gbc_lblAncestorGroupColor.insets = new Insets( 0, 5, 5, 5 );
-		gbc_lblAncestorGroupColor.gridx = 0;
-		gbc_lblAncestorGroupColor.gridy = 3;
-		cColors.add( lblAncestorGroupColor, gbc_lblAncestorGroupColor );
+		cColors.add( lblAncestorGroupColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 3 ).build() );
 
 		lblColorAncestorGroup = new JLabel();
-		GridBagConstraints gbc_lblColorAncestorGroup = new GridBagConstraints();
-		gbc_lblColorAncestorGroup.anchor = GridBagConstraints.EAST;
-		gbc_lblColorAncestorGroup.fill = GridBagConstraints.VERTICAL;
-		gbc_lblColorAncestorGroup.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblColorAncestorGroup.gridx = 1;
-		gbc_lblColorAncestorGroup.gridy = 3;
-		cColors.add( lblColorAncestorGroup, gbc_lblColorAncestorGroup );
 		lblColorAncestorGroup.setOpaque( true );
 		lblColorAncestorGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorAncestorGroup.setPreferredSize( colorLabelDim );
+		cColors.add( lblColorAncestorGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 3 ).build() );
 
 		JLabel lblOtherGroupColor = new JLabel( "Other group color:" );
-		GridBagConstraints gbc_lblOtherGroupColor = new GridBagConstraints();
-		gbc_lblOtherGroupColor.anchor = GridBagConstraints.WEST;
-		gbc_lblOtherGroupColor.insets = new Insets( 0, 5, 5, 5 );
-		gbc_lblOtherGroupColor.gridx = 0;
-		gbc_lblOtherGroupColor.gridy = 4;
-		cColors.add( lblOtherGroupColor, gbc_lblOtherGroupColor );
+		cColors.add( lblOtherGroupColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 4 ).build() );
 
 		lblColorOtherGroup = new JLabel();
-		GridBagConstraints gbc_lblColorOtherGroup = new GridBagConstraints();
-		gbc_lblColorOtherGroup.anchor = GridBagConstraints.EAST;
-		gbc_lblColorOtherGroup.fill = GridBagConstraints.VERTICAL;
-		gbc_lblColorOtherGroup.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblColorOtherGroup.gridx = 1;
-		gbc_lblColorOtherGroup.gridy = 4;
-		cColors.add( lblColorOtherGroup, gbc_lblColorOtherGroup );
 		lblColorOtherGroup.setOpaque( true );
 		lblColorOtherGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorOtherGroup.setPreferredSize( colorLabelDim );
+		cColors.add( lblColorOtherGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 4 ).build() );
 
 		JLabel lblBackgroundColor = new JLabel( "Background color:" );
-		GridBagConstraints gbc_lblBackgroundColor = new GridBagConstraints();
-		gbc_lblBackgroundColor.anchor = GridBagConstraints.WEST;
-		gbc_lblBackgroundColor.insets = new Insets( 0, 5, 5, 5 );
-		gbc_lblBackgroundColor.gridx = 0;
-		gbc_lblBackgroundColor.gridy = 5;
-		cColors.add( lblBackgroundColor, gbc_lblBackgroundColor );
+		cColors.add( lblBackgroundColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 5 ).build() );
 
 		lblColorBackground = new JLabel();
-		GridBagConstraints gbc_lblColorBackground = new GridBagConstraints();
-		gbc_lblColorBackground.anchor = GridBagConstraints.EAST;
-		gbc_lblColorBackground.fill = GridBagConstraints.VERTICAL;
-		gbc_lblColorBackground.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblColorBackground.gridx = 1;
-		gbc_lblColorBackground.gridy = 5;
-		cColors.add( lblColorBackground, gbc_lblColorBackground );
+		cColors.add( lblColorBackground, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 5 ).build() );
 		lblColorBackground.setOpaque( true );
 		lblColorBackground.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorBackground.setPreferredSize( colorLabelDim );
@@ -321,20 +268,13 @@ public class ConfigDialog extends JDialog
 		gbl_cButtons.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
 		cButtons.setLayout( gbl_cButtons );
 
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
 		JButton btnConfirm = new JButton( "Confirm" );
-		GridBagConstraints gbc_btnConfirm = new GridBagConstraints();
-		gbc_btnConfirm.anchor = GridBagConstraints.EAST;
-		gbc_btnConfirm.insets = new Insets( 5, 0, 5, 5 );
-		gbc_btnConfirm.gridx = 0;
-		gbc_btnConfirm.gridy = 0;
-		cButtons.add( btnConfirm, gbc_btnConfirm );
+		cButtons.add( btnConfirm, builder.anchorEast().insets( 5, 0, 5, 5 ).position( 0, 0 ).build() );
 
 		JButton btnCancel = new JButton( "Cancel" );
-		GridBagConstraints gbc_btnCancel = new GridBagConstraints();
-		gbc_btnCancel.insets = new Insets( 5, 0, 5, 5 );
-		gbc_btnCancel.gridx = 1;
-		gbc_btnCancel.gridy = 0;
-		cButtons.add( btnCancel, gbc_btnCancel );
+		cButtons.add( btnCancel, builder.insets( 5, 0, 5, 5 ).position( 1, 0 ).build() );
 
 		btnCancel.addActionListener(
 			( e ) -> {
@@ -366,6 +306,7 @@ public class ConfigDialog extends JDialog
 		newConfig.setBackgroundColor( lblColorBackground.getBackground() );
 
 		newConfig.setPreferredLookAndFeel( listLAF.getSelectedItem().toString() );
+		newConfig.setPointSize( sldPointSize.getValue() );
 		newConfig.setUseTrueClass( cboxUseTrueClass.isSelected() );
 	}
 

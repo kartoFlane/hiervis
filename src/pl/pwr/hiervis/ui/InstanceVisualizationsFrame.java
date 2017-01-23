@@ -72,9 +72,6 @@ public class InstanceVisualizationsFrame extends JFrame
 	private int visWidth = 200;
 	private int visHeight = 200;
 
-	// TODO: Move this to config, but make modifiable in the vis frame?
-	private int pointSize = 3;
-
 	private JCheckBox[] cboxesHorizontal;
 	private JCheckBox[] cboxesVertical;
 
@@ -512,7 +509,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 		else {
 			vis = HierarchyProcessor.createInstanceVisualization(
-				context, node, pointSize, dimX, dimY, false
+				context, node, context.getConfig().getPointSize(), dimX, dimY, false
 			);
 		}
 

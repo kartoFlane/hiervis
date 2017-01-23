@@ -64,6 +64,8 @@ public class HVConfig
 	@SerializableField
 	private double pointScalingFactor;
 	@SerializableField
+	private int pointSize;
+	@SerializableField
 	private int numberOfHistogramBins;
 
 	@SerializableField
@@ -96,6 +98,7 @@ public class HVConfig
 	{
 		// Setup default values.
 		numberOfHistogramBins = 5;
+		pointSize = 3;
 		pointScalingFactor = 1;
 
 		currentGroupColor = Color.red;
@@ -474,6 +477,16 @@ public class HVConfig
 	public void setPointScallingFactor( double pointScallingFactor )
 	{
 		this.pointScalingFactor = pointScallingFactor;
+	}
+
+	public int getPointSize()
+	{
+		return pointSize;
+	}
+
+	public void setPointSize( int pointSize )
+	{
+		this.pointSize = pointSize;
 	}
 
 	public boolean isDisplayAllPoints()
