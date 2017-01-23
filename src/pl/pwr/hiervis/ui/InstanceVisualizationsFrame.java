@@ -629,7 +629,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private boolean displaysVisible()
 	{
-		return cViewport.getComponentCount() > 0;
+		return Arrays.stream( cViewport.getComponents() ).filter( c -> c.isVisible() ).count() > 0;
 	}
 
 	/**
