@@ -21,6 +21,7 @@ import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.MeasureComputeThread;
+import pl.pwr.hiervis.ui.components.FileDrop;
 import pl.pwr.hiervis.ui.control.NodeSelectionControl;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.SubtreeDragControl;
@@ -87,6 +88,29 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.addControlListener( new ZoomScrollControl() );
 
 		getContentPane().add( hierarchyDisplay );
+
+		new FileDrop(
+			this, new FileDrop.Listener() {
+				public void filesDropped( File[] files )
+				{
+					if ( files.length == 0 ) {
+						log.trace( "Drag and drop: recevied no files." );
+					}
+					else if ( files.length == 1 ) {
+						File file = files[0];
+						if ( file.getName().endsWith( ".csv" ) ) {
+							loadFile( file );
+						}
+						else {
+							log.trace( "Drag and drop: recevied a non-CSV file, ignoring." );
+						}
+					}
+					else {
+						log.trace( "Drag and drop: received multiple files, ignoring." );
+					}
+				}
+			}
+		);
 	}
 
 	private void createMenu()
