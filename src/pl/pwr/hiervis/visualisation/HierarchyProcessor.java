@@ -297,8 +297,6 @@ public class HierarchyProcessor
 
 	public static void layoutVisualization( Visualization vis )
 	{
-		// TODO: in run function a threads are used, so threads could be somehow used
-		// to fill the images more efficiently
 		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".edges" );
 		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".layout" );
 

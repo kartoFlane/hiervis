@@ -1,7 +1,5 @@
 package pl.pwr.hiervis.ui;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -64,28 +62,13 @@ public class VisualizerFrame extends JFrame
 		setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		setSize( defaultFrameWidth, defaultFrameHeight );
 
-		addWindowListener(
-			new WindowAdapter() {
-				@Override
-				public void windowClosing( WindowEvent e )
-				{
-					// Save the current configuration on application exit.
-					context.getConfig().to( new File( HVConfig.FILE_PATH ) );
-
-					MeasureComputeThread thread = context.getMeasureComputeThread();
-					if ( thread != null ) {
-						thread.shutdown();
-					}
-				}
-			}
-		);
-
 		createMenu();
 		createGUI();
 
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanged.addListener( this::onNodeSelectionChanged );
+		context.configChanged.addListener( this::onConfigChanged );
 
 		SwingUIUtils.addCloseCallback( this, this::onWindowClosing );
 	}
@@ -238,36 +221,29 @@ public class VisualizerFrame extends JFrame
 		if ( dialog.hasConfigChanged() ) {
 			log.trace( "Updating current config..." );
 			context.setConfig( dialog.getConfig() );
-
-			// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
-			if ( context.isHierarchyDataLoaded() ) {
-				log.trace( "Reprocessing..." );
-				reprocess();
-			}
 		}
 
 		log.trace( "Config customization finished." );
 	}
 
 	/**
-	 * Processes the currently loaded hierarchy data, creating and laying out the visualization
-	 * using the currently selected settings.
-	 * This needs to be called after changes are made to the application's settings so that they
-	 * take effect on the interactive visualization.
+	 * Creates a hierarchy visualization for the currently loaded hierarchy, and lay it out,
+	 * so that it is rendered correctly.
 	 */
-	private void reprocess()
+	private void recreateHierarchyVisualization()
 	{
 		if ( !context.isHierarchyDataLoaded() ) {
 			throw new RuntimeException( "No hierarchy data is available." );
 		}
 
 		Visualization vis = context.createHierarchyVisualization();
-		hierarchyDisplay.setBackground( context.getConfig().getBackgroundColor() );
 		hierarchyDisplay.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
 		onNodeSelectionChanged( context.getSelectedRow() );
 	}
+
+	// -----------------------------------------------------------------------------------------
 
 	private void onHierarchyChanging( Hierarchy h )
 	{
@@ -278,12 +254,10 @@ public class VisualizerFrame extends JFrame
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
-		// If no hierarchy data is currently loaded, then we don't need to reprocess anything.
 		if ( context.isHierarchyDataLoaded() ) {
 			hierarchyDisplay.setEnabled( true );
 
-			log.trace( "Reprocessing..." );
-			reprocess();
+			recreateHierarchyVisualization();
 
 			Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
 		}
@@ -301,9 +275,33 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.repaint();
 	}
 
+	private void onConfigChanged( HVConfig cfg )
+	{
+		hierarchyDisplay.setBackground( cfg.getBackgroundColor() );
+
+		if ( context.isHierarchyDataLoaded() ) {
+			recreateHierarchyVisualization();
+		}
+		else {
+			// Refresh the hierarchy display so that it reflects node roles correctly
+			hierarchyDisplay.damageReport();
+			hierarchyDisplay.repaint();
+		}
+	}
+
 	private void onWindowClosing()
 	{
+		log.trace( "Closing application..." );
+
+		// Save the current configuration on application exit.
+		context.getConfig().to( new File( HVConfig.FILE_PATH ) );
+
 		if ( statsFrame != null ) statsFrame.dispose();
 		if ( visFrame != null ) visFrame.dispose();
+
+		MeasureComputeThread thread = context.getMeasureComputeThread();
+		if ( thread != null ) {
+			thread.shutdown();
+		}
 	}
 }
