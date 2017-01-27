@@ -166,38 +166,7 @@ public class VisualizerFrame extends JFrame
 		fileDialog.setFileFilter( new FileNameExtensionFilter( "*.csv", "csv" ) );
 
 		if ( fileDialog.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) {
-			File file = fileDialog.getSelectedFile();
-			try {
-				log.trace( String.format( "Selected file: '%s'", file ) );
-
-				FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
-				optionsDialog.setVisible( true );
-
-				if ( optionsDialog.hasConfigChanged() ) {
-					context.setConfig( optionsDialog.getConfig() );
-
-					log.trace( "Parsing..." );
-					Hierarchy hierarchy = new GeneratedCSVReader().load(
-						file.getAbsolutePath(),
-						context.getConfig().hasInstanceNameAttribute(),
-						context.getConfig().hasTrueClassAttribute(),
-						context.getConfig().hasDataNamesRow(),
-						context.getConfig().isFillBreadthGaps(),
-						context.getConfig().isUseSubtree()
-					);
-
-					log.trace( "Switching hierarchy..." );
-					context.setHierarchy( hierarchy );
-
-					log.trace( "File selection finished." );
-				}
-				else {
-					log.trace( "Loading aborted." );
-				}
-			}
-			catch ( IOException e ) {
-				log.error( "Error while loading hierarchy file: " + file.getName(), e );
-			}
+			loadFile( fileDialog.getSelectedFile() );
 		}
 		else {
 			log.trace( "Loading aborted." );
@@ -241,6 +210,47 @@ public class VisualizerFrame extends JFrame
 		HierarchyProcessor.layoutVisualization( vis );
 
 		onNodeSelectionChanged( context.getSelectedRow() );
+	}
+
+	/**
+	 * Loads the specified file as a CSV file describing a {@link Hierarchy} object.
+	 * 
+	 * @param file
+	 *            the file to load
+	 */
+	private void loadFile( File file )
+	{
+		try {
+			log.trace( String.format( "Selected file: '%s'", file ) );
+
+			FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
+			optionsDialog.setVisible( true );
+
+			if ( optionsDialog.hasConfigChanged() ) {
+				context.setConfig( optionsDialog.getConfig() );
+
+				log.trace( "Parsing..." );
+				Hierarchy hierarchy = new GeneratedCSVReader().load(
+					file.getAbsolutePath(),
+					context.getConfig().hasInstanceNameAttribute(),
+					context.getConfig().hasTrueClassAttribute(),
+					context.getConfig().hasDataNamesRow(),
+					context.getConfig().isFillBreadthGaps(),
+					context.getConfig().isUseSubtree()
+				);
+
+				log.trace( "Switching hierarchy..." );
+				context.setHierarchy( hierarchy );
+
+				log.trace( "File selection finished." );
+			}
+			else {
+				log.trace( "Loading aborted." );
+			}
+		}
+		catch ( IOException e ) {
+			log.error( "Error while loading hierarchy file: " + file.getName(), e );
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------
