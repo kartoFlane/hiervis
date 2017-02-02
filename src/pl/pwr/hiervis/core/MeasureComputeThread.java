@@ -99,11 +99,6 @@ public class MeasureComputeThread extends Thread
 				log.error( "Unexpected error ocurred while processing measures.", e );
 			}
 		}
-
-		measureComputing.clearListeners();
-		measureComputed.clearListeners();
-
-		log.trace( "Compute thread shut down." );
 	}
 
 	/**
@@ -207,7 +202,7 @@ public class MeasureComputeThread extends Thread
 	}
 
 	/**
-	 * Shuts down the thread.
+	 * Shuts down the thread and cleans up.
 	 */
 	public void shutdown()
 	{

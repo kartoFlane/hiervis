@@ -55,8 +55,8 @@ import pl.pwr.hiervis.core.MeasureTask;
 @SuppressWarnings("serial")
 public class HierarchyStatisticsFrame extends JFrame
 {
-	private Window owner;
 	private HVContext context;
+	private Window owner;
 
 	private JPanel cMeasures;
 	private JMenuItem mntmDump;
@@ -69,8 +69,8 @@ public class HierarchyStatisticsFrame extends JFrame
 	public HierarchyStatisticsFrame( HVContext context, Window frame )
 	{
 		super( "Hierarchy Statistics" );
-		owner = frame;
 		this.context = context;
+		this.owner = frame;
 
 		setDefaultCloseOperation( HIDE_ON_CLOSE );
 		setMinimumSize( new Dimension( 400, 200 ) );
@@ -112,7 +112,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		createGUI();
 		createMenu();
-		createMesurePanels();
+		createMeasurePanels();
 
 		context.getMeasureComputeThread().measureComputing.addListener( this::onMeasureComputing );
 		context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
@@ -198,7 +198,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		scrollPane.setViewportView( cMeasures );
 	}
 
-	private void createMesurePanels()
+	private void createMeasurePanels()
 	{
 		addMeasurePanels(
 			createBulkTaskPanel(
@@ -317,13 +317,13 @@ public class HierarchyStatisticsFrame extends JFrame
 		constraintsSepLeft.gridy = 0;
 		cSeparator.add( sepLeft, constraintsSepLeft );
 
-		JLabel lblNewLabel = new JLabel( title );
+		JLabel lblTitle = new JLabel( title );
 		GridBagConstraints constraintsLabel = new GridBagConstraints();
 		constraintsLabel.insets = new Insets( 0, 0, 5, 0 );
 		constraintsLabel.fill = GridBagConstraints.VERTICAL;
 		constraintsLabel.gridx = 1;
 		constraintsLabel.gridy = 0;
-		cSeparator.add( lblNewLabel, constraintsLabel );
+		cSeparator.add( lblTitle, constraintsLabel );
 
 		JSeparator sepRight = new JSeparator();
 		GridBagConstraints constraintsSepRight = new GridBagConstraints();
@@ -490,11 +490,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private void onMeasureComputed( Pair<String, Object> result )
 	{
-		SwingUtilities.invokeLater(
-			() -> {
-				updateMeasurePanel( result );
-			}
-		);
+		SwingUtilities.invokeLater( () -> updateMeasurePanel( result ) );
 	}
 
 	private void onHierarchyChanging( Hierarchy oldHierarchy )
@@ -509,6 +505,6 @@ public class HierarchyStatisticsFrame extends JFrame
 	private void onHierarchyChanged( Hierarchy newHierarchy )
 	{
 		mntmDump.setEnabled( newHierarchy != null );
-		createMesurePanels();
+		createMeasurePanels();
 	}
 }
