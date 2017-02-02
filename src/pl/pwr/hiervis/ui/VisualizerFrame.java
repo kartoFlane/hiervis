@@ -1,7 +1,6 @@
 package pl.pwr.hiervis.ui;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -9,14 +8,15 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
-import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.HierarchyVisualizer;
+import pl.pwr.hiervis.core.FileLoaderThread;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
@@ -244,49 +244,58 @@ public class VisualizerFrame extends JFrame
 	 */
 	private void loadFile( File file )
 	{
-		try {
-			log.trace( String.format( "Selected file: '%s'", file ) );
+		log.trace( String.format( "Selected file: '%s'", file ) );
 
-			FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
-			optionsDialog.setVisible( true );
+		FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
+		optionsDialog.setVisible( true );
 
-			if ( optionsDialog.hasConfigChanged() ) {
-				context.setConfig( optionsDialog.getConfig() );
-
-				log.trace( "Parsing..." );
-				Hierarchy hierarchy = new GeneratedCSVReader().load(
-					file.getAbsolutePath(),
-					context.getConfig().hasInstanceNameAttribute(),
-					context.getConfig().hasTrueClassAttribute(),
-					context.getConfig().hasDataNamesRow(),
-					context.getConfig().isFillBreadthGaps(),
-					context.getConfig().isUseSubtree()
-				);
-
-				log.trace( "Switching hierarchy..." );
-				context.setHierarchy( hierarchy );
-
-				log.trace( "File selection finished." );
-			}
-			else {
-				log.trace( "Loading aborted." );
-			}
+		HVConfig cfg = optionsDialog.getConfig();
+		if ( cfg == null ) {
+			log.trace( "Loading aborted." );
 		}
-		catch ( IOException e ) {
-			log.error( "Error while loading hierarchy file: " + file.getName(), e );
+		else {
+			context.setConfig( cfg );
+
+			FileLoaderThread thread = new FileLoaderThread( cfg, file );
+			thread.fileLoaded.addListener( this::onFileLoaded );
+			thread.errorOcurred.addListener( this::onFileError );
+			thread.start();
 		}
 	}
 
 	// -----------------------------------------------------------------------------------------
 
-	private void onHierarchyChanging( Hierarchy h )
+	private void onFileLoaded( Hierarchy loadedHierarchy )
+	{
+		SwingUtilities.invokeLater(
+			() -> {
+				log.trace( "Switching hierarchy..." );
+				context.setHierarchy( loadedHierarchy );
+			}
+		);
+	}
+
+	private void onFileError( Exception ex )
+	{
+		SwingUtilities.invokeLater(
+			() -> {
+				SwingUIUtils.showInfoDialog(
+					"An error ocurred while loading the specified file. Most often this happens when " +
+						"incorrect settings were selected for the file in question." +
+						"\n\nError message:\n" + ex.getMessage()
+				);
+			}
+		);
+	}
+
+	private void onHierarchyChanging( Hierarchy oldHierarchy )
 	{
 		Utils.unzoom( hierarchyDisplay, 0 );
 		hierarchyDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 		hierarchyDisplay.setEnabled( false );
 	}
 
-	private void onHierarchyChanged( Hierarchy h )
+	private void onHierarchyChanged( Hierarchy newHierarchy )
 	{
 		if ( context.isHierarchyDataLoaded() ) {
 			hierarchyDisplay.setEnabled( true );

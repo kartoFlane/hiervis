@@ -83,6 +83,9 @@ public class Event<T>
 		}
 	}
 
+	/**
+	 * Clears the list of listeners of this event, so no dangling references are left over.
+	 */
 	public void clearListeners()
 	{
 		if ( listeners != null )
