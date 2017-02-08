@@ -20,6 +20,8 @@ public class FileLoaderThread extends Thread
 	private final HVConfig cfg;
 	private final File file;
 
+	private GeneratedCSVReader reader;
+
 
 	/**
 	 * 
@@ -43,7 +45,10 @@ public class FileLoaderThread extends Thread
 
 		try {
 			log.trace( "Parsing..." );
-			Hierarchy hierarchy = new GeneratedCSVReader().load(
+
+			reader = new GeneratedCSVReader();
+
+			Hierarchy hierarchy = reader.load(
 				file.getAbsolutePath(),
 				cfg.hasInstanceNameAttribute(),
 				cfg.hasTrueClassAttribute(),
@@ -57,6 +62,9 @@ public class FileLoaderThread extends Thread
 
 			fileLoaded.broadcast( hierarchy );
 		}
+		catch ( GeneratedCSVReader.RuntimeInterruptedException ex ) {
+			log.trace( "File loading aborted by user." );
+		}
 		catch ( Exception ex ) {
 			log.error( "Error ocurred while loading " + file.getAbsolutePath() + "\n", ex );
 			errorOcurred.broadcast( ex );
@@ -66,6 +74,11 @@ public class FileLoaderThread extends Thread
 		errorOcurred.clearListeners();
 
 		log.trace( "File loader thread finished." );
+	}
+
+	public int getProgress()
+	{
+		return reader == null ? 0 : reader.getProgress();
 	}
 
 	/**

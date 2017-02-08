@@ -1,5 +1,6 @@
 package pl.pwr.hiervis.ui;
 
+import java.awt.Dimension;
 import java.io.File;
 
 import javax.swing.JFileChooser;
@@ -257,9 +258,27 @@ public class VisualizerFrame extends JFrame
 			context.setConfig( cfg );
 
 			FileLoaderThread thread = new FileLoaderThread( cfg, file );
+
+			OperationProgressFrame progressFrame = new OperationProgressFrame( this, "Loading..." );
+			progressFrame.setProgressUpdateCallback( thread::getProgress );
+			progressFrame.setProgressPollInterval( 100 );
+			progressFrame.setAbortOperation(
+				e -> {
+					thread.interrupt();
+					progressFrame.dispose();
+				}
+			);
+
+			thread.fileLoaded.addListener( h -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
+			thread.errorOcurred.addListener( e -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
 			thread.fileLoaded.addListener( this::onFileLoaded );
 			thread.errorOcurred.addListener( this::onFileError );
+
 			thread.start();
+
+			progressFrame.setSize( new Dimension( 300, 150 ) );
+			progressFrame.setLocationRelativeTo( null );
+			progressFrame.setVisible( true );
 		}
 	}
 
