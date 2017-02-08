@@ -3,9 +3,7 @@ package pl.pwr.hiervis.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -117,11 +115,6 @@ public class ConfigDialog extends JDialog
 		);
 
 		cboxUseTrueClass = new JCheckBox( "Use true class" );
-		GridBagConstraints gbc_cboxVisTrueClass = new GridBagConstraints();
-		gbc_cboxVisTrueClass.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cboxVisTrueClass.insets = new Insets( 0, 5, 5, 5 );
-		gbc_cboxVisTrueClass.gridx = 0;
-		gbc_cboxVisTrueClass.gridy = 3;
 		cGeneral.add( cboxUseTrueClass, builder.fillHorizontal().insets( 0, 5, 0, 5 ).position( 0, 4 ).build() );
 
 		// Apply current config values
