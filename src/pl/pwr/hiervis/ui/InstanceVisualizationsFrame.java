@@ -509,7 +509,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 		else {
 			vis = HierarchyProcessor.createInstanceVisualization(
-				context, node, context.getConfig().getPointSize(), dimX, dimY, false
+				context, node, context.getConfig().getPointSize(), dimX, dimY, true
 			);
 		}
 
@@ -616,6 +616,9 @@ public class InstanceVisualizationsFrame extends JFrame
 		return (Display)result;
 	}
 
+	/**
+	 * @return the first visible instance display, or null if none are visible
+	 */
 	private Display getFirstVisibleDisplay()
 	{
 		for ( Component c : cViewport.getComponents() ) {
@@ -627,6 +630,9 @@ public class InstanceVisualizationsFrame extends JFrame
 		return null;
 	}
 
+	/**
+	 * @return true if any instance display is visible, false otherwise.
+	 */
 	private boolean displaysVisible()
 	{
 		return Arrays.stream( cViewport.getComponents() ).filter( c -> c.isVisible() ).count() > 0;

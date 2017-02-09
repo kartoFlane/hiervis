@@ -44,8 +44,8 @@ import prefuse.render.EdgeRenderer;
 import prefuse.render.Renderer;
 import prefuse.render.RendererFactory;
 import prefuse.util.ColorLib;
+import prefuse.util.ui.ValuedRangeModel;
 import prefuse.visual.VisualItem;
-import prefuse.visual.expression.VisiblePredicate;
 
 
 public class HierarchyProcessor
@@ -457,16 +457,18 @@ public class HierarchyProcessor
 		AxisLayout axisX = new AxisLayout(
 			HVConstants.INSTANCE_DATA_NAME,
 			table.getColumnName( dimX ),
-			Constants.X_AXIS, VisiblePredicate.TRUE
+			Constants.X_AXIS
 		);
-		axisX.setRangeModel( new NumberRangeModel( bounds.getMinX(), bounds.getMaxX(), bounds.getMinX(), bounds.getMaxX() ) );
+		ValuedRangeModel rangeModelX = new NumberRangeModel( 0, bounds.getMaxX(), 0, bounds.getMaxX() );
+		axisX.setRangeModel( rangeModelX );
 
 		AxisLayout axisY = new AxisLayout(
 			HVConstants.INSTANCE_DATA_NAME,
 			table.getColumnName( dimY ),
-			Constants.Y_AXIS, VisiblePredicate.TRUE
+			Constants.Y_AXIS
 		);
-		axisY.setRangeModel( new NumberRangeModel( bounds.getMinY(), bounds.getMaxY(), bounds.getMinY(), bounds.getMaxY() ) );
+		ValuedRangeModel rangeModelY = new NumberRangeModel( 0, bounds.getMaxY(), 0, bounds.getMaxY() );
+		axisY.setRangeModel( rangeModelY );
 
 		ColorAction colorize = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
 		colorize.setDefaultColor( Utils.rgba( Color.MAGENTA ) );
@@ -476,27 +478,32 @@ public class HierarchyProcessor
 		colorize.add( getPredicateFor( ElementRole.CHILD ), Utils.rgba( config.getChildGroupColor() ) );
 		colorize.add( getPredicateFor( ElementRole.OTHER ), Utils.rgba( config.getOtherGroupColor() ) );
 
-		ActionList drawActions = new ActionList();
-		drawActions.add( axisX );
-		drawActions.add( axisY );
+		ActionList axisActions = new ActionList();
+		axisActions.add( axisX );
+		axisActions.add( axisY );
 
 		if ( withLabels ) {
 			AxisLabelLayout labelX = new AxisLabelLayout( nameLabelsX, axisX );
 			labelX.setNumberFormat( NumberFormat.getNumberInstance() );
+			labelX.setRangeModel( rangeModelX );
 			labelX.setScale( Constants.LINEAR_SCALE );
 
 			AxisLabelLayout labelY = new AxisLabelLayout( nameLabelsY, axisY );
 			labelY.setNumberFormat( NumberFormat.getNumberInstance() );
+			labelY.setRangeModel( rangeModelY );
 			labelY.setScale( Constants.LINEAR_SCALE );
 
-			drawActions.add( labelX );
-			drawActions.add( labelY );
+			axisActions.add( labelX );
+			axisActions.add( labelY );
 		}
 
+		ActionList drawActions = new ActionList();
+		drawActions.add( axisActions );
 		drawActions.add( colorize );
 		drawActions.add( new RepaintAction() );
 
 		vis.putAction( "draw", drawActions );
+		vis.putAction( "axis", axisActions );
 		vis.putAction( "repaint", new RepaintAction() );
 
 		return vis;
