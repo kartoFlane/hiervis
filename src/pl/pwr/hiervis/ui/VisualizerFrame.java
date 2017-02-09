@@ -1,6 +1,7 @@
 package pl.pwr.hiervis.ui;
 
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.io.File;
 
 import javax.swing.JFileChooser;
@@ -73,6 +74,44 @@ public class VisualizerFrame extends JFrame
 		context.configChanged.addListener( this::onConfigChanged );
 
 		SwingUIUtils.addCloseCallback( this, this::onWindowClosing );
+
+		createFrames();
+	}
+
+	public void layoutFrames()
+	{
+		Rectangle r = SwingUIUtils.getEffectiveDisplayArea( null );
+
+		int frameWidth = r.width / 4;
+
+		Dimension dimMainFrame = new Dimension( frameWidth, frameWidth );
+		Dimension dimStatsFrame = new Dimension( frameWidth, r.height - frameWidth );
+		Dimension dimVisFrame = new Dimension( r.width - frameWidth, r.height );
+
+		this.setSize( dimMainFrame );
+		this.setLocation( r.x, r.y );
+
+		statsFrame.setSize( dimStatsFrame );
+		statsFrame.setLocation( r.x, r.y + frameWidth );
+
+		visFrame.setSize( dimVisFrame );
+		visFrame.setLocation( r.x + frameWidth, r.y );
+	}
+
+	public void showFrames()
+	{
+		// Restore the frames if they were minimized
+		statsFrame.setExtendedState( JFrame.NORMAL );
+		visFrame.setExtendedState( JFrame.NORMAL );
+
+		statsFrame.setVisible( true );
+		visFrame.setVisible( true );
+	}
+
+	private void createFrames()
+	{
+		statsFrame = new HierarchyStatisticsFrame( context, this );
+		visFrame = new InstanceVisualizationsFrame( context, this );
 	}
 
 	private void createGUI()
@@ -150,11 +189,6 @@ public class VisualizerFrame extends JFrame
 
 		mntmStats.addActionListener(
 			e -> {
-				if ( statsFrame == null ) {
-					statsFrame = new HierarchyStatisticsFrame( context, this );
-					statsFrame.setLocationRelativeTo( null );
-				}
-
 				// Restore the frame if it was minimized
 				statsFrame.setExtendedState( JFrame.NORMAL );
 				statsFrame.setVisible( true );
@@ -166,11 +200,6 @@ public class VisualizerFrame extends JFrame
 
 		mntmVis.addActionListener(
 			e -> {
-				if ( visFrame == null ) {
-					visFrame = new InstanceVisualizationsFrame( context, this );
-					visFrame.setLocationRelativeTo( null );
-				}
-
 				// Restore the frame if it was minimized
 				visFrame.setExtendedState( JFrame.NORMAL );
 				visFrame.setVisible( true );

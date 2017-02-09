@@ -255,7 +255,6 @@ public final class HierarchyVisualizer
 
 		// Attempt to set the application name so that it displays correctly on all platforms.
 		if ( SystemUtils.IS_OS_MAC ) {
-			System.setProperty( "com.apple.mrj.application.apple.menu.about.name", APP_NAME );
 			System.setProperty( "apple.awt.application.name", APP_NAME );
 		}
 		else if ( SystemUtils.IS_OS_LINUX ) {
@@ -284,7 +283,8 @@ public final class HierarchyVisualizer
 	{
 		VisualizerFrame frame = new VisualizerFrame( ctx );
 		// Make the frame appear at the center of the screen
-		frame.setLocationRelativeTo( null );
+		frame.layoutFrames();
 		frame.setVisible( true );
+		frame.showFrames();
 	}
 }

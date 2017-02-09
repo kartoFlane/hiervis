@@ -2,6 +2,12 @@ package pl.pwr.hiervis.util;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -379,6 +385,34 @@ public final class SwingUIUtils
 	public static String unescapeNewline( String msg )
 	{
 		return msg.replace( "\\n", "\n" );
+	}
+
+	/**
+	 * Calculates the effective display area of the specified device, ie. the screen area
+	 * without stuff like system task bars, etc.
+	 * 
+	 * @param gd
+	 *            the graphics device to get the effective display area for.
+	 *            If null, the default screen device is used.
+	 * @return the effective display area - screen area without task bars, etc.
+	 */
+	public static Rectangle getEffectiveDisplayArea( GraphicsDevice gd )
+	{
+		if ( gd == null ) {
+			gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		}
+
+		GraphicsConfiguration gc = gd.getDefaultConfiguration();
+
+		Rectangle bounds = gc.getBounds();
+		Insets insets = Toolkit.getDefaultToolkit().getScreenInsets( gc );
+
+		// In graphics environments, top-left corner is usually the (0,0) point.
+		return new Rectangle(
+			bounds.x + insets.left, bounds.y + insets.top,
+			bounds.width - ( insets.left + insets.right ),
+			bounds.height - ( insets.top + insets.bottom )
+		);
 	}
 
 
