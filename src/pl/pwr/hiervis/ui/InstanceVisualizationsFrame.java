@@ -771,6 +771,9 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onConfigChanged( HVConfig cfg )
 	{
+		if ( !context.isHierarchyDataLoaded() )
+			return;
+
 		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
 		Node node = context.findGroup( context.getSelectedRow() );
 
