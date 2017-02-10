@@ -196,6 +196,11 @@ public class FileLoadingOptionsDialog extends JDialog
 		newConfig.setInstanceNameAttribute( cboxInstanceName.isSelected() );
 		newConfig.setDataNamesRow( cboxDataNames.isSelected() );
 		newConfig.setFillBreadthGaps( cboxFillGaps.isSelected() );
+
+		if ( newConfig.isUseTrueClass() && !newConfig.hasTrueClassAttribute() ) {
+			// If the file being loaded has no true class attribute, then disable true usage.
+			newConfig.setUseTrueClass( false );
+		}
 	}
 
 	/**
