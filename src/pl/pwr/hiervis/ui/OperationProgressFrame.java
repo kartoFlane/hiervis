@@ -136,8 +136,15 @@ public class OperationProgressFrame extends JDialog
 		if ( updateCallback != null ) {
 			SwingUtilities.invokeLater(
 				() -> {
-					if ( updateCallback != null )
-						progressBar.setValue( updateCallback.get() );
+					if ( updateCallback != null ) {
+						int value = updateCallback.get();
+						if ( value < 0 ) {
+							progressBar.setIndeterminate( true );
+						}
+						else {
+							progressBar.setValue( value );
+						}
+					}
 				}
 			);
 		}
