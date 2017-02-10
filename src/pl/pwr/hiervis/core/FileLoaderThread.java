@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import basic_hierarchy.common.Utils;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.util.Event;
@@ -62,7 +63,7 @@ public class FileLoaderThread extends Thread
 
 			fileLoaded.broadcast( hierarchy );
 		}
-		catch ( GeneratedCSVReader.RuntimeInterruptedException ex ) {
+		catch ( Utils.RuntimeInterruptedException ex ) {
 			log.trace( "File loading aborted by user." );
 		}
 		catch ( Exception ex ) {
