@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
@@ -27,10 +28,12 @@ import pl.pwr.hiervis.util.SwingUIUtils;
 @SuppressWarnings("serial")
 public class OperationProgressFrame extends JDialog
 {
+	private JLabel status;
 	private JProgressBar progressBar;
 	private JButton button;
 
-	private Supplier<Integer> updateCallback;
+	private Supplier<Integer> progressCallback;
+	private Supplier<String> statusCallback;
 	private Timer timer;
 
 
@@ -43,20 +46,23 @@ public class OperationProgressFrame extends JDialog
 
 		GridBagLayout layout = new GridBagLayout();
 		layout.columnWidths = new int[] { 0, 0 };
-		layout.rowHeights = new int[] { 0, 0 };
+		layout.rowHeights = new int[] { 0, 0, 0 };
 		layout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		layout.rowWeights = new double[] { 1.0, 0.0 };
+		layout.rowWeights = new double[] { 1.0, 1.0, 0.0 };
 		getContentPane().setLayout( layout );
 
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 
+		status = new JLabel();
+		getContentPane().add( status, builder.insets( 5, 5, 5, 5 ).position( 0, 0 ).fillHorizontal().anchorSouth().build() );
+
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate( true );
-		getContentPane().add( progressBar, builder.insets( 5, 5, 5, 5 ).position( 0, 0 ).fillHorizontal().build() );
+		getContentPane().add( progressBar, builder.insets( 0, 5, 5, 5 ).position( 0, 1 ).fillHorizontal().anchorNorth().build() );
 
 		button = new JButton( "Abort" );
 		button.setEnabled( false );
-		getContentPane().add( button, builder.anchorCenter().insets( 0, 5, 5, 5 ).position( 0, 1 ).build() );
+		getContentPane().add( button, builder.anchorCenter().insets( 0, 5, 5, 5 ).position( 0, 2 ).build() );
 
 		SwingUIUtils.addCloseCallback( this, () -> button.doClick() );
 	}
@@ -88,26 +94,31 @@ public class OperationProgressFrame extends JDialog
 	 */
 	public void setProgressUpdateCallback( Supplier<Integer> progressSupplier )
 	{
-		if ( progressSupplier == null ) {
+		if ( progressSupplier == null && statusCallback == null ) {
 			cleanupTimer();
 		}
 
 		progressBar.setIndeterminate( progressSupplier == null );
-		updateCallback = progressSupplier;
+		progressCallback = progressSupplier;
+	}
+
+	public void setStatusUpdateCallback( Supplier<String> statusSupplier )
+	{
+		if ( statusSupplier == null && progressCallback == null ) {
+			cleanupTimer();
+		}
+
+		statusCallback = statusSupplier;
 	}
 
 	/**
 	 * Sets the interval at which to poll the {@code updateCallback} and update the progress bar.
-	 * Calling this method when {@code updateCallback} is not set throws an exception.
 	 * 
 	 * @param intervalMs
-	 *            the interval, in miliseconds. If value is less than or equal to 0, polling is disabled.
+	 *            the interval, in milliseconds. If value is less than or equal to 0, polling is disabled.
 	 */
 	public void setProgressPollInterval( int intervalMs )
 	{
-		if ( updateCallback == null )
-			throw new IllegalStateException( "No updateCallback has been set!" );
-
 		cleanupTimer();
 
 		if ( intervalMs > 0 ) {
@@ -133,17 +144,21 @@ public class OperationProgressFrame extends JDialog
 	{
 		// The actual update call is deferred and performed on the main thread,
 		// so updateCallback's value *might* have changed.
-		if ( updateCallback != null ) {
+		if ( progressCallback != null || statusCallback != null ) {
 			SwingUtilities.invokeLater(
 				() -> {
-					if ( updateCallback != null ) {
-						int value = updateCallback.get();
+					if ( progressCallback != null ) {
+						int value = progressCallback.get();
 						if ( value < 0 ) {
 							progressBar.setIndeterminate( true );
 						}
 						else {
 							progressBar.setValue( value );
 						}
+					}
+
+					if ( statusCallback != null ) {
+						status.setText( statusCallback.get() );
 					}
 				}
 			);

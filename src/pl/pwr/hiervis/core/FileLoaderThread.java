@@ -82,6 +82,11 @@ public class FileLoaderThread extends Thread
 		return reader == null ? 0 : reader.getProgress();
 	}
 
+	public String getStatusMessage()
+	{
+		return reader == null ? "" : reader.getStatusMessage();
+	}
+
 	/**
 	 * Perform various tests on the hierarchy, meant to detect whether the input file
 	 * has been loaded with correct options selected.

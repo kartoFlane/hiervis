@@ -290,6 +290,7 @@ public class VisualizerFrame extends JFrame
 
 			OperationProgressFrame progressFrame = new OperationProgressFrame( this, "Loading..." );
 			progressFrame.setProgressUpdateCallback( thread::getProgress );
+			progressFrame.setStatusUpdateCallback( thread::getStatusMessage );
 			progressFrame.setProgressPollInterval( 100 );
 			progressFrame.setAbortOperation(
 				e -> {
