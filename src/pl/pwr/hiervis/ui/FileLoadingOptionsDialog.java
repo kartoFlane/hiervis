@@ -50,7 +50,6 @@ public class FileLoadingOptionsDialog extends JDialog
 		revalidate();
 		setPreferredSize( getPreferredSize() );
 		pack();
-		setLocationRelativeTo( null );
 	}
 
 	private void createOptionsPanel( HVContext context )

@@ -277,6 +277,7 @@ public class VisualizerFrame extends JFrame
 		log.trace( String.format( "Selected file: '%s'", file ) );
 
 		FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
+		optionsDialog.setLocationRelativeTo( this );
 		optionsDialog.setVisible( true );
 
 		HVConfig cfg = optionsDialog.getConfig();
@@ -339,9 +340,9 @@ public class VisualizerFrame extends JFrame
 
 	private void onHierarchyChanging( Hierarchy oldHierarchy )
 	{
-		Utils.unzoom( hierarchyDisplay, 0 );
 		hierarchyDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 		hierarchyDisplay.setEnabled( false );
+		Utils.unzoom( hierarchyDisplay, 0 );
 	}
 
 	private void onHierarchyChanged( Hierarchy newHierarchy )
