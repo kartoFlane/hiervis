@@ -142,8 +142,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllH.setEnabled( context.isHierarchyDataLoaded() );
 		cboxAllH.addItemListener(
 			e -> {
-				for ( JCheckBox cbox : cboxesHorizontal )
-					cbox.setSelected( cboxAllH.isSelected() );
+				if ( cboxesHorizontal != null )
+					Arrays.stream( cboxesHorizontal ).forEach( cbox -> cbox.setSelected( cboxAllH.isSelected() ) );
 			}
 		);
 
@@ -184,8 +184,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllV.setEnabled( context.isHierarchyDataLoaded() );
 		cboxAllV.addItemListener(
 			e -> {
-				for ( JCheckBox cbox : cboxesVertical )
-					cbox.setSelected( cboxAllV.isSelected() );
+				if ( cboxesVertical != null )
+					Arrays.stream( cboxesVertical ).forEach( cbox -> cbox.setSelected( cboxAllV.isSelected() ) );
 			}
 		);
 
@@ -732,6 +732,12 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onHierarchyChanging( Hierarchy h )
 	{
+		cboxesHorizontal = null;
+		cboxesVertical = null;
+
+		cboxAllH.setSelected( false );
+		cboxAllV.setSelected( false );
+
 		cboxAllH.setEnabled( false );
 		cboxAllV.setEnabled( false );
 
