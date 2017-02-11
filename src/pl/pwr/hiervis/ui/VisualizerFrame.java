@@ -1,8 +1,11 @@
 package pl.pwr.hiervis.ui;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.File;
+import java.util.Locale;
+import java.util.function.Consumer;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -10,7 +13,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.logging.log4j.LogManager;
@@ -18,7 +20,6 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import pl.pwr.hiervis.HierarchyVisualizer;
-import pl.pwr.hiervis.core.FileLoaderThread;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
@@ -129,8 +130,28 @@ public class VisualizerFrame extends JFrame
 
 		getContentPane().add( hierarchyDisplay );
 
-		new FileDrop(
-			this, new FileDrop.Listener() {
+		createFileDrop( this, log, "csv", this::loadFile );
+	}
+
+	/**
+	 * Creates a handler for file drag'n'drop.
+	 * 
+	 * @param c
+	 *            the component files can be dragged onto
+	 * @param log
+	 *            logger for logging of trace messages
+	 * @param fileExtension
+	 *            file extension that will be accepted for dragging (just the extension, without dot)
+	 * @param fileConsumer
+	 *            the method to invoke when a correct file is dragged
+	 * @return the {@link FileDrop} object handling the drag'n'drop
+	 */
+	public static FileDrop createFileDrop( Component c, Logger log, String fileExtension, Consumer<File> fileConsumer )
+	{
+		String fileSuffix = "." + fileExtension.toUpperCase( Locale.ENGLISH );
+
+		return new FileDrop(
+			c, new FileDrop.Listener() {
 				public void filesDropped( File[] files )
 				{
 					if ( files.length == 0 ) {
@@ -138,11 +159,11 @@ public class VisualizerFrame extends JFrame
 					}
 					else if ( files.length == 1 ) {
 						File file = files[0];
-						if ( file.getName().endsWith( ".csv" ) ) {
-							loadFile( file );
+						if ( file.getName().toUpperCase( Locale.ENGLISH ).endsWith( fileSuffix ) ) {
+							fileConsumer.accept( file );
 						}
 						else {
-							log.trace( "Drag and drop: recevied a non-CSV file, ignoring." );
+							log.trace( "Drag and drop: recevied file is not a " + fileSuffix + " file, ignoring." );
 						}
 					}
 					else {
@@ -266,77 +287,12 @@ public class VisualizerFrame extends JFrame
 		onNodeSelectionChanged( context.getSelectedRow() );
 	}
 
-	/**
-	 * Loads the specified file as a CSV file describing a {@link Hierarchy} object.
-	 * 
-	 * @param file
-	 *            the file to load
-	 */
 	private void loadFile( File file )
 	{
-		log.trace( String.format( "Selected file: '%s'", file ) );
-
-		FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( context, this );
-		optionsDialog.setLocationRelativeTo( this );
-		optionsDialog.setVisible( true );
-
-		HVConfig cfg = optionsDialog.getConfig();
-		if ( cfg == null ) {
-			log.trace( "Loading aborted." );
-		}
-		else {
-			context.setConfig( cfg );
-
-			FileLoaderThread thread = new FileLoaderThread( cfg, file );
-
-			OperationProgressFrame progressFrame = new OperationProgressFrame( this, "Loading..." );
-			progressFrame.setProgressUpdateCallback( thread::getProgress );
-			progressFrame.setStatusUpdateCallback( thread::getStatusMessage );
-			progressFrame.setProgressPollInterval( 100 );
-			progressFrame.setAbortOperation(
-				e -> {
-					thread.interrupt();
-					progressFrame.dispose();
-				}
-			);
-
-			thread.fileLoaded.addListener( h -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
-			thread.errorOcurred.addListener( e -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
-			thread.fileLoaded.addListener( this::onFileLoaded );
-			thread.errorOcurred.addListener( this::onFileError );
-
-			thread.start();
-
-			progressFrame.setSize( new Dimension( 300, 150 ) );
-			progressFrame.setLocationRelativeTo( null );
-			progressFrame.setVisible( true );
-		}
+		context.loadFile( this, file );
 	}
 
 	// -----------------------------------------------------------------------------------------
-
-	private void onFileLoaded( Hierarchy loadedHierarchy )
-	{
-		SwingUtilities.invokeLater(
-			() -> {
-				log.trace( "Switching hierarchy..." );
-				context.setHierarchy( loadedHierarchy );
-			}
-		);
-	}
-
-	private void onFileError( Exception ex )
-	{
-		SwingUtilities.invokeLater(
-			() -> {
-				SwingUIUtils.showInfoDialog(
-					"An error ocurred while loading the specified file. Most often this happens when " +
-						"incorrect settings were selected for the file in question." +
-						"\n\nError message:\n" + ex.getMessage()
-				);
-			}
-		);
-	}
 
 	private void onHierarchyChanging( Hierarchy oldHierarchy )
 	{

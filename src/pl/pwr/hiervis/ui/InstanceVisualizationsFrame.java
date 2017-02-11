@@ -105,6 +105,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		if ( context.isHierarchyDataLoaded() ) {
 			recreateUI();
 		}
+
+		VisualizerFrame.createFileDrop( this, log, "csv", file -> context.loadFile( this, file ) );
 	}
 
 	// ----------------------------------------------------------------------------------------

@@ -33,6 +33,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
@@ -55,6 +57,8 @@ import pl.pwr.hiervis.core.MeasureTask;
 @SuppressWarnings("serial")
 public class HierarchyStatisticsFrame extends JFrame
 {
+	private static final Logger log = LogManager.getLogger( HierarchyStatisticsFrame.class );
+
 	private HVContext context;
 	private Window owner;
 
@@ -118,6 +122,8 @@ public class HierarchyStatisticsFrame extends JFrame
 		context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
+
+		VisualizerFrame.createFileDrop( this, log, "csv", file -> context.loadFile( this, file ) );
 
 		context.forComputedMeasures(
 			set -> {

@@ -1,5 +1,8 @@
 package pl.pwr.hiervis.core;
 
+import java.awt.Dimension;
+import java.awt.Window;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
@@ -12,6 +15,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +25,10 @@ import org.apache.logging.log4j.Logger;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import internal_measures.statistics.AvgWithStdev;
+import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
+import pl.pwr.hiervis.ui.OperationProgressFrame;
 import pl.pwr.hiervis.util.Event;
+import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Visualization;
@@ -271,6 +279,76 @@ public class HVContext
 		}
 
 		return null;
+	}
+
+	/**
+	 * Loads the specified file as a CSV file describing a {@link Hierarchy} object.
+	 * 
+	 * @param file
+	 *            the file to load
+	 */
+	public void loadFile( Window window, File file )
+	{
+		log.trace( String.format( "Selected file: '%s'", file ) );
+
+		FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( this, window );
+		optionsDialog.setLocationRelativeTo( window );
+		optionsDialog.setVisible( true );
+
+		HVConfig cfg = optionsDialog.getConfig();
+		if ( cfg == null ) {
+			log.trace( "Loading aborted." );
+		}
+		else {
+			setConfig( cfg );
+
+			FileLoaderThread thread = new FileLoaderThread( cfg, file );
+
+			OperationProgressFrame progressFrame = new OperationProgressFrame( window, "Loading..." );
+			progressFrame.setProgressUpdateCallback( thread::getProgress );
+			progressFrame.setStatusUpdateCallback( thread::getStatusMessage );
+			progressFrame.setProgressPollInterval( 100 );
+			progressFrame.setAbortOperation(
+				e -> {
+					thread.interrupt();
+					progressFrame.dispose();
+				}
+			);
+
+			thread.fileLoaded.addListener( h -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
+			thread.errorOcurred.addListener( e -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
+			thread.fileLoaded.addListener( this::onFileLoaded );
+			thread.errorOcurred.addListener( this::onFileError );
+
+			thread.start();
+
+			progressFrame.setSize( new Dimension( 300, 150 ) );
+			progressFrame.setLocationRelativeTo( null );
+			progressFrame.setVisible( true );
+		}
+	}
+
+	private void onFileLoaded( Hierarchy loadedHierarchy )
+	{
+		SwingUtilities.invokeLater(
+			() -> {
+				log.trace( "Switching hierarchy..." );
+				setHierarchy( loadedHierarchy );
+			}
+		);
+	}
+
+	private void onFileError( Exception ex )
+	{
+		SwingUtilities.invokeLater(
+			() -> {
+				SwingUIUtils.showInfoDialog(
+					"An error ocurred while loading the specified file. Most often this happens when " +
+						"incorrect settings were selected for the file in question." +
+						"\n\nError message:\n" + ex.getMessage()
+				);
+			}
+		);
 	}
 
 	private void onHierarchyChanging( Hierarchy h )
