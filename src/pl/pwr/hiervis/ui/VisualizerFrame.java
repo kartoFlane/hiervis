@@ -287,6 +287,19 @@ public class VisualizerFrame extends JFrame
 		onNodeSelectionChanged( context.getSelectedRow() );
 	}
 
+	private void recreateHierarchyVisualizationAsync()
+	{
+		SwingUIUtils.executeAsyncWithWaitWindow(
+			this, "Creating hierarchy visualization...", log, false,
+			() -> recreateHierarchyVisualization(),
+			() -> {
+				hierarchyDisplay.setEnabled( true );
+				Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
+			},
+			null
+		);
+	}
+
 	private void loadFile( File file )
 	{
 		context.loadFile( this, file );
@@ -304,11 +317,7 @@ public class VisualizerFrame extends JFrame
 	private void onHierarchyChanged( Hierarchy newHierarchy )
 	{
 		if ( context.isHierarchyDataLoaded() ) {
-			hierarchyDisplay.setEnabled( true );
-
-			recreateHierarchyVisualization();
-
-			Utils.fitToBounds( hierarchyDisplay, Visualization.ALL_ITEMS, 0, 0 );
+			recreateHierarchyVisualizationAsync();
 		}
 
 		// Try to coax the VM into reclaiming some of that freed memory.
@@ -329,7 +338,7 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setBackground( cfg.getBackgroundColor() );
 
 		if ( context.isHierarchyDataLoaded() ) {
-			recreateHierarchyVisualization();
+			recreateHierarchyVisualizationAsync();
 		}
 		else {
 			// Refresh the hierarchy display so that it reflects node roles correctly
