@@ -280,6 +280,7 @@ public class HierarchyProcessor
 					layoutData.getLayoutWidth(), layoutData.getLayoutHeight()
 				)
 			);
+
 			ActionList layout = new ActionList();
 			layout.add( treeLayout );
 			layout.add( new RepaintAction() );
@@ -297,18 +298,20 @@ public class HierarchyProcessor
 
 	public static void layoutVisualization( Visualization vis )
 	{
+		Utils.waitUntilActivitiesAreFinished();
+
 		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".edges" );
 		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".layout" );
 
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	public static Table createInstanceTable( HVContext context )
+	public static Table createInstanceTable( HVConfig config, Hierarchy hierarchy, Tree hierarchyTree )
 	{
-		String[] dataNames = getFeatureNames( context.getHierarchy() );
+		String[] dataNames = getFeatureNames( hierarchy );
 
-		Table table = createEmptyInstanceTable( context, dataNames );
-		processInstanceData( context, dataNames.length, table );
+		Table table = createEmptyInstanceTable( config, dataNames );
+		processInstanceData( config, hierarchy, hierarchyTree, table );
 
 		return table;
 	}
@@ -346,13 +349,13 @@ public class HierarchyProcessor
 	/**
 	 * Creates a new, empty table used to hold processed instance data.
 	 * 
-	 * @param context
-	 *            the application context
+	 * @param config
+	 *            the application config
 	 * @param dataNames
 	 *            array of names for instance features
 	 * @return the created table
 	 */
-	private static Table createEmptyInstanceTable( HVContext context, String[] dataNames )
+	private static Table createEmptyInstanceTable( HVConfig config, String[] dataNames )
 	{
 		Table table = new Table();
 
@@ -363,7 +366,7 @@ public class HierarchyProcessor
 		table.addColumn( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, prefuse.data.Node.class );
 		// table.addColumn( HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, boolean.class );
 		// table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
-		if ( context.getConfig().hasInstanceNameAttribute() ) {
+		if ( config.hasInstanceNameAttribute() ) {
 			table.addColumn( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, String.class );
 		}
 
@@ -373,29 +376,32 @@ public class HierarchyProcessor
 	/**
 	 * Processes raw hierarchy data and saves it in the specified table.
 	 * 
-	 * @param context
-	 *            the application context
-	 * @param featureCount
-	 *            number of instance features in the input file
+	 * @param config
+	 *            the application config
+	 * @param hierarchy
+	 *            the hierarchy to process
+	 * @param hierarchyTree
+	 *            the processed hierarchy tree
 	 * @param table
 	 *            the table the processed data will be saved in.
 	 */
-	private static void processInstanceData( HVContext context, int featureCount, Table table )
+	private static void processInstanceData(
+		HVConfig config, Hierarchy hierarchy,
+		Tree hierarchyTree, Table table )
 	{
 		// TODO: Implement some sort of culling so that we remove overlapping instances?
 		// Could use k-d trees maybe?
 
-		HVConfig config = context.getConfig();
-
-		for ( Instance instance : context.getHierarchy().getRoot().getSubtreeInstances() ) {
+		for ( Instance instance : hierarchy.getRoot().getSubtreeInstances() ) {
 			int row = table.addRow();
 
 			double[] data = instance.getData();
-			for ( int i = 0; i < featureCount; ++i ) {
+			for ( int i = 0; i < data.length; ++i ) {
 				table.set( row, i, data[i] );
 			}
 
-			prefuse.data.Node node = context.findGroup(
+			prefuse.data.Node node = findGroup(
+				hierarchyTree,
 				config.isUseTrueClass()
 					? instance.getTrueClass()
 					: instance.getNodeId()
@@ -404,7 +410,7 @@ public class HierarchyProcessor
 			table.set( row, HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, node );
 			// table.set( row, HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, true );
 			// table.set( row, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, 0 );
-			if ( context.getConfig().hasInstanceNameAttribute() ) {
+			if ( config.hasInstanceNameAttribute() ) {
 				table.set( row, HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, instance.getInstanceName() );
 			}
 		}
