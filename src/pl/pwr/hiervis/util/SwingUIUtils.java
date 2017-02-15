@@ -2,6 +2,7 @@ package pl.pwr.hiervis.util;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -15,6 +16,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -26,6 +28,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.RootPaneContainer;
+import javax.swing.SwingWorker;
+
+import org.apache.logging.log4j.Logger;
+
+import pl.pwr.hiervis.ui.OperationProgressFrame;
 
 
 /**
@@ -304,6 +311,68 @@ public final class SwingUIUtils
 		};
 		window.addWindowListener( listener );
 		return listener;
+	}
+
+	/**
+	 * Executes backgroundTask in the background asynchronously, and displays a dialog
+	 * to inform the user that the operation is being performed.
+	 * 
+	 * Does not support progress or current operation status.
+	 * 
+	 * @param window
+	 *            the window that serves as owner of the wait dialog
+	 * @param title
+	 *            title of the wait dialog
+	 * @param log
+	 *            logger for errors that occur during the task
+	 * @param modal
+	 *            whether the wait dialog should be modal, ie. prevent the user from
+	 *            interacting with the rest of the application while the dialog is visible
+	 * @param backgroundTask
+	 *            the task to perform in the background
+	 * @param doneTask
+	 *            the task to perform if the backgroundTask succeeds. Can be null.
+	 * @param failTask
+	 *            the task to perform if the backgroundTask fails. Can be null.
+	 */
+	public static void executeAsyncWithWaitWindow(
+		Window window, String title, Logger log, boolean modal,
+		Runnable backgroundTask, Runnable doneTask, Consumer<Exception> failTask )
+	{
+		OperationProgressFrame progressFrame = new OperationProgressFrame( window, title );
+		progressFrame.setSize( new Dimension( 300, 150 ) );
+		progressFrame.setLocationRelativeTo( window );
+		progressFrame.setModal( modal );
+
+		SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+			@Override
+			protected Void doInBackground() throws Exception
+			{
+				backgroundTask.run();
+				return null;
+			}
+
+			@Override
+			public void done()
+			{
+				progressFrame.dispose();
+
+				try {
+					get();
+					if ( doneTask != null )
+						doneTask.run();
+				}
+				catch ( Exception e ) {
+					log.error( "Error while performing async operation titled '" + title + "'!", e );
+					if ( failTask != null )
+						failTask.accept( e );
+				}
+			}
+		};
+
+		worker.execute();
+
+		progressFrame.setVisible( true );
 	}
 
 	/**
