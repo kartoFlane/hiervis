@@ -267,18 +267,7 @@ public class HVContext
 	 */
 	public prefuse.data.Node findGroup( String name )
 	{
-		// TODO:
-		// Can potentially speed this up by using a lookup cache in the form of a hash map.
-		// Not sure if worth it, though.
-		int nodeCount = hierarchyTree.getNodeCount();
-		for ( int i = 0; i < nodeCount; ++i ) {
-			prefuse.data.Node n = hierarchyTree.getNode( i );
-			if ( n.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME ).equals( name ) ) {
-				return n;
-			}
-		}
-
-		return null;
+		return HierarchyProcessor.findGroup( hierarchyTree, name );
 	}
 
 	/**
