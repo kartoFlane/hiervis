@@ -273,6 +273,9 @@ public class HVContext
 	/**
 	 * Loads the specified file as a CSV file describing a {@link Hierarchy} object.
 	 * 
+	 * @param window
+	 *            a window, used to anchor dialog windows with file loading options / error messages.
+	 *            Typically this is the window from which the loading command was issued.
 	 * @param file
 	 *            the file to load
 	 */
@@ -297,6 +300,7 @@ public class HVContext
 			progressFrame.setProgressUpdateCallback( thread::getProgress );
 			progressFrame.setStatusUpdateCallback( thread::getStatusMessage );
 			progressFrame.setProgressPollInterval( 100 );
+			progressFrame.setModal( true );
 			progressFrame.setAbortOperation(
 				e -> {
 					thread.interrupt();
@@ -312,13 +316,22 @@ public class HVContext
 			thread.start();
 
 			progressFrame.setSize( new Dimension( 300, 150 ) );
-			progressFrame.setLocationRelativeTo( null );
+			progressFrame.setLocationRelativeTo( window );
 			progressFrame.setVisible( true );
 		}
 	}
 
+	// -------------------------------------------------------------------------------------------
+
 	private void onFileLoaded( Hierarchy loadedHierarchy )
 	{
+		SwingUIUtils.executeAsyncWithWaitWindow(
+			null, "Processing hierarchy data...", log, true,
+			() -> processHierarchy( loadedHierarchy ),
+			null,
+			null
+		);
+
 		SwingUtilities.invokeLater(
 			() -> {
 				log.trace( "Switching hierarchy..." );
@@ -355,18 +368,6 @@ public class HVContext
 			)
 		);
 
-		// TODO:
-		// Might want to use some kind of algorithm to figure out optimal tree layout area?
-		// 1024x1024 seems to work well enough for now.
-		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
-			config, h.getRoot(),
-			1024, 1024
-		);
-		hierarchyTree = treeData.getLeft();
-		hierarchyTreeLayout = treeData.getRight();
-
-		instanceTable = HierarchyProcessor.createInstanceTable( this );
-
 		computeThread.clearPendingTasks();
 		computeThread.setHierarchy( h );
 
@@ -383,6 +384,32 @@ public class HVContext
 		synchronized ( measureMap ) {
 			measureMap.put( result.getKey(), result.getValue() );
 		}
+	}
+
+	/**
+	 * Processes the specified hierarchy, building hierarchy tree and creating instance table
+	 * used in visualizations.
+	 * This call should precede {@link #setHierarchy(Hierarchy)} when loading a new hierarchy.
+	 * *
+	 * 
+	 * @param hierarchy
+	 *            the hierarchy to process
+	 */
+	private void processHierarchy( Hierarchy hierarchy )
+	{
+		// TODO:
+		// Might want to use some kind of algorithm to figure out optimal tree layout area?
+		// 1024x1024 seems to work well enough for now.
+		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
+			config, hierarchy.getRoot(),
+			2048, 2048
+		);
+		hierarchyTree = treeData.getLeft();
+		hierarchyTreeLayout = treeData.getRight();
+
+		instanceTable = HierarchyProcessor.createInstanceTable(
+			config, hierarchy, hierarchyTree
+		);
 	}
 
 	public void dumpMeasures( String destinationFile )
