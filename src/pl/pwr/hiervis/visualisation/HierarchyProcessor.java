@@ -481,7 +481,7 @@ public class HierarchyProcessor
 			table.getColumnName( dimX ),
 			Constants.X_AXIS
 		);
-		ValuedRangeModel rangeModelX = new NumberRangeModel( 0, bounds.getMaxX(), 0, bounds.getMaxX() );
+		ValuedRangeModel rangeModelX = new NumberRangeModel( bounds.getMinX(), bounds.getMaxX(), bounds.getMinX(), bounds.getMaxX() );
 		axisX.setRangeModel( rangeModelX );
 
 		AxisLayout axisY = new AxisLayout(
@@ -489,7 +489,7 @@ public class HierarchyProcessor
 			table.getColumnName( dimY ),
 			Constants.Y_AXIS
 		);
-		ValuedRangeModel rangeModelY = new NumberRangeModel( 0, bounds.getMaxY(), 0, bounds.getMaxY() );
+		ValuedRangeModel rangeModelY = new NumberRangeModel( bounds.getMinY(), bounds.getMaxY(), bounds.getMinY(), bounds.getMaxY() );
 		axisY.setRangeModel( rangeModelY );
 
 		ColorAction colorize = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
