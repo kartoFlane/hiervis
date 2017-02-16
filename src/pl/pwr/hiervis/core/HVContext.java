@@ -123,7 +123,13 @@ public class HVContext
 		if ( this.inputHierarchy != hierarchy ) {
 			hierarchyChanging.broadcast( this.inputHierarchy );
 			this.inputHierarchy = hierarchy;
-			hierarchyChanged.broadcast( hierarchy );
+
+			SwingUIUtils.executeAsyncWithWaitWindow(
+				null, "Processing hierarchy data...", log, true,
+				() -> processHierarchy( hierarchy ),
+				() -> hierarchyChanged.broadcast( hierarchy ),
+				null
+			);
 		}
 	}
 
@@ -325,13 +331,6 @@ public class HVContext
 
 	private void onFileLoaded( Hierarchy loadedHierarchy )
 	{
-		SwingUIUtils.executeAsyncWithWaitWindow(
-			null, "Processing hierarchy data...", log, true,
-			() -> processHierarchy( loadedHierarchy ),
-			null,
-			null
-		);
-
 		SwingUtilities.invokeLater(
 			() -> {
 				log.trace( "Switching hierarchy..." );
@@ -389,8 +388,6 @@ public class HVContext
 	/**
 	 * Processes the specified hierarchy, building hierarchy tree and creating instance table
 	 * used in visualizations.
-	 * This call should precede {@link #setHierarchy(Hierarchy)} when loading a new hierarchy.
-	 * *
 	 * 
 	 * @param hierarchy
 	 *            the hierarchy to process
