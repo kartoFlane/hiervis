@@ -49,7 +49,7 @@ public class NodeSelectionControl extends ControlAdapter
 			// Ignore clicks on edges.
 			return;
 		}
-
+		
 		context.setSelectedRow( item.getRow() );
 	}
 

@@ -95,7 +95,7 @@ public class Event<T>
 	/**
 	 * Notifies all registered listeners of this event.
 	 * <p>
-	 * <b>DO NOT CALL THIS:</b>
+	 * <b>IMPORTANT:</b>
 	 * </p>
 	 * <p>
 	 * This method is made public only so that the owner of the event handler can broadcast the event.

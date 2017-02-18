@@ -178,7 +178,9 @@ public class ZoomScrollControl extends AbstractZoomControl
 		if ( ( e.getModifiersEx() & modifierMask ) == modifierMask ) {
 			Display d = (Display)e.getComponent();
 			d.requestFocus();
-			zoom( d, e.getPoint(), 1 + zoomDirection * zoomStep * e.getWheelRotation(), false );
+
+			double zoomDelta = 1 + zoomDirection * zoomStep * e.getWheelRotation();
+			zoom( d, e.getPoint(), zoomDelta, false );
 		}
 	}
 
