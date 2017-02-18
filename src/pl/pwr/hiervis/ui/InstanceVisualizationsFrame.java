@@ -30,6 +30,7 @@ import javax.swing.JSeparator;
 import javax.swing.JViewport;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicLabelUI;
 
@@ -77,8 +78,8 @@ public class InstanceVisualizationsFrame extends JFrame
 	private int visWidth = 200;
 	private int visHeight = 200;
 
-	private JCheckBox[] cboxesHorizontal;
-	private JCheckBox[] cboxesVertical;
+	private JCheckBox[] cboxesHorizontal = new JCheckBox[0];
+	private JCheckBox[] cboxesVertical = new JCheckBox[0];
 
 	private JPanel cDimsH;
 	private JPanel cDimsV;
@@ -149,8 +150,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllH.setEnabled( context.isHierarchyDataLoaded() );
 		cboxAllH.addItemListener(
 			e -> {
-				if ( cboxesHorizontal != null )
-					Arrays.stream( cboxesHorizontal ).forEach( cbox -> cbox.setSelected( cboxAllH.isSelected() ) );
+				Arrays.stream( cboxesHorizontal ).forEach( cbox -> cbox.setSelected( cboxAllH.isSelected() ) );
 			}
 		);
 
@@ -191,8 +191,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllV.setEnabled( context.isHierarchyDataLoaded() );
 		cboxAllV.addItemListener(
 			e -> {
-				if ( cboxesVertical != null )
-					Arrays.stream( cboxesVertical ).forEach( cbox -> cbox.setSelected( cboxAllV.isSelected() ) );
+				Arrays.stream( cboxesVertical ).forEach( cbox -> cbox.setSelected( cboxAllV.isSelected() ) );
 			}
 		);
 
@@ -313,11 +312,39 @@ public class InstanceVisualizationsFrame extends JFrame
 	{
 		String[] dataNames = HierarchyProcessor.getFeatureNames( context.getHierarchy() );
 
+		// Store the previous selections so that we can restore them for the new hierarchy.
+		final boolean[] checkedH = new boolean[cboxesHorizontal.length];
+		final boolean[] checkedV = new boolean[cboxesVertical.length];
+
+		for ( int i = 0; i < checkedH.length; ++i ) {
+			checkedH[i] = cboxesHorizontal[i].isSelected();
+			checkedV[i] = cboxesVertical[i].isSelected();
+		}
+
 		recreateCheckboxes( dataNames );
 		recreateLabels( dataNames );
 
 		recreateViewportLayout( dataNames.length );
 		updateViewportLayout();
+
+		// Invoke this part later, so that it's executed after all UI-creating code is done running.
+		SwingUtilities.invokeLater(
+			() -> {
+				for ( int i = 0; i < cboxesHorizontal.length; ++i ) {
+					if ( cboxAllH.isSelected() ) {
+						cboxesHorizontal[i].setSelected( true );
+					}
+					if ( cboxAllV.isSelected() ) {
+						cboxesVertical[i].setSelected( true );
+					}
+
+					if ( ( !cboxAllH.isSelected() && !cboxAllV.isSelected() ) && i < checkedH.length ) {
+						if ( checkedH[i] ) cboxesHorizontal[i].setSelected( true );
+						if ( checkedV[i] ) cboxesVertical[i].setSelected( true );
+					}
+				}
+			}
+		);
 	}
 
 	private void recreateCheckboxes( String[] dataNames )
@@ -788,12 +815,6 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onHierarchyChanging( Hierarchy h )
 	{
-		cboxesHorizontal = null;
-		cboxesVertical = null;
-
-		cboxAllH.setSelected( false );
-		cboxAllV.setSelected( false );
-
 		cboxAllH.setEnabled( false );
 		cboxAllV.setEnabled( false );
 
