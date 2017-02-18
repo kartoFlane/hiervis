@@ -9,8 +9,13 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -557,16 +562,65 @@ public class InstanceVisualizationsFrame extends JFrame
 		Display display = new Display( vis );
 		display.setHighQuality( context.getHierarchy().getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
 		display.setBackground( context.getConfig().getBackgroundColor() );
+		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
 
 		display.addControlListener( new PanControl( true ) );
 		display.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
 		ZoomScrollControl zoomControl = new ZoomScrollControl();
 		zoomControl.setModifierControl( true );
 		display.addControlListener( zoomControl );
+		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() && !e.isAltDown() ) );
 
-		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() ) );
+		display.addMouseWheelListener(
+			new MouseWheelListener() {
+				@Override
+				public void mouseWheelMoved( MouseWheelEvent e )
+				{
+					if ( e.isAltDown() ) {
+						Display d = (Display)e.getComponent();
 
-		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
+						Rectangle2D layoutBounds = HierarchyProcessor.getLayoutBounds( d.getVisualization() );
+
+						// Scale the current layout area by 10%
+						double zoomDelta = 1 - 0.1 * e.getWheelRotation();
+						double newW = layoutBounds.getWidth() * zoomDelta;
+						double newH = layoutBounds.getHeight() * zoomDelta;
+
+						layoutBounds.setFrame( 0, 0, newW, newH );
+
+						if ( layoutBounds != null ) {
+							AffineTransform transform = d.getTransform();
+							AffineTransform transformI = d.getInverseTransform();
+
+							Point2D focusOld = transformI.transform( e.getPoint(), new Point2D.Double() );
+							Point2D focusNew = new Point2D.Double( focusOld.getX() * zoomDelta, focusOld.getY() * zoomDelta );
+							Point2D focusDelta = new Point2D.Double( focusNew.getX() - focusOld.getX(), focusNew.getY() - focusOld.getY() );
+
+							transform.translate( -focusDelta.getX(), -focusDelta.getY() );
+							Utils.setTransform( d, transform );
+							HierarchyProcessor.updateLayoutBounds( d.getVisualization(), layoutBounds );
+
+							redrawDisplayIfVisible( d );
+						}
+					}
+				}
+			}
+		);
+
+		display.addKeyListener(
+			new KeyAdapter() {
+				@Override
+				public void keyReleased( KeyEvent e )
+				{
+					if ( e.getKeyCode() == KeyEvent.VK_ALT ) {
+						// Consume alt key releases, so that the display doesn't lose focus
+						// (default behaviour of Alt key on Windows is to switch to menu bar when Alt
+						// is pressed, but this window has no menu bar anyway)
+						e.consume();
+					}
+				}
+			}
+		);
 
 		display.addComponentListener(
 			new ComponentAdapter() {
@@ -654,7 +708,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	{
 		if ( d.isVisible() ) {
 			// Unzoom the display so that drawing is not botched.
-			Utils.unzoom( d, 0 );
+			// Utils.unzoom( d, 0 );
 			d.getVisualization().run( "draw" );
 		}
 	}
