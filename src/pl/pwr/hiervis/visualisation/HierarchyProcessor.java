@@ -531,6 +531,33 @@ public class HierarchyProcessor
 		return vis;
 	}
 
+	public static void updateLayoutBounds( Visualization instanceVis, Rectangle2D newLayoutBounds )
+	{
+		ActionList axisList = (ActionList)instanceVis.getAction( "axis" );
+
+		AxisLayout axisX = (AxisLayout)axisList.get( 0 );
+		AxisLayout axisY = (AxisLayout)axisList.get( 1 );
+
+		axisX.setLayoutBounds( newLayoutBounds );
+		axisY.setLayoutBounds( newLayoutBounds );
+
+		if ( axisList.size() > 2 ) {
+			// Has labels as well.
+			AxisLabelLayout labelX = (AxisLabelLayout)axisList.get( 2 );
+			AxisLabelLayout labelY = (AxisLabelLayout)axisList.get( 3 );
+
+			labelX.setLayoutBounds( newLayoutBounds );
+			labelY.setLayoutBounds( newLayoutBounds );
+		}
+	}
+
+	public static Rectangle2D getLayoutBounds( Visualization instanceVis )
+	{
+		ActionList axisList = (ActionList)instanceVis.getAction( "axis" );
+		AxisLayout axisX = (AxisLayout)axisList.get( 0 );
+		return axisX.getLayoutBounds();
+	}
+
 	/**
 	 * @param elementRole
 	 *            the {@link ElementRole} to test for
