@@ -54,6 +54,8 @@ import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.ToolTipControl;
+import prefuse.visual.VisualItem;
+import prefuse.visual.sort.ItemSorter;
 
 
 @SuppressWarnings("serial")
@@ -591,6 +593,24 @@ public class InstanceVisualizationsFrame extends JFrame
 		display.setHighQuality( context.getHierarchy().getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
 		display.setBackground( context.getConfig().getBackgroundColor() );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
+
+		// Source: http://www.ifs.tuwien.ac.at/~rind/w/doku.php/java/prefuse-scatterplot
+		display.setItemSorter(
+			new ItemSorter() {
+				public int score( VisualItem item )
+				{
+					if ( item.isInGroup( HVConstants.INSTANCE_DATA_NAME ) ) {
+						prefuse.data.Node node = (prefuse.data.Node)item.get( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME );
+						int roleId = node.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
+
+						// Sort the nodes so that instances belonging to the currently selected node are always topmost.
+						// Direct parents next, then indirect parents, then children, then other unrelated instances.
+						return Integer.MAX_VALUE - roleId;
+					}
+					return 0;
+				}
+			}
+		);
 
 		display.addControlListener( new PanControl( true ) );
 		display.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
