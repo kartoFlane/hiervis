@@ -74,7 +74,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private HVContext context;
 
-	private int visZoomIncrement = 5;
+	private int visSizeIncrement = 5;
 	private int visWidth = 200;
 	private int visHeight = 200;
 
@@ -149,9 +149,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllH = new JCheckBox( "Toggle All" );
 		cboxAllH.setEnabled( context.isHierarchyDataLoaded() );
 		cboxAllH.addItemListener(
-			e -> {
-				Arrays.stream( cboxesHorizontal ).forEach( cbox -> cbox.setSelected( cboxAllH.isSelected() ) );
-			}
+			e -> Arrays.stream( cboxesHorizontal ).forEach( cbox -> cbox.setSelected( cboxAllH.isSelected() ) )
 		);
 
 		cHorizontal.add(
@@ -190,9 +188,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		cboxAllV = new JCheckBox( "Toggle All" );
 		cboxAllV.setEnabled( context.isHierarchyDataLoaded() );
 		cboxAllV.addItemListener(
-			e -> {
-				Arrays.stream( cboxesVertical ).forEach( cbox -> cbox.setSelected( cboxAllV.isSelected() ) );
-			}
+			e -> Arrays.stream( cboxesVertical ).forEach( cbox -> cbox.setSelected( cboxAllV.isSelected() ) )
 		);
 
 		cVertical.add(
@@ -258,15 +254,12 @@ public class InstanceVisualizationsFrame extends JFrame
 						visWidth = Math.min( dis.getSize().width, dis.getSize().height );
 						visHeight = visWidth;
 
-						visWidth -= e.getWheelRotation() * visZoomIncrement;
-						visHeight -= e.getWheelRotation() * visZoomIncrement;
+						visWidth -= e.getWheelRotation() * visSizeIncrement;
+						visHeight -= e.getWheelRotation() * visSizeIncrement;
 
 						visWidth = Utils.clamp( visWidthMin, visWidth, visWidthMax );
 						visHeight = Utils.clamp( visHeightMin, visHeight, visHeightMax );
-
-						// Update the zoom increment so that we don't have to scroll 10000 times when
-						// the displays are already large.
-						visZoomIncrement = getZoomIncrement( Math.min( visWidth, visHeight ) );
+						visSizeIncrement = getSizeIncrement( Math.min( visWidth, visHeight ) );
 
 						// Update the displays' preferred sizes so they can shrink to the new size
 						Dimension d = new Dimension( visWidth, visHeight );
@@ -300,7 +293,15 @@ public class InstanceVisualizationsFrame extends JFrame
 		);
 	}
 
-	private int getZoomIncrement( int w )
+	/**
+	 * Returns new size increment based on the current size of a display, so that we don't have
+	 * to scroll 10000 times when the displays are already large.
+	 * 
+	 * @param w
+	 *            number to decide the new size increment on; usually width or height, whichever is higher
+	 * @return the new size increment
+	 */
+	private int getSizeIncrement( int w )
 	{
 		return w <= 300 ? 5 : w <= 500 ? 10 : 20;
 	}
