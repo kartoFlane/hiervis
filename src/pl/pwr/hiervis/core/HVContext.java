@@ -26,7 +26,10 @@ import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
+import pl.pwr.hiervis.ui.HierarchyStatisticsFrame;
+import pl.pwr.hiervis.ui.InstanceVisualizationsFrame;
 import pl.pwr.hiervis.ui.OperationProgressFrame;
+import pl.pwr.hiervis.ui.VisualizerFrame;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
@@ -79,6 +82,10 @@ public class HVContext
 
 	private MeasureComputeThread computeThread = null;
 
+	private VisualizerFrame hierarchyFrame;
+	private HierarchyStatisticsFrame statsFrame;
+	private InstanceVisualizationsFrame visFrame;
+
 
 	public HVContext()
 	{
@@ -91,6 +98,30 @@ public class HVContext
 		hierarchyChanged.addListener( this::onHierarchyChanged );
 
 		computeThread.start();
+	}
+
+	public void createGUI()
+	{
+		if ( hierarchyFrame == null ) {
+			hierarchyFrame = new VisualizerFrame( this );
+			statsFrame = new HierarchyStatisticsFrame( this, hierarchyFrame );
+			visFrame = new InstanceVisualizationsFrame( this, hierarchyFrame );
+		}
+	}
+
+	public VisualizerFrame getHierarchyFrame()
+	{
+		return hierarchyFrame;
+	}
+
+	public HierarchyStatisticsFrame getStatisticsFrame()
+	{
+		return statsFrame;
+	}
+
+	public InstanceVisualizationsFrame getInstanceFrame()
+	{
+		return visFrame;
 	}
 
 	/**

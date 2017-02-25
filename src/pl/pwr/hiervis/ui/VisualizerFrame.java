@@ -48,9 +48,6 @@ public class VisualizerFrame extends JFrame
 
 	private HVContext context;
 
-	private HierarchyStatisticsFrame statsFrame = null;
-	private InstanceVisualizationsFrame visFrame = null;
-
 	private Display hierarchyDisplay;
 
 
@@ -75,8 +72,6 @@ public class VisualizerFrame extends JFrame
 		context.configChanged.addListener( this::onConfigChanged );
 
 		SwingUIUtils.addCloseCallback( this, this::onWindowClosing );
-
-		createFrames();
 	}
 
 	public void layoutFrames()
@@ -92,27 +87,21 @@ public class VisualizerFrame extends JFrame
 		this.setSize( dimMainFrame );
 		this.setLocation( r.x, r.y );
 
-		statsFrame.setSize( dimStatsFrame );
-		statsFrame.setLocation( r.x, r.y + frameWidth );
+		context.getStatisticsFrame().setSize( dimStatsFrame );
+		context.getStatisticsFrame().setLocation( r.x, r.y + frameWidth );
 
-		visFrame.setSize( dimVisFrame );
-		visFrame.setLocation( r.x + frameWidth, r.y );
+		context.getInstanceFrame().setSize( dimVisFrame );
+		context.getInstanceFrame().setLocation( r.x + frameWidth, r.y );
 	}
 
 	public void showFrames()
 	{
 		// Restore the frames if they were minimized
-		statsFrame.setExtendedState( JFrame.NORMAL );
-		visFrame.setExtendedState( JFrame.NORMAL );
+		context.getStatisticsFrame().setExtendedState( JFrame.NORMAL );
+		context.getInstanceFrame().setExtendedState( JFrame.NORMAL );
 
-		statsFrame.setVisible( true );
-		visFrame.setVisible( true );
-	}
-
-	private void createFrames()
-	{
-		statsFrame = new HierarchyStatisticsFrame( context, this );
-		visFrame = new InstanceVisualizationsFrame( context, this );
+		context.getStatisticsFrame().setVisible( true );
+		context.getInstanceFrame().setVisible( true );
 	}
 
 	private void createGUI()
@@ -211,8 +200,8 @@ public class VisualizerFrame extends JFrame
 		mntmStats.addActionListener(
 			e -> {
 				// Restore the frame if it was minimized
-				statsFrame.setExtendedState( JFrame.NORMAL );
-				statsFrame.setVisible( true );
+				context.getStatisticsFrame().setExtendedState( JFrame.NORMAL );
+				context.getStatisticsFrame().setVisible( true );
 			}
 		);
 
@@ -222,8 +211,8 @@ public class VisualizerFrame extends JFrame
 		mntmVis.addActionListener(
 			e -> {
 				// Restore the frame if it was minimized
-				visFrame.setExtendedState( JFrame.NORMAL );
-				visFrame.setVisible( true );
+				context.getInstanceFrame().setExtendedState( JFrame.NORMAL );
+				context.getInstanceFrame().setVisible( true );
 			}
 		);
 	}
@@ -354,8 +343,8 @@ public class VisualizerFrame extends JFrame
 		// Save the current configuration on application exit.
 		context.getConfig().to( new File( HVConfig.FILE_PATH ) );
 
-		if ( statsFrame != null ) statsFrame.dispose();
-		if ( visFrame != null ) visFrame.dispose();
+		context.getStatisticsFrame().dispose();
+		context.getInstanceFrame().dispose();
 
 		MeasureComputeThread thread = context.getMeasureComputeThread();
 		if ( thread != null ) {

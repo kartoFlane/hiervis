@@ -281,10 +281,16 @@ public final class HierarchyVisualizer
 
 	private static void initGUI( HVContext ctx )
 	{
-		VisualizerFrame frame = new VisualizerFrame( ctx );
-		// Make the frame appear at the center of the screen
+		ctx.createGUI();
+
+		VisualizerFrame frame = ctx.getHierarchyFrame();
 		frame.layoutFrames();
 		frame.setVisible( true );
 		frame.showFrames();
+	}
+
+	public static void spawnNewInstance() throws IOException
+	{
+		Process process = Utils.start( HierarchyVisualizer.class );
 	}
 }

@@ -594,7 +594,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		display.setBackground( context.getConfig().getBackgroundColor() );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
 
-		// Source: http://www.ifs.tuwien.ac.at/~rind/w/doku.php/java/prefuse-scatterplot
+		// Via: http://www.ifs.tuwien.ac.at/~rind/w/doku.php/java/prefuse-scatterplot
 		display.setItemSorter(
 			new ItemSorter() {
 				public int score( VisualItem item )
