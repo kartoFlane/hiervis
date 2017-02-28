@@ -9,7 +9,10 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
@@ -252,8 +255,51 @@ public class Utils
 	 * @return the generic array
 	 */
 	@SuppressWarnings("unchecked")
-	public <E> E[] createArray( Class<E> clazz, int size )
+	public static <E> E[] createArray( Class<E> clazz, int size )
 	{
 		return (E[])Array.newInstance( clazz, size );
+	}
+
+	/**
+	 * Merges the two arrays passed in argument into a single one,
+	 * in the order specified.
+	 * 
+	 * @param arrayA
+	 *            the first array
+	 * @param arrayB
+	 *            the second array
+	 * @return new array
+	 */
+	public static <E> E[] merge( E[] arrayA, E[] arrayB )
+	{
+		E[] result = Arrays.copyOf( arrayA, arrayA.length + arrayB.length );
+		System.arraycopy( arrayB, 0, result, arrayA.length, arrayB.length );
+		return result;
+	}
+
+	/**
+	 * Runs the main method in the specified class in a subprocess. This method does not wait for the
+	 * subprocess to terminate.
+	 * 
+	 * Source:
+	 * https://stackoverflow.com/questions/636367/executing-a-java-application-in-a-separate-process
+	 * 
+	 * @param clazz
+	 *            the class to start
+	 * @return handle to the started subprocess
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 */
+	public static Process start( Class<?> clazz, String... args ) throws IOException
+	{
+		String javaHome = System.getProperty( "java.home" );
+		String javaBin = javaHome +
+			File.separator + "bin" +
+			File.separator + "java";
+		String classpath = System.getProperty( "java.class.path" );
+		String className = clazz.getCanonicalName();
+
+		String[] commandArgs = { javaBin, "-cp", classpath, className };
+		return new ProcessBuilder( merge( commandArgs, args ) ).start();
 	}
 }
