@@ -3,6 +3,7 @@ package pl.pwr.hiervis.ui;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -25,6 +26,9 @@ import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.MeasureComputeThread;
 import pl.pwr.hiervis.ui.components.FileDrop;
+import pl.pwr.hiervis.ui.control.MouseControl;
+import pl.pwr.hiervis.ui.control.MouseControl.MouseAction;
+import pl.pwr.hiervis.ui.control.MouseControl.TriggerAreaTypes;
 import pl.pwr.hiervis.ui.control.NodeSelectionControl;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.SubtreeDragControl;
@@ -65,6 +69,8 @@ public class VisualizerFrame extends JFrame
 
 		createMenu();
 		createGUI();
+
+		createFileDrop( this, log, "csv", this::loadFile );
 
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
@@ -112,14 +118,29 @@ public class VisualizerFrame extends JFrame
 		hierarchyDisplay.setHighQuality( true );
 		hierarchyDisplay.setBackground( context.getConfig().getBackgroundColor() );
 
-		hierarchyDisplay.addControlListener( new NodeSelectionControl( context ) );
+		hierarchyDisplay.addControlListener(
+			new NodeSelectionControl(
+				context::getTree, context::getSelectedRow, context::setSelectedRow
+			)
+		);
 		hierarchyDisplay.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
 		hierarchyDisplay.addControlListener( new PanControl( new Class[] { NodeItem.class } ) );
 		hierarchyDisplay.addControlListener( new ZoomScrollControl() );
 
-		getContentPane().add( hierarchyDisplay );
+		MouseControl mouseControl = new MouseControl();
 
-		createFileDrop( this, log, "csv", this::loadFile );
+		mouseControl.addAction(
+			new MouseAction(
+				TriggerAreaTypes.VISUAL_ITEM, MouseEvent.BUTTON1, true, ( item, e ) -> {
+					if ( item instanceof NodeItem ) {
+						context.setSelectedRow( item.getRow() );
+					}
+				}
+			)
+		);
+		hierarchyDisplay.addControlListener( mouseControl );
+
+		getContentPane().add( hierarchyDisplay );
 	}
 
 	/**

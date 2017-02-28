@@ -33,10 +33,7 @@ public class NodeRenderer extends AbstractShapeRenderer
 			nodeSize, nodeSize
 		);
 
-		// (Integer) item.get("age")/3, (Integer) item.get("age")/3);
 		int role = item.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
-
-		// item.setStrokeColor( Color.black.getRGB() );
 
 		if ( role == ElementRole.CURRENT.getNumber() ) {
 			item.setFillColor( params.getCurrentGroupColor().getRGB() );
