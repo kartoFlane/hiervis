@@ -108,6 +108,14 @@ public class ZoomScrollControl extends AbstractZoomControl
 	}
 
 	/**
+	 * @return whether the Meta key has to be held down while scrolling for zooming to occur.
+	 */
+	public boolean isModifierMeta()
+	{
+		return ( modifierMask & InputEvent.META_DOWN_MASK ) != 0;
+	}
+
+	/**
 	 * @param alt
 	 *            if true, Alt key will need to be held down
 	 */
@@ -141,6 +149,17 @@ public class ZoomScrollControl extends AbstractZoomControl
 	}
 
 	/**
+	 * @param meta
+	 *            if true, Meta key will need to be held down
+	 */
+	public void setModifierMeta( boolean meta )
+	{
+		modifierMask = meta
+			? ( modifierMask | InputEvent.META_DOWN_MASK )
+			: ( modifierMask & ~InputEvent.META_DOWN_MASK );
+	}
+
+	/**
 	 * Sets modifiers that need to be down while scrolling for zooming to occur.
 	 * 
 	 * @param alt
@@ -149,13 +168,16 @@ public class ZoomScrollControl extends AbstractZoomControl
 	 *            if true, Shift key will need to be held down
 	 * @param ctrl
 	 *            if true, Control key will need to be held down
+	 * @param meta
+	 *            if true, Meta key will need to be held down
 	 */
-	public void setModifiers( boolean alt, boolean shift, boolean ctrl )
+	public void setModifiers( boolean alt, boolean shift, boolean ctrl, boolean meta )
 	{
 		modifierMask = 0
 			| ( alt ? InputEvent.ALT_DOWN_MASK : 0 )
 			| ( shift ? InputEvent.SHIFT_DOWN_MASK : 0 )
-			| ( ctrl ? InputEvent.CTRL_DOWN_MASK : 0 );
+			| ( ctrl ? InputEvent.CTRL_DOWN_MASK : 0 )
+			| ( meta ? InputEvent.META_DOWN_MASK : 0 );
 	}
 
 	@Override
