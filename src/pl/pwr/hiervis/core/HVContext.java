@@ -31,6 +31,7 @@ import pl.pwr.hiervis.ui.InstanceVisualizationsFrame;
 import pl.pwr.hiervis.ui.OperationProgressFrame;
 import pl.pwr.hiervis.ui.VisualizerFrame;
 import pl.pwr.hiervis.util.Event;
+import pl.pwr.hiervis.util.HierarchyUtils;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import pl.pwr.hiervis.visualisation.TreeLayoutData;
@@ -266,33 +267,7 @@ public class HVContext
 	 */
 	public Node findGroup( int row )
 	{
-		Hierarchy h = getHierarchy();
-		Node group = h.getRoot();
-
-		if ( row == 0 ) {
-			return group;
-		}
-
-		Queue<Node> stack = new LinkedList<>();
-		for ( Node child : group.getChildren() ) {
-			stack.add( child );
-		}
-
-		int currentRow = 0;
-		while ( !stack.isEmpty() ) {
-			group = stack.remove();
-
-			++currentRow;
-			if ( currentRow == row ) {
-				return group;
-			}
-
-			for ( Node child : group.getChildren() ) {
-				stack.add( child );
-			}
-		}
-
-		return null;
+		return HierarchyUtils.findGroup( getHierarchy(), row );
 	}
 
 	/**
