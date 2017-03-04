@@ -9,10 +9,16 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import basic_hierarchy.common.Constants;
+import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.implementation.BasicHierarchy;
+import basic_hierarchy.implementation.BasicInstance;
+import basic_hierarchy.implementation.BasicNode;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
@@ -37,24 +43,141 @@ public class HierarchyUtils
 	 * @param nodeId
 	 *            id of the node within the source hierarchy, which will be the root in the sub-hierarchy
 	 * @return the sub-hierarchy
+	 * 
+	 * @throws NoSuchElementException
+	 *             if the hierarchy doesn't contain a node with the specified name
 	 */
-	public static Hierarchy subHierarchy( Hierarchy source, String nodeId )
+	public static Hierarchy subHierarchyShallow( Hierarchy source, String nodeId )
 	{
 		Node node = Arrays.stream( source.getGroups() ).filter( n -> n.getId().equals( nodeId ) ).findFirst().get();
 
-		Map<String, Integer> classToCountMap = new HashMap<>();
 		List<Node> nodes = new LinkedList<>();
+		Map<String, Integer> classCountMap = new HashMap<>();
 
 		Arrays.stream( source.getGroups() )
 			.filter( n -> n.getId().startsWith( node.getId() ) )
 			.forEach(
 				n -> {
 					nodes.add( n );
-					classToCountMap.put( n.getId(), source.getParticularClassCount( n.getId(), false ) );
+					classCountMap.put( n.getId(), source.getParticularClassCount( n.getId(), false ) );
 				}
 			);
 
-		return new BasicHierarchy( node, nodes, source.getDataNames(), classToCountMap );
+		return new BasicHierarchy( node, nodes, source.getDataNames(), classCountMap );
+	}
+
+	/**
+	 * Creates a sub-hierarchy of the specified {@link Hierarchy}, which contains the specified node as root,
+	 * and all its child nodes.
+	 * The newly created hierarchy is a deep copy of the source hierarchy.
+	 * 
+	 * @param source
+	 *            the hierarchy to create the sub-hierarchy from
+	 * @param nodeId
+	 *            id of the node within the source hierarchy, which will be the root in the sub-hierarchy.
+	 *            Defaults to {@link Constants#ROOT_ID} if null.
+	 * @param destNodeId
+	 *            the new id that the copied nodes will receive.
+	 *            Defaults to {@link Constants#ROOT_ID} if null.
+	 * @return the sub-hierarchy
+	 * @throws NoSuchElementException
+	 *             if the hierarchy doesn't contain a node with the specified name
+	 */
+	public static Hierarchy subHierarchyDeep( Hierarchy source, String nodeId, String destNodeId )
+	{
+		final boolean useSubtree = false;
+
+		if ( nodeId == null )
+			nodeId = Constants.ROOT_ID;
+		if ( destNodeId == null )
+			destNodeId = Constants.ROOT_ID;
+
+		final String fDestNodeId = destNodeId;
+
+		Map<String, Integer> classCountMap = new HashMap<>();
+		List<BasicNode> nodes = new LinkedList<>();
+
+		rebaseDeep( Arrays.stream( source.getGroups() ), nodeId, destNodeId, nodes, classCountMap, useSubtree );
+
+		HierarchyBuilder.createParentChildRelations( nodes, null );
+
+		BasicNode root = nodes.stream().filter( n -> n.getId().equals( fDestNodeId ) ).findFirst().get();
+		return new BasicHierarchy( root, nodes, source.getDataNames(), classCountMap );
+	}
+
+	/**
+	 * Rebases all nodes and instances in the specified stream from the specified old id to the new id.
+	 * This method modifies the nodes themselves, instead of creating their copies.
+	 * 
+	 * @param nodes
+	 *            stream of nodes to rebase
+	 * @param oldId
+	 *            the old id to rebase. Only nodes that contain this substring will be rebased.
+	 * @param newId
+	 *            the new id to rebase the nodes as
+	 */
+	public static void rebaseShallow( Stream<Node> nodes, String oldId, String newId )
+	{
+		int prefixSub = oldId.length();
+
+		nodes.filter( n -> n.getId().equals( oldId ) || HierarchyBuilder.areIdsAncestorAndDescendant( oldId, n.getId() ) )
+			.forEach(
+				n -> {
+					BasicNode nn = (BasicNode)n;
+					nn.setId( newId + n.getId().substring( prefixSub ) );
+					nn.getNodeInstances().forEach( in -> in.setNodeId( nn.getId() ) );
+				}
+			);
+	}
+
+	/**
+	 * Rebases all nodes and instances in the specified stream from the specified old id to the new id.
+	 * This method creates copies of all objects (nodes, instances) with the same properties, but changed ids.
+	 * 
+	 * @param nodes
+	 *            stream of nodes to rebase
+	 * @param oldId
+	 *            the old id to rebase. Only nodes that contain this substring will be rebased.
+	 * @param newId
+	 *            the new id to rebase the nodes as
+	 * @param destNodes
+	 *            the list to put the rebased nodes in
+	 * @param classCountMap
+	 *            map holding number of instances for each instance
+	 * @param useSubtree
+	 *            whether the centroid calculation should also include child nodes' instances
+	 */
+	public static void rebaseDeep(
+		Stream<Node> nodes, String oldId, String newId,
+		List<BasicNode> destNodes, Map<String, Integer> classCountMap,
+		boolean useSubtree )
+	{
+		int prefixSub = oldId.length();
+
+		nodes.filter( n -> n.getId().equals( oldId ) || HierarchyBuilder.areIdsAncestorAndDescendant( oldId, n.getId() ) )
+			.forEach(
+				n -> {
+					String id = newId + n.getId().substring( prefixSub );
+					BasicNode rebasedNode = new BasicNode( id, null, useSubtree );
+
+					n.getNodeInstances().forEach(
+						in -> rebasedNode.addInstance(
+							new BasicInstance(
+								in.getInstanceName(),
+								id,
+								in.getData(),
+								in.getTrueClass()
+							)
+						)
+					);
+
+					destNodes.add( rebasedNode );
+
+					if ( classCountMap != null ) {
+						classCountMap.put( id, n.getNodeInstances().size() );
+					}
+				}
+			);
 	}
 
 	/**
@@ -96,6 +219,11 @@ public class HierarchyUtils
 		return null;
 	}
 
+	/**
+	 * Shorthand for {@code new GeneratedCSVReader().load( ... )}
+	 *
+	 * @see {@link GeneratedCSVReader#load(String, boolean, boolean, boolean, boolean, boolean)}
+	 */
 	public static Hierarchy load(
 		String path,
 		boolean hasInstanceNames, boolean hasTrueClass, boolean hasHeader,
@@ -190,6 +318,26 @@ public class HierarchyUtils
 	}
 
 	/**
+	 * @param h
+	 *            the hierarchy to get the instance from
+	 * @return the first instance in the hierarchy
+	 */
+	public static Instance getFirstInstance( Hierarchy h )
+	{
+		return h.getRoot().getSubtreeInstances().get( 0 );
+	}
+
+	/**
+	 * @param h
+	 *            the hierarchy to get the feature count from
+	 * @return number of features in the specified hierarchy
+	 */
+	public static int getFeatureCount( Hierarchy h )
+	{
+		return getFirstInstance( h ).getData().length;
+	}
+
+	/**
 	 * Attempts to estimate the length of string required to serialize the specified hierarchy, given the specified options.
 	 * If the required capacity overflows range of 32-bit integer, this method throws an {@link ArithmeticException}.
 	 * 
@@ -210,7 +358,7 @@ public class HierarchyUtils
 		final int charsForFeatureValue = 16;
 
 		int instances = h.getOverallNumberOfInstances();
-		int dims = h.getRoot().getSubtreeInstances().get( 0 ).getData().length;
+		int dims = getFeatureCount( h );
 
 		int result = instances * dims * charsForFeatureValue;
 
@@ -235,7 +383,7 @@ public class HierarchyUtils
 
 		String[] dataNames = h.getDataNames();
 		if ( dataNames == null ) {
-			int dims = h.getRoot().getNodeInstances().get( 0 ).getData().length;
+			int dims = getFeatureCount( h );
 
 			dataNames = new String[dims];
 			for ( int i = 0; i < dims; ++i )
