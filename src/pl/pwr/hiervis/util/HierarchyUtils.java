@@ -34,6 +34,64 @@ public class HierarchyUtils
 	}
 
 	/**
+	 * Merges the two hierarchies into a single, new hierarchy, with the specified merging node id.
+	 * 
+	 * @param source
+	 *            the source hierarchy that is to be merged into destination hierarchy
+	 * @param dest
+	 *            the destination hierarchy that will receive nodes from source hierarchy
+	 * @param nodeId
+	 *            id of the node in the destination hierarchy that will serve as the merging point for the two hierarchies.
+	 *            Nodes from the source hierarchy will be rebased to have this id as root.
+	 * @return the new, merged hierarchy (shallow copy of both source and dest hierarchies)
+	 */
+	public static Hierarchy merge( Hierarchy source, Hierarchy dest, String nodeId )
+	{
+		// Check parameters...
+		if ( source == null ) {
+			throw new IllegalArgumentException( "Source hierarchy is null." );
+		}
+		if ( dest == null ) {
+			throw new IllegalArgumentException( "Destination hierarchy is null." );
+		}
+
+		int sourceDims = getFeatureCount( source );
+		int destDims = getFeatureCount( dest );
+
+		if ( sourceDims != destDims ) {
+			throw new IllegalArgumentException(
+				String.format(
+					"Cannot merge hierarchies, because they have different feature counts - source: %s, dest: %s",
+					sourceDims, destDims
+				)
+			);
+		}
+
+		// Invoke the actual merging method...
+		return merge0( source, dest, nodeId );
+	}
+
+	private static Hierarchy merge0( Hierarchy source, Hierarchy dest, String nodeId )
+	{
+		final boolean useSubtree = false;
+
+		rebaseShallow( Arrays.stream( source.getGroups() ), Constants.ROOT_ID, nodeId );
+
+		List<BasicNode> nodes = new LinkedList<>();
+		Map<String, Integer> classCountMap = new HashMap<>();
+
+		Arrays.stream( dest.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+		Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+
+		nodes.forEach( n -> classCountMap.put( n.getId(), n.getNodeInstances().size() ) );
+
+		HierarchyBuilder.createParentChildRelations( nodes, null );
+		HierarchyBuilder.fixDepthGaps( (BasicNode)dest.getRoot(), nodes, useSubtree, null );
+
+		return new BasicHierarchy( dest.getRoot(), nodes, dest.getDataNames(), classCountMap );
+	}
+
+	/**
 	 * Creates a sub-hierarchy of the specified {@link Hierarchy}, which contains the specified node as root,
 	 * and all its child nodes.
 	 * The newly created hierarchy is a shallow copy; nodes added to it are shared with the source hierarchy.
