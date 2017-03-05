@@ -304,33 +304,53 @@ public class HVContext
 			log.trace( "Loading aborted." );
 		}
 		else {
-			setConfig( cfg );
-
-			FileLoaderThread thread = new FileLoaderThread( cfg, file );
-
-			OperationProgressFrame progressFrame = new OperationProgressFrame( window, "Loading..." );
-			progressFrame.setProgressUpdateCallback( thread::getProgress );
-			progressFrame.setStatusUpdateCallback( thread::getStatusMessage );
-			progressFrame.setProgressPollInterval( 100 );
-			progressFrame.setModal( true );
-			progressFrame.setAbortOperation(
-				e -> {
-					thread.interrupt();
-					progressFrame.dispose();
-				}
-			);
-
-			thread.fileLoaded.addListener( h -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
-			thread.errorOcurred.addListener( e -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
-			thread.fileLoaded.addListener( this::onFileLoaded );
-			thread.errorOcurred.addListener( this::onFileError );
-
-			thread.start();
-
-			progressFrame.setSize( new Dimension( 300, 150 ) );
-			progressFrame.setLocationRelativeTo( window );
-			progressFrame.setVisible( true );
+			loadFile( window, file, cfg );
 		}
+	}
+
+	public void loadFile(
+		Window window, File file,
+		boolean hasInstanceName, boolean hasTrueClass, boolean hasHeader, boolean fillBreadth, boolean useSubtree )
+	{
+		HVConfig cfg = config.copy();
+
+		cfg.setInstanceNameAttribute( hasInstanceName );
+		cfg.setTrueClassAttribute( hasTrueClass );
+		cfg.setDataNamesRow( hasHeader );
+		cfg.setFillBreadthGaps( fillBreadth );
+		cfg.setUseSubtree( useSubtree );
+
+		loadFile( window, file, cfg );
+	}
+
+	public void loadFile( Window window, File file, HVConfig cfg )
+	{
+		setConfig( cfg );
+
+		FileLoaderThread thread = new FileLoaderThread( cfg, file );
+
+		OperationProgressFrame progressFrame = new OperationProgressFrame( window, "Loading..." );
+		progressFrame.setProgressUpdateCallback( thread::getProgress );
+		progressFrame.setStatusUpdateCallback( thread::getStatusMessage );
+		progressFrame.setProgressPollInterval( 100 );
+		progressFrame.setModal( true );
+		progressFrame.setAbortOperation(
+			e -> {
+				thread.interrupt();
+				progressFrame.dispose();
+			}
+		);
+
+		thread.fileLoaded.addListener( h -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
+		thread.errorOcurred.addListener( e -> SwingUtilities.invokeLater( () -> progressFrame.dispose() ) );
+		thread.fileLoaded.addListener( this::onFileLoaded );
+		thread.errorOcurred.addListener( this::onFileError );
+
+		thread.start();
+
+		progressFrame.setSize( new Dimension( 300, 150 ) );
+		progressFrame.setLocationRelativeTo( window );
+		progressFrame.setVisible( true );
 	}
 
 	// -------------------------------------------------------------------------------------------
