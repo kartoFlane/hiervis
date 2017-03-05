@@ -2,9 +2,12 @@ package pl.pwr.hiervis;
 
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
@@ -13,20 +16,23 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Hierarchy;
-import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.core.HierarchyStatistics;
 import pl.pwr.hiervis.ui.VisualizerFrame;
-import pl.pwr.hiervis.util.CmdLineParser;
 import pl.pwr.hiervis.util.SwingUIUtils;
-import pl.pwr.hiervis.visualisation.HierarchyProcessor;
+import pl.pwr.hiervis.util.Utils;
 
 
 public final class HierarchyVisualizer
@@ -35,6 +41,8 @@ public final class HierarchyVisualizer
 
 	public static final String APP_NAME = "Hierarchy Visualizer";
 
+	private static Options options;
+
 
 	private HierarchyVisualizer()
 	{
@@ -42,8 +50,10 @@ public final class HierarchyVisualizer
 		throw new RuntimeException( "Attempted to instantiate a static class: " + getClass().getName() );
 	}
 
-	public static void main( String[] args )
+	public static void main( String[] args ) throws Exception
 	{
+		createOptions();
+
 		HVContext context = new HVContext();
 
 		// Check if the program can access its own folder
@@ -60,15 +70,77 @@ public final class HierarchyVisualizer
 
 		context.setConfig( loadConfig() );
 
-		if ( args != null && args.length > 0 ) {
-			log.info( "Args list is not empty -- running in CLI mode." );
+		CommandLine cmd = parseArgs( args );
 
-			executeCLI( context, args );
+		if ( cmd.hasOption( 'h' ) || cmd.hasOption( "help" ) ) {
+			printHelp();
+			System.exit( 0 );
 		}
-		else {
-			log.info( "Args list is empty -- running in GUI mode." );
 
-			executeGUI( context );
+		String subtitle = null;
+		if ( cmd.hasOption( 's' ) ) {
+			subtitle = cmd.getOptionValue( 's' );
+		}
+
+		File inputFile = null;
+		if ( cmd.hasOption( 'i' ) ) {
+			inputFile = new File( cmd.getOptionValue( 'i' ) );
+
+			if ( inputFile.isDirectory() ) {
+				throw new IOException( inputFile.getPath() + " must be a path to a file!" );
+			}
+			if ( !inputFile.exists() ) {
+				throw new FileNotFoundException( inputFile.getPath() );
+			}
+		}
+
+		executeGUI( context, subtitle, inputFile );
+	}
+
+	@SuppressWarnings("static-access")
+	private static void createOptions()
+	{
+		Option inputOpt = OptionBuilder
+			.withArgName( "file path" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "path to a *.csv file describing a hierarchy to load on app start" )
+			.create( "i" );
+
+		Option subtitleOpt = OptionBuilder
+			.withArgName( "name" )
+			.hasArgs( 1 )
+			.isRequired( false )
+			.withDescription( "optional subtitle for frame titles, to help identify them" )
+			.create( "s" );
+
+		Option helpOpt = OptionBuilder
+			.hasArg( false )
+			.isRequired( false )
+			.withDescription( "prints this message" )
+			.withLongOpt( "help" )
+			.create( 'h' );
+
+		options = new Options();
+		options.addOption( helpOpt );
+		options.addOption( inputOpt );
+		options.addOption( subtitleOpt );
+	}
+
+	private static void printHelp()
+	{
+		new HelpFormatter().printHelp( "Hierarchy Visualizer", options );
+	}
+
+	private static CommandLine parseArgs( String[] args ) throws ParseException
+	{
+		try {
+			return new BasicParser().parse( options, args );
+		}
+		catch ( ParseException ex ) {
+			log.error( ex );
+
+			throw ex;
 		}
 	}
 
@@ -92,64 +164,7 @@ public final class HierarchyVisualizer
 		return config;
 	}
 
-	private static void executeCLI( HVContext context, String[] args )
-	{
-		// TODO: Rework this whole method, or just scrap it.
-
-		try {
-			CmdLineParser parser = new CmdLineParser();
-			context.setConfig( parser.parse( args, context.getConfig() ) );
-		}
-		catch ( Exception e ) {
-			log.error( e );
-		}
-
-		HVConfig config = context.getConfig();
-		Hierarchy inputData = null;
-
-		if ( config.getInputDataFilePath().getFileName().endsWith( ".csv" ) ) {
-			try {
-				inputData = new GeneratedCSVReader().load(
-					config.getInputDataFilePath().toString(),
-					config.hasInstanceNameAttribute(),
-					config.hasTrueClassAttribute(),
-					config.hasDataNamesRow(),
-					false, true
-				);
-			}
-			catch ( IOException e ) {
-				log.error( "Error while reading input file: ", e );
-			}
-		}
-		else {
-			log.printf(
-				Level.ERROR,
-				"Unrecognised extension of input file: '%s', only *.csv files are supported.",
-				config.getInputDataFilePath().getFileName()
-			);
-			System.exit( 1 );
-		}
-
-		// TODO: Correct handling of stats
-		String statsFilePath = config.getOutputFolder() + File.separator + config.getInputDataFilePath().getFileName();
-		statsFilePath = statsFilePath.substring( 0, statsFilePath.lastIndexOf( "." ) ) + "_hieraryStatistics.csv";
-
-		HierarchyStatistics stats = new HierarchyStatistics( inputData, statsFilePath );
-
-		// TODO: Visualizations saved to images
-		if ( !config.hasSkipVisualisations() ) {
-			HierarchyProcessor vis = new HierarchyProcessor();
-
-			try {
-				// vis.process( context, stats );
-			}
-			catch ( Exception e ) {
-				log.error( e );
-			}
-		}
-	}
-
-	private static void executeGUI( HVContext ctx )
+	private static void executeGUI( HVContext ctx, String subtitle, File inputFile )
 	{
 		HVConfig config = ctx.getConfig();
 
@@ -269,28 +284,38 @@ public final class HierarchyVisualizer
 		}
 
 		// Ensure all popups are triggered from the event dispatch thread.
-		SwingUtilities.invokeLater(
-			new Runnable() {
-				public void run()
-				{
-					initGUI( ctx );
-				}
-			}
-		);
+		SwingUtilities.invokeLater( () -> initGUI( ctx, subtitle, inputFile ) );
 	}
 
-	private static void initGUI( HVContext ctx )
+	private static void initGUI( HVContext ctx, String subtitle, File inputFile )
 	{
-		ctx.createGUI();
+		ctx.createGUI( subtitle );
 
 		VisualizerFrame frame = ctx.getHierarchyFrame();
 		frame.layoutFrames();
 		frame.setVisible( true );
 		frame.showFrames();
+
+		if ( inputFile != null ) {
+			SwingUtilities.invokeLater( () -> ctx.loadFile( frame, inputFile, ctx.getConfig() ) );
+		}
 	}
 
-	public static void spawnNewInstance() throws IOException
+	public static void spawnNewInstance( String subtitle, File inputFile ) throws IOException
 	{
-		Process process = Utils.start( HierarchyVisualizer.class );
+		List<String> argsList = new ArrayList<>();
+		if ( subtitle != null ) {
+			argsList.add( "-s" );
+			argsList.add( subtitle );
+		}
+		if ( inputFile != null ) {
+			argsList.add( "-i" );
+			argsList.add( inputFile.getPath() );
+		}
+
+		String[] args = argsList.toArray( new String[0] );
+		if ( args.length == 0 ) args = null;
+
+		Utils.start( HierarchyVisualizer.class, args );
 	}
 }
