@@ -7,10 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -101,12 +99,12 @@ public class HVContext
 		computeThread.start();
 	}
 
-	public void createGUI()
+	public void createGUI( String subtitle )
 	{
 		if ( hierarchyFrame == null ) {
-			hierarchyFrame = new VisualizerFrame( this );
-			statsFrame = new HierarchyStatisticsFrame( this, hierarchyFrame );
-			visFrame = new InstanceVisualizationsFrame( this, hierarchyFrame );
+			hierarchyFrame = new VisualizerFrame( this, subtitle );
+			statsFrame = new HierarchyStatisticsFrame( this, hierarchyFrame, subtitle );
+			visFrame = new InstanceVisualizationsFrame( this, hierarchyFrame, subtitle );
 		}
 	}
 

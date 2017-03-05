@@ -70,9 +70,9 @@ public class HierarchyStatisticsFrame extends JFrame
 	private HashMap<String, JPanel> measurePanelMap = new HashMap<>();
 
 
-	public HierarchyStatisticsFrame( HVContext context, Window frame )
+	public HierarchyStatisticsFrame( HVContext context, Window frame, String subtitle )
 	{
-		super( "Hierarchy Statistics" );
+		super( "Statistics Frame" + ( subtitle == null ? "" : ( " [ " + subtitle + " ]" ) ) );
 		this.context = context;
 		this.owner = frame;
 

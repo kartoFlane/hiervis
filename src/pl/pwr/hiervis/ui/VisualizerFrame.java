@@ -55,9 +55,9 @@ public class VisualizerFrame extends JFrame
 	private Display hierarchyDisplay;
 
 
-	public VisualizerFrame( HVContext context )
+	public VisualizerFrame( HVContext context, String subtitle )
 	{
-		super( HierarchyVisualizer.APP_NAME );
+		super( "Hierarchy View" + ( subtitle == null ? "" : ( " [ " + subtitle + " ]" ) ) );
 
 		if ( context == null )
 			throw new RuntimeException( "Context must not be null!" );

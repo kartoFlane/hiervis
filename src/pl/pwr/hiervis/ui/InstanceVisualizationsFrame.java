@@ -95,9 +95,9 @@ public class InstanceVisualizationsFrame extends JFrame
 	private JCheckBox cboxAllV;
 
 
-	public InstanceVisualizationsFrame( HVContext context, Frame owner )
+	public InstanceVisualizationsFrame( HVContext context, Frame owner, String subtitle )
 	{
-		super( "Instance Visualizations" );
+		super( "Instance Visualizations" + ( subtitle == null ? "" : ( " [ " + subtitle + " ]" ) ) );
 		this.context = context;
 
 		setDefaultCloseOperation( HIDE_ON_CLOSE );
