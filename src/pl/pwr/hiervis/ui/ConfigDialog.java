@@ -18,7 +18,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -301,15 +300,6 @@ public class ConfigDialog extends JDialog
 		newConfig.setPreferredLookAndFeel( listLAF.getSelectedItem().toString() );
 		newConfig.setPointSize( sldPointSize.getValue() );
 		newConfig.setUseTrueClass( cboxUseTrueClass.isSelected() );
-	}
-
-	/**
-	 * Gets the text of the specified text field, or "0", if the text field is empty.
-	 */
-	private String getText( JTextField text )
-	{
-		String t = text.getText();
-		return t == null || t.equals( "" ) ? "0" : t;
 	}
 
 	/**

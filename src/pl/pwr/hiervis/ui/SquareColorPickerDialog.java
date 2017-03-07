@@ -2,9 +2,7 @@ package pl.pwr.hiervis.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -22,15 +20,12 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import pl.pwr.hiervis.ui.components.HuePicker;
 import pl.pwr.hiervis.ui.components.NumberDocument;
 import pl.pwr.hiervis.ui.components.ShadePicker;
+import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.HSV;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;
@@ -46,7 +41,6 @@ import pl.pwr.hiervis.util.Utils;
 public class SquareColorPickerDialog extends JDialog
 {
 	private static final long serialVersionUID = 3476247193320539039L;
-	private static final Logger log = LogManager.getLogger( SquareColorPickerDialog.class );
 
 	private ShadePicker shadePicker;
 	private HuePicker huePicker;
@@ -75,14 +69,7 @@ public class SquareColorPickerDialog extends JDialog
 
 		finalSelection = new HSV( inputColor );
 
-		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 1.0 };
-		gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
-		getContentPane().setLayout( gridBagLayout );
-
-		createPickerPanel();
-		createToolsPanel( inputColor );
-		createButtonsPanel();
+		createGUI( inputColor );
 
 		pack();
 		setLocationRelativeTo( null );
@@ -142,27 +129,30 @@ public class SquareColorPickerDialog extends JDialog
 		return new HSV( finalSelection );
 	}
 
+	private void createGUI( Color inputColor )
+	{
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWeights = new double[] { 0.0, 0.0, 1.0 };
+		layout.rowWeights = new double[] { 0.0, 1.0 };
+		getContentPane().setLayout( layout );
+
+		createPickerPanel();
+		createToolsPanel( inputColor );
+		createButtonsPanel();
+	}
+
 	private void createPickerPanel()
 	{
-		shadePicker = new ShadePicker();
-		shadePicker.setBorder( BorderFactory.createLineBorder( Color.lightGray ) );
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 
+		shadePicker = new ShadePicker();
 		huePicker = new HuePicker();
+
 		int hueInset = 5 + huePicker.getIndicatorSize() / 2;
 
-		GridBagConstraints gbc_shadePicker = new GridBagConstraints();
-		gbc_shadePicker.anchor = GridBagConstraints.NORTHWEST;
-		gbc_shadePicker.insets = new Insets( hueInset, 5, hueInset, 5 );
-		gbc_shadePicker.gridx = 0;
-		gbc_shadePicker.gridy = 0;
-		getContentPane().add( shadePicker, gbc_shadePicker );
-
-		GridBagConstraints gbc_huePicker = new GridBagConstraints();
-		gbc_huePicker.insets = new Insets( 5, 5, 5, 5 );
-		gbc_huePicker.anchor = GridBagConstraints.NORTHWEST;
-		gbc_huePicker.gridx = 1;
-		gbc_huePicker.gridy = 0;
-		getContentPane().add( huePicker, gbc_huePicker );
+		shadePicker.setBorder( BorderFactory.createLineBorder( Color.lightGray ) );
+		getContentPane().add( shadePicker, builder.insets( hueInset, 5, hueInset, 5 ).anchorNorthWest().position( 0, 0 ).build() );
+		getContentPane().add( huePicker, builder.insets( 5 ).anchorNorthWest().position( 1, 0 ).build() );
 
 		huePicker.setPreferredSize(
 			new Dimension(
@@ -199,43 +189,31 @@ public class SquareColorPickerDialog extends JDialog
 
 	private void createToolsPanel( Color inputColor )
 	{
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
 		int hueInset = 5 + huePicker.getIndicatorSize() / 2;
 
 		JPanel cTools = new JPanel();
-		GridBagConstraints gbc_cTools = new GridBagConstraints();
-		gbc_cTools.insets = new Insets( hueInset, 0, hueInset, 5 );
-		gbc_cTools.fill = GridBagConstraints.BOTH;
-		gbc_cTools.gridx = 2;
-		gbc_cTools.gridy = 0;
-		getContentPane().add( cTools, gbc_cTools );
-		GridBagLayout gbl_cTools = new GridBagLayout();
-		gbl_cTools.columnWeights = new double[] { 1.0 };
-		gbl_cTools.rowWeights = new double[] { 0.0, 1.0 };
-		cTools.setLayout( gbl_cTools );
+		getContentPane().add( cTools, builder.insets( hueInset, 0, hueInset, 5 ).fill().position( 2, 0 ).build() );
+
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWeights = new double[] { 1.0 };
+		layout.rowWeights = new double[] { 0.0, 1.0 };
+		cTools.setLayout( layout );
 
 		JPanel cColors = new JPanel();
 		cColors.setBorder( BorderFactory.createLineBorder( Color.lightGray ) );
-		GridBagConstraints gbc_cColors = new GridBagConstraints();
-		gbc_cColors.insets = new Insets( 0, 0, 5, 0 );
-		gbc_cColors.anchor = GridBagConstraints.NORTHWEST;
-		gbc_cColors.gridx = 0;
-		gbc_cColors.gridy = 0;
-		cTools.add( cColors, gbc_cColors );
+		cTools.add( cColors, builder.insets( 0, 0, 5, 0 ).anchorNorthWest().position( 0, 0 ).build() );
+
 		GridBagLayout gbl_cColors = new GridBagLayout();
 		cColors.setLayout( gbl_cColors );
 
 		lblNewColor = new JLabel();
-		GridBagConstraints gbc_lblNewColor = new GridBagConstraints();
-		gbc_lblNewColor.gridx = 0;
-		gbc_lblNewColor.gridy = 0;
-		cColors.add( lblNewColor, gbc_lblNewColor );
+		cColors.add( lblNewColor, builder.position( 0, 0 ).build() );
 		lblNewColor.setOpaque( true );
 
 		lblOldColor = new JLabel();
-		GridBagConstraints gbc_lblOldColor = new GridBagConstraints();
-		gbc_lblOldColor.gridx = 0;
-		gbc_lblOldColor.gridy = 1;
-		cColors.add( lblOldColor, gbc_lblOldColor );
+		cColors.add( lblOldColor, builder.position( 0, 1 ).build() );
 		lblOldColor.setOpaque( true );
 		lblOldColor.setBackground( inputColor );
 
@@ -259,150 +237,79 @@ public class SquareColorPickerDialog extends JDialog
 
 	private void createInputFields( JPanel container )
 	{
-		JPanel cInputFields = new JPanel();
-		GridBagConstraints gbc_cInputFields = new GridBagConstraints();
-		gbc_cInputFields.fill = GridBagConstraints.BOTH;
-		gbc_cInputFields.gridx = 0;
-		gbc_cInputFields.gridy = 1;
-		container.add( cInputFields, gbc_cInputFields );
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 
-		GridBagLayout gbl_cInputFields = new GridBagLayout();
-		gbl_cInputFields.columnWidths = new int[] { 0, 0, 0 };
-		gbl_cInputFields.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		gbl_cInputFields.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gbl_cInputFields.rowWeights = new double[] { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		cInputFields.setLayout( gbl_cInputFields );
+		JPanel cInputFields = new JPanel();
+		container.add( cInputFields, builder.fill().position( 0, 1 ).build() );
+
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWidths = new int[] { 0, 0, 0 };
+		layout.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		layout.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
+		layout.rowWeights = new double[] { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		cInputFields.setLayout( layout );
 
 		JPanel filler = new JPanel();
-		GridBagConstraints gbc_filler = new GridBagConstraints();
-		gbc_filler.gridwidth = 2;
-		gbc_filler.insets = new Insets( 0, 0, 5, 0 );
-		gbc_filler.fill = GridBagConstraints.BOTH;
-		gbc_filler.gridx = 0;
-		gbc_filler.gridy = 0;
-		cInputFields.add( filler, gbc_filler );
+		cInputFields.add( filler, builder.insets( 0, 0, 5, 0 ).fill().position( 0, 0 ).spanHorizontal( 2 ).build() );
 
 		JLabel lblH = new JLabel( "H:" );
-		GridBagConstraints gbc_lblH = new GridBagConstraints();
-		gbc_lblH.anchor = GridBagConstraints.EAST;
-		gbc_lblH.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblH.gridx = 0;
-		gbc_lblH.gridy = 1;
-		cInputFields.add( lblH, gbc_lblH );
+		cInputFields.add( lblH, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 1 ).build() );
 
 		txtH = new JTextField();
 		txtH.setHorizontalAlignment( SwingConstants.RIGHT );
-		GridBagConstraints gbc_txtH = new GridBagConstraints();
-		gbc_txtH.insets = new Insets( 0, 0, 5, 0 );
-		gbc_txtH.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtH.gridx = 1;
-		gbc_txtH.gridy = 1;
-		cInputFields.add( txtH, gbc_txtH );
 		txtH.setColumns( 3 );
 		txtH.setDocument( new NumberDocument( 3 ) );
+		cInputFields.add( txtH, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 1 ).build() );
 
 		JLabel lblS = new JLabel( "S:" );
-		GridBagConstraints gbc_lblS = new GridBagConstraints();
-		gbc_lblS.anchor = GridBagConstraints.EAST;
-		gbc_lblS.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblS.gridx = 0;
-		gbc_lblS.gridy = 2;
-		cInputFields.add( lblS, gbc_lblS );
+		cInputFields.add( lblS, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 2 ).build() );
 
 		txtS = new JTextField();
 		txtS.setHorizontalAlignment( SwingConstants.RIGHT );
 		txtS.setColumns( 3 );
-		GridBagConstraints gbc_txtS = new GridBagConstraints();
-		gbc_txtS.insets = new Insets( 0, 0, 5, 0 );
-		gbc_txtS.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtS.gridx = 1;
-		gbc_txtS.gridy = 2;
-		cInputFields.add( txtS, gbc_txtS );
 		txtS.setDocument( new NumberDocument( 3 ) );
+		cInputFields.add( txtS, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 2 ).build() );
 
 		JLabel lblV = new JLabel( "V:" );
-		GridBagConstraints gbc_lblV = new GridBagConstraints();
-		gbc_lblV.anchor = GridBagConstraints.EAST;
-		gbc_lblV.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblV.gridx = 0;
-		gbc_lblV.gridy = 3;
-		cInputFields.add( lblV, gbc_lblV );
+		cInputFields.add( lblV, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 3 ).build() );
 
 		txtV = new JTextField();
 		txtV.setHorizontalAlignment( SwingConstants.RIGHT );
 		txtV.setColumns( 3 );
-		GridBagConstraints gbc_txtV = new GridBagConstraints();
-		gbc_txtV.insets = new Insets( 0, 0, 5, 0 );
-		gbc_txtV.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtV.gridx = 1;
-		gbc_txtV.gridy = 3;
-		cInputFields.add( txtV, gbc_txtV );
 		txtV.setDocument( new NumberDocument( 3 ) );
+		cInputFields.add( txtV, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 3 ).build() );
 
-		JSeparator separator = new JSeparator();
-		GridBagConstraints gbc_separator = new GridBagConstraints();
-		gbc_separator.fill = GridBagConstraints.HORIZONTAL;
-		gbc_separator.gridwidth = 2;
-		gbc_separator.insets = new Insets( 0, 0, 5, 0 );
-		gbc_separator.gridx = 0;
-		gbc_separator.gridy = 4;
-		cInputFields.add( separator, gbc_separator );
+		cInputFields.add(
+			new JSeparator(),
+			builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 0, 4 ).spanHorizontal( 2 ).build()
+		);
 
 		JLabel lblR = new JLabel( "R:" );
-		GridBagConstraints gbc_lblR = new GridBagConstraints();
-		gbc_lblR.anchor = GridBagConstraints.EAST;
-		gbc_lblR.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblR.gridx = 0;
-		gbc_lblR.gridy = 5;
-		cInputFields.add( lblR, gbc_lblR );
+		cInputFields.add( lblR, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 5 ).build() );
 
 		txtR = new JTextField();
 		txtR.setHorizontalAlignment( SwingConstants.RIGHT );
 		txtR.setColumns( 3 );
-		GridBagConstraints gbc_txtR = new GridBagConstraints();
-		gbc_txtR.insets = new Insets( 0, 0, 5, 0 );
-		gbc_txtR.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtR.gridx = 1;
-		gbc_txtR.gridy = 5;
-		cInputFields.add( txtR, gbc_txtR );
 		txtR.setDocument( new NumberDocument( 3 ) );
+		cInputFields.add( txtR, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 5 ).build() );
 
 		JLabel lblG = new JLabel( "G:" );
-		GridBagConstraints gbc_lblG = new GridBagConstraints();
-		gbc_lblG.anchor = GridBagConstraints.EAST;
-		gbc_lblG.insets = new Insets( 0, 0, 5, 5 );
-		gbc_lblG.gridx = 0;
-		gbc_lblG.gridy = 6;
-		cInputFields.add( lblG, gbc_lblG );
+		cInputFields.add( lblG, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 6 ).build() );
 
 		txtG = new JTextField();
 		txtG.setHorizontalAlignment( SwingConstants.RIGHT );
 		txtG.setColumns( 3 );
-		GridBagConstraints gbc_txtG = new GridBagConstraints();
-		gbc_txtG.insets = new Insets( 0, 0, 5, 0 );
-		gbc_txtG.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtG.gridx = 1;
-		gbc_txtG.gridy = 6;
-		cInputFields.add( txtG, gbc_txtG );
 		txtG.setDocument( new NumberDocument( 3 ) );
+		cInputFields.add( txtG, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 6 ).build() );
 
 		JLabel lblB = new JLabel( "B:" );
-		GridBagConstraints gbc_lblB = new GridBagConstraints();
-		gbc_lblB.anchor = GridBagConstraints.EAST;
-		gbc_lblB.insets = new Insets( 0, 0, 0, 5 );
-		gbc_lblB.gridx = 0;
-		gbc_lblB.gridy = 7;
-		cInputFields.add( lblB, gbc_lblB );
+		cInputFields.add( lblB, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 7 ).build() );
 
 		txtB = new JTextField();
 		txtB.setHorizontalAlignment( SwingConstants.RIGHT );
 		txtB.setColumns( 3 );
-		GridBagConstraints gbc_txtB = new GridBagConstraints();
-		gbc_txtB.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtB.gridx = 1;
-		gbc_txtB.gridy = 7;
-		cInputFields.add( txtB, gbc_txtB );
 		txtB.setDocument( new NumberDocument( 3 ) );
+		cInputFields.add( txtB, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 7 ).build() );
 
 		DocumentListener docListener = new DocumentListener() {
 			public void insertUpdate( DocumentEvent e )
@@ -435,75 +342,60 @@ public class SquareColorPickerDialog extends JDialog
 			return;
 		}
 
-		try {
-			selectionUpdating = true;
-			Document d = e.getDocument();
+		selectionUpdating = true;
+		Document d = e.getDocument();
 
-			if ( d.equals( txtH.getDocument() ) ||
-				d.equals( txtS.getDocument() ) ||
-				d.equals( txtV.getDocument() ) ) {
+		if ( d.equals( txtH.getDocument() ) ||
+			d.equals( txtS.getDocument() ) ||
+			d.equals( txtV.getDocument() ) ) {
 
-				float h = Utils.clamp( 0, Float.parseFloat( getText( txtH.getDocument() ) ) / 360f, 1f );
-				float s = Utils.clamp( 0, Float.parseFloat( getText( txtS.getDocument() ) ) / 100f, 1f );
-				float v = Utils.clamp( 0, Float.parseFloat( getText( txtV.getDocument() ) ) / 100f, 1f );
-				SwingUtilities.invokeLater( () -> setSelection( new HSV( h, s, v ) ) );
-			}
-			else if ( d.equals( txtR.getDocument() ) ||
-				d.equals( txtG.getDocument() ) ||
-				d.equals( txtB.getDocument() ) ) {
-
-				int r = Utils.clamp( 0, Integer.parseInt( getText( txtR.getDocument() ) ), 255 );
-				int g = Utils.clamp( 0, Integer.parseInt( getText( txtG.getDocument() ) ), 255 );
-				int b = Utils.clamp( 0, Integer.parseInt( getText( txtB.getDocument() ) ), 255 );
-				SwingUtilities.invokeLater( () -> setSelection( r, g, b ) );
-			}
-
-			selectionUpdating = false;
+			float h = Utils.clamp( 0, Float.parseFloat( getText( txtH ) ) / 360f, 1f );
+			float s = Utils.clamp( 0, Float.parseFloat( getText( txtS ) ) / 100f, 1f );
+			float v = Utils.clamp( 0, Float.parseFloat( getText( txtV ) ) / 100f, 1f );
+			SwingUtilities.invokeLater( () -> setSelection( new HSV( h, s, v ) ) );
 		}
-		catch ( BadLocationException ex ) {
-			log.error( ex );
+		else if ( d.equals( txtR.getDocument() ) ||
+			d.equals( txtG.getDocument() ) ||
+			d.equals( txtB.getDocument() ) ) {
+
+			int r = Utils.clamp( 0, Integer.parseInt( getText( txtR ) ), 255 );
+			int g = Utils.clamp( 0, Integer.parseInt( getText( txtG ) ), 255 );
+			int b = Utils.clamp( 0, Integer.parseInt( getText( txtB ) ), 255 );
+			SwingUtilities.invokeLater( () -> setSelection( r, g, b ) );
 		}
+
+		selectionUpdating = false;
 	}
 
-	private String getText( Document d )
-		throws BadLocationException
+	/**
+	 * Gets the text of the specified text field, or "0", if the text field is empty.
+	 */
+	private static String getText( JTextField text )
 	{
-		String result = d.getText( 0, d.getLength() );
-		if ( result == null || result.equals( "" ) ) {
-			result = "0";
-		}
-		return result;
+		String t = text.getText();
+		return t == null || t.equals( "" ) ? "0" : t;
 	}
 
 	private void createButtonsPanel()
 	{
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
 		JPanel cButtons = new JPanel();
-		GridBagConstraints gbc_cButtons = new GridBagConstraints();
-		gbc_cButtons.anchor = GridBagConstraints.SOUTH;
-		gbc_cButtons.gridwidth = 3;
-		gbc_cButtons.insets = new Insets( 0, 5, 5, 5 );
-		gbc_cButtons.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cButtons.gridx = 0;
-		gbc_cButtons.gridy = 1;
-		getContentPane().add( cButtons, gbc_cButtons );
-		GridBagLayout gbl_cButtons = new GridBagLayout();
-		gbl_cButtons.columnWeights = new double[] { 1.0, 0.0 };
-		gbl_cButtons.rowWeights = new double[] { 0.0 };
-		cButtons.setLayout( gbl_cButtons );
+		getContentPane().add(
+			cButtons,
+			builder.insets( 0, 5, 5, 5 ).anchorSouth().fillHorizontal().position( 0, 1 ).spanHorizontal( 3 ).build()
+		);
+
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWeights = new double[] { 1.0, 0.0 };
+		layout.rowWeights = new double[] { 0.0 };
+		cButtons.setLayout( layout );
 
 		JButton btnConfirm = new JButton( "Confirm" );
-		GridBagConstraints gbc_btnConfirm = new GridBagConstraints();
-		gbc_btnConfirm.anchor = GridBagConstraints.EAST;
-		gbc_btnConfirm.insets = new Insets( 0, 0, 0, 5 );
-		gbc_btnConfirm.gridx = 0;
-		gbc_btnConfirm.gridy = 0;
-		cButtons.add( btnConfirm, gbc_btnConfirm );
+		cButtons.add( btnConfirm, builder.insets( 0, 0, 0, 5 ).anchorEast().position( 0, 0 ).build() );
 
 		JButton btnCancel = new JButton( "Cancel" );
-		GridBagConstraints gbc_btnCancel = new GridBagConstraints();
-		gbc_btnCancel.gridx = 1;
-		gbc_btnCancel.gridy = 0;
-		cButtons.add( btnCancel, gbc_btnCancel );
+		cButtons.add( btnCancel, builder.position( 1, 0 ).build() );
 
 		btnCancel.addActionListener(
 			( e ) -> {
