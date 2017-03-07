@@ -106,19 +106,6 @@ public class SquareColorPickerDialog extends JDialog
 		setSelection( new Color( r, g, b ) );
 	}
 
-	private void updateInputFields()
-	{
-		selectionUpdating = true;
-		txtH.setText( "" + (int)( tempSelection.getHue() * 360 ) );
-		txtS.setText( "" + (int)( tempSelection.getSaturation() * 100 ) );
-		txtV.setText( "" + (int)( tempSelection.getValue() * 100 ) );
-		Color c = tempSelection.toColor();
-		txtR.setText( "" + c.getRed() );
-		txtG.setText( "" + c.getGreen() );
-		txtB.setText( "" + c.getBlue() );
-		selectionUpdating = false;
-	}
-
 	public Color getSelection()
 	{
 		return finalSelection.toColor();
@@ -128,6 +115,9 @@ public class SquareColorPickerDialog extends JDialog
 	{
 		return new HSV( finalSelection );
 	}
+
+	// -----------------------------------------------------------------------------------------------
+	// GUI creation methods
 
 	private void createGUI( Color inputColor )
 	{
@@ -255,28 +245,19 @@ public class SquareColorPickerDialog extends JDialog
 		JLabel lblH = new JLabel( "H:" );
 		cInputFields.add( lblH, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 1 ).build() );
 
-		txtH = new JTextField();
-		txtH.setHorizontalAlignment( SwingConstants.RIGHT );
-		txtH.setColumns( 3 );
-		txtH.setDocument( new NumberDocument( 3 ) );
+		txtH = buildNumberTextField();
 		cInputFields.add( txtH, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 1 ).build() );
 
 		JLabel lblS = new JLabel( "S:" );
 		cInputFields.add( lblS, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 2 ).build() );
 
-		txtS = new JTextField();
-		txtS.setHorizontalAlignment( SwingConstants.RIGHT );
-		txtS.setColumns( 3 );
-		txtS.setDocument( new NumberDocument( 3 ) );
+		txtS = buildNumberTextField();
 		cInputFields.add( txtS, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 2 ).build() );
 
 		JLabel lblV = new JLabel( "V:" );
 		cInputFields.add( lblV, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 3 ).build() );
 
-		txtV = new JTextField();
-		txtV.setHorizontalAlignment( SwingConstants.RIGHT );
-		txtV.setColumns( 3 );
-		txtV.setDocument( new NumberDocument( 3 ) );
+		txtV = buildNumberTextField();
 		cInputFields.add( txtV, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 3 ).build() );
 
 		cInputFields.add(
@@ -287,28 +268,19 @@ public class SquareColorPickerDialog extends JDialog
 		JLabel lblR = new JLabel( "R:" );
 		cInputFields.add( lblR, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 5 ).build() );
 
-		txtR = new JTextField();
-		txtR.setHorizontalAlignment( SwingConstants.RIGHT );
-		txtR.setColumns( 3 );
-		txtR.setDocument( new NumberDocument( 3 ) );
+		txtR = buildNumberTextField();
 		cInputFields.add( txtR, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 5 ).build() );
 
 		JLabel lblG = new JLabel( "G:" );
 		cInputFields.add( lblG, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 6 ).build() );
 
-		txtG = new JTextField();
-		txtG.setHorizontalAlignment( SwingConstants.RIGHT );
-		txtG.setColumns( 3 );
-		txtG.setDocument( new NumberDocument( 3 ) );
+		txtG = buildNumberTextField();
 		cInputFields.add( txtG, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 6 ).build() );
 
 		JLabel lblB = new JLabel( "B:" );
 		cInputFields.add( lblB, builder.insets( 0, 0, 5, 5 ).anchorEast().position( 0, 7 ).build() );
 
-		txtB = new JTextField();
-		txtB.setHorizontalAlignment( SwingConstants.RIGHT );
-		txtB.setColumns( 3 );
-		txtB.setDocument( new NumberDocument( 3 ) );
+		txtB = buildNumberTextField();
 		cInputFields.add( txtB, builder.insets( 0, 0, 5, 0 ).fillHorizontal().position( 1, 7 ).build() );
 
 		DocumentListener docListener = new DocumentListener() {
@@ -334,6 +306,69 @@ public class SquareColorPickerDialog extends JDialog
 		txtR.getDocument().addDocumentListener( docListener );
 		txtG.getDocument().addDocumentListener( docListener );
 		txtB.getDocument().addDocumentListener( docListener );
+	}
+
+	private void createButtonsPanel()
+	{
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
+		JPanel cButtons = new JPanel();
+		getContentPane().add(
+			cButtons,
+			builder.insets( 0, 5, 5, 5 ).anchorSouth().fillHorizontal().position( 0, 1 ).spanHorizontal( 3 ).build()
+		);
+
+		GridBagLayout layout = new GridBagLayout();
+		layout.columnWeights = new double[] { 1.0, 0.0 };
+		layout.rowWeights = new double[] { 0.0 };
+		cButtons.setLayout( layout );
+
+		JButton btnConfirm = new JButton( "Confirm" );
+		cButtons.add( btnConfirm, builder.insets( 0, 0, 0, 5 ).anchorEast().position( 0, 0 ).build() );
+
+		JButton btnCancel = new JButton( "Cancel" );
+		cButtons.add( btnCancel, builder.position( 1, 0 ).build() );
+
+		btnCancel.addActionListener(
+			( e ) -> {
+				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
+			}
+		);
+
+		btnConfirm.addActionListener(
+			( e ) -> {
+				finalSelection = tempSelection;
+				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
+			}
+		);
+
+		SwingUtilities.invokeLater( () -> btnConfirm.requestFocusInWindow() );
+	}
+
+	private static JTextField buildNumberTextField()
+	{
+		JTextField result = new JTextField();
+		result.setHorizontalAlignment( SwingConstants.RIGHT );
+		result.setColumns( 3 );
+		result.setDocument( new NumberDocument( 3 ) );
+
+		return result;
+	}
+
+	// -----------------------------------------------------------------------------------------------
+	// Misc methods
+
+	private void updateInputFields()
+	{
+		selectionUpdating = true;
+		txtH.setText( "" + (int)( tempSelection.getHue() * 360 ) );
+		txtS.setText( "" + (int)( tempSelection.getSaturation() * 100 ) );
+		txtV.setText( "" + (int)( tempSelection.getValue() * 100 ) );
+		Color c = tempSelection.toColor();
+		txtR.setText( "" + c.getRed() );
+		txtG.setText( "" + c.getGreen() );
+		txtB.setText( "" + c.getBlue() );
+		selectionUpdating = false;
 	}
 
 	private void update( DocumentEvent e )
@@ -374,42 +409,5 @@ public class SquareColorPickerDialog extends JDialog
 	{
 		String t = text.getText();
 		return t == null || t.equals( "" ) ? "0" : t;
-	}
-
-	private void createButtonsPanel()
-	{
-		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
-
-		JPanel cButtons = new JPanel();
-		getContentPane().add(
-			cButtons,
-			builder.insets( 0, 5, 5, 5 ).anchorSouth().fillHorizontal().position( 0, 1 ).spanHorizontal( 3 ).build()
-		);
-
-		GridBagLayout layout = new GridBagLayout();
-		layout.columnWeights = new double[] { 1.0, 0.0 };
-		layout.rowWeights = new double[] { 0.0 };
-		cButtons.setLayout( layout );
-
-		JButton btnConfirm = new JButton( "Confirm" );
-		cButtons.add( btnConfirm, builder.insets( 0, 0, 0, 5 ).anchorEast().position( 0, 0 ).build() );
-
-		JButton btnCancel = new JButton( "Cancel" );
-		cButtons.add( btnCancel, builder.position( 1, 0 ).build() );
-
-		btnCancel.addActionListener(
-			( e ) -> {
-				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
-			}
-		);
-
-		btnConfirm.addActionListener(
-			( e ) -> {
-				finalSelection = tempSelection;
-				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
-			}
-		);
-
-		SwingUtilities.invokeLater( () -> btnConfirm.requestFocusInWindow() );
 	}
 }
