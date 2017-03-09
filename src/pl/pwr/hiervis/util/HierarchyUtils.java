@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -238,6 +239,59 @@ public class HierarchyUtils
 					}
 				}
 			);
+	}
+
+	/**
+	 * Creates a deep copy of the specified hierarchy, creating copies of {@link Node}s and {@link Instance}s
+	 * that comprise the {@link Hierarchy}.
+	 * 
+	 * @param h
+	 *            the hierarchy to clone.
+	 * @param nodeInclusionPredicate
+	 *            predicate allowing to select nodes that should be included in the cloned hierarchy.
+	 *            Can be null to include all nodes.
+	 * @return the cloned hierarchy
+	 */
+	public static Hierarchy cloneDeep( Hierarchy h, Predicate<Node> nodeInclusionPredicate )
+	{
+		final boolean useSubtree = false;
+
+		Map<String, Integer> classCountMap = new HashMap<>();
+		List<BasicNode> nodes = new LinkedList<>();
+
+		Arrays.stream( h.getGroups() ).forEach(
+			n -> {
+				if ( nodeInclusionPredicate != null && !nodeInclusionPredicate.test( n ) ) {
+					return;
+				}
+
+				BasicNode clonedNode = new BasicNode( n.getId(), null, useSubtree );
+
+				n.getNodeInstances().forEach(
+					in -> clonedNode.addInstance(
+						new BasicInstance(
+							in.getInstanceName(),
+							in.getNodeId(),
+							in.getData(),
+							in.getTrueClass()
+						)
+					)
+				);
+
+				nodes.add( clonedNode );
+
+				if ( classCountMap != null ) {
+					classCountMap.put( n.getId(), n.getNodeInstances().size() );
+				}
+			}
+		);
+
+		HierarchyBuilder.createParentChildRelations( nodes, null );
+		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
+
+		nodes.sort( new NodeIdComparator() );
+
+		return new BasicHierarchy( nodes.get( 0 ), nodes, h.getDataNames(), classCountMap );
 	}
 
 	/**
