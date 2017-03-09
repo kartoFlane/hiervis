@@ -84,7 +84,19 @@ public final class HierarchyVisualizer
 
 		File inputFile = null;
 		if ( cmd.hasOption( 'i' ) ) {
-			inputFile = new File( cmd.getOptionValue( 'i' ) );
+			List<String> inputOptions = new ArrayList<String>( Arrays.asList( cmd.getOptionValues( 'i' ) ) );
+			boolean withTrueClass = inputOptions.remove( "true-class" );
+			boolean withInstanceNames = inputOptions.remove( "instance-names" );
+			boolean withHeader = inputOptions.remove( "header" );
+			boolean fixBreadthGaps = inputOptions.remove( "fix-breadth-gaps" );
+
+			inputFile = new File( inputOptions.get( 0 ) );
+
+			HVConfig cfg = context.getConfig();
+			cfg.setTrueClassAttribute( withTrueClass );
+			cfg.setInstanceNameAttribute( withInstanceNames );
+			cfg.setDataNamesRow( withHeader );
+			cfg.setFillBreadthGaps( fixBreadthGaps );
 
 			if ( inputFile.isDirectory() ) {
 				throw new IOException( inputFile.getPath() + " must be a path to a file!" );
@@ -102,7 +114,8 @@ public final class HierarchyVisualizer
 	{
 		Option inputOpt = OptionBuilder
 			.withArgName( "file path" )
-			.hasArgs( 1 )
+			.hasOptionalArgs( 4 )
+			.hasArgs( 5 )
 			.isRequired( false )
 			.withDescription( "path to a *.csv file describing a hierarchy to load on app start" )
 			.create( "i" );
