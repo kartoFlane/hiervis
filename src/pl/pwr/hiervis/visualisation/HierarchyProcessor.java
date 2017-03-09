@@ -27,6 +27,7 @@ import prefuse.Visualization;
 import prefuse.action.ActionList;
 import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
+import prefuse.action.assignment.StrokeAction;
 import prefuse.action.layout.AxisLabelLayout;
 import prefuse.action.layout.AxisLayout;
 import prefuse.action.layout.graph.NodeLinkTreeLayout;
@@ -44,6 +45,7 @@ import prefuse.render.EdgeRenderer;
 import prefuse.render.Renderer;
 import prefuse.render.RendererFactory;
 import prefuse.util.ColorLib;
+import prefuse.util.StrokeLib;
 import prefuse.util.ui.ValuedRangeModel;
 import prefuse.visual.VisualItem;
 
@@ -252,19 +254,15 @@ public class HierarchyProcessor
 		Visualization vis = new Visualization();
 
 		if ( context.isHierarchyDataLoaded() ) {
+			final float strokeWidth = 3;
 			vis.add( HVConstants.HIERARCHY_DATA_NAME, hierarchyTree );
 
 			NodeRenderer r = new NodeRenderer( layoutData.getNodeSize(), config );
 			DefaultRendererFactory drf = new DefaultRendererFactory( r );
 			EdgeRenderer edgeRenderer = new EdgeRenderer( prefuse.Constants.EDGE_TYPE_LINE );
+			edgeRenderer.setDefaultLineWidth( strokeWidth );
 			drf.setDefaultEdgeRenderer( edgeRenderer );
 			vis.setRendererFactory( drf );
-
-			ColorAction edgesColor = new ColorAction(
-				HVConstants.HIERARCHY_DATA_NAME + ".edges",
-				VisualItem.STROKECOLOR,
-				ColorLib.color( Color.lightGray )
-			);
 
 			NodeLinkTreeLayout treeLayout = new NodeLinkTreeLayout(
 				HVConstants.HIERARCHY_DATA_NAME,
@@ -281,11 +279,33 @@ public class HierarchyProcessor
 				)
 			);
 
+			ColorAction edgesColor = new ColorAction(
+				HVConstants.HIERARCHY_DATA_NAME + ".edges",
+				VisualItem.STROKECOLOR,
+				ColorLib.color( Color.lightGray )
+			);
+
+			ColorAction nodeBorderColor = new ColorAction(
+				HVConstants.HIERARCHY_DATA_NAME + ".nodes",
+				VisualItem.STROKECOLOR,
+				ColorLib.color( Color.lightGray )
+			);
+
+			StrokeAction nodeBorderStroke = new StrokeAction(
+				HVConstants.HIERARCHY_DATA_NAME + ".nodes",
+				StrokeLib.getStroke( strokeWidth )
+			);
+
+			ActionList designList = new ActionList();
+			designList.add( edgesColor );
+			designList.add( nodeBorderColor );
+			designList.add( nodeBorderStroke );
+
 			ActionList layout = new ActionList();
 			layout.add( treeLayout );
 			layout.add( new RepaintAction() );
 
-			vis.putAction( HVConstants.HIERARCHY_DATA_NAME + ".edges", edgesColor );
+			vis.putAction( HVConstants.HIERARCHY_DATA_NAME + ".design", designList );
 			vis.putAction( HVConstants.HIERARCHY_DATA_NAME + ".layout", layout );
 			// TODO we can here implement a heuristic that will check if after enlarging
 			// the border lines (rows and columns) of pixels do not contain other values
@@ -300,7 +320,7 @@ public class HierarchyProcessor
 	{
 		Utils.waitUntilActivitiesAreFinished();
 
-		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".edges" );
+		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".design" );
 		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".layout" );
 
 		Utils.waitUntilActivitiesAreFinished();
