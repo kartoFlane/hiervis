@@ -44,8 +44,8 @@ public class HKPlusPlusWrapper
 	 * 
 	 * @param owner
 	 *            frame at which the wait dialog will be created.
-	 * @param classAttribute
-	 *            indicates that FIRST column of data is class attribute, class should be indicated by string.
+	 * @param trueClassAttribute
+	 *            indicates that FIRST column of data is true class attribute, class should be indicated by string.
 	 * @param instanceNames
 	 *            indicates that SECOND (if class attribute is present) or FIRST (otherwise) column is the name of every instance.
 	 * @param diagonalMatrix
@@ -76,7 +76,7 @@ public class HKPlusPlusWrapper
 	 */
 	public void start(
 		Window owner,
-		boolean classAttribute, boolean instanceNames,
+		boolean trueClassAttribute, boolean instanceNames,
 		boolean diagonalMatrix, boolean disableStaticCenter,
 		boolean generateImages,
 		int epsilon, int littleValue,
@@ -89,7 +89,7 @@ public class HKPlusPlusWrapper
 		// Set HK's working dir to the output directory, so that we keep all output files in one place
 		process = new ProcessBuilder(
 			buildArgsList(
-				classAttribute, instanceNames, diagonalMatrix, disableStaticCenter, generateImages,
+				trueClassAttribute, instanceNames, diagonalMatrix, disableStaticCenter, generateImages,
 				epsilon, littleValue, clusters, iterations, repeats, dendrogramSize, maxNodeCount
 			)
 		).directory( hkOutDir ).start();
@@ -155,7 +155,7 @@ public class HKPlusPlusWrapper
 	/**
 	 * Build the args list based on options selected by the user.
 	 * 
-	 * @param classAttribute
+	 * @param trueClassAttribute
 	 *            indicates that FIRST column of data is class attribute, class should be indicated by string.
 	 * @param instanceNames
 	 *            indicates that SECOND (if class attribute is present) or FIRST (otherwise) column is the name of every instance.
@@ -185,7 +185,7 @@ public class HKPlusPlusWrapper
 	 * @return list of arguments passed to ProcessBuilder to create the subprocess
 	 */
 	private List<String> buildArgsList(
-		boolean classAttribute, boolean instanceNames,
+		boolean trueClassAttribute, boolean instanceNames,
 		boolean diagonalMatrix, boolean disableStaticCenter,
 		boolean generateImages,
 		int epsilon, int littleValue,
@@ -208,7 +208,7 @@ public class HKPlusPlusWrapper
 		args.add( "-rf" );
 		args.add( "1.0" );
 
-		if ( classAttribute )
+		if ( trueClassAttribute )
 			args.add( "-c" );
 		if ( instanceNames )
 			args.add( "-in" );
