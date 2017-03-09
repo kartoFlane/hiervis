@@ -225,7 +225,7 @@ public class NodeDetailsFrame extends JFrame
 		txtEpsilon.setText( "10" );
 		txtLittleVal.setText( "5" );
 
-		cboxTrueClass.setSelected( false );
+		cboxTrueClass.setSelected( context.getConfig().hasTrueClassAttribute() );
 		cboxInstanceNames.setSelected( false );
 		cboxDiagonalMatrix.setSelected( false );
 		cboxNoStaticCenter.setSelected( false );
