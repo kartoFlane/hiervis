@@ -225,9 +225,6 @@ public class CmdLineParser
 	private void parseParameters( HVConfig config )
 		throws Exception
 	{
-		config.setInputDataFilePath( parseInputFile() );
-		config.setOutputFolder( parseOutputFile() );
-
 		config.setBackgroundColor( parseColor( cmd.getOptionValue( "bg", "transparent" ), true ) );
 		config.setCurrentLevelColor( parseColor( cmd.getOptionValue( "lg", "red" ), false ) );
 		config.setChildGroupColor( parseColor( cmd.getOptionValue( "cg", "green" ), false ) );

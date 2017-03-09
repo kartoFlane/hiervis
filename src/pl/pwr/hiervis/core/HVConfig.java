@@ -44,11 +44,6 @@ public class HVConfig
 	private static final Logger log = LogManager.getLogger( HVConfig.class );
 
 	@SerializableField
-	private Path inputDataFilePath;
-	@SerializableField
-	private Path outputFolder;
-
-	@SerializableField
 	private Color currentGroupColor;
 	@SerializableField
 	private Color childGroupColor;
@@ -497,26 +492,6 @@ public class HVConfig
 	public void setDisplayAllPoints( boolean displayAllPoints )
 	{
 		this.displayAllPoints = displayAllPoints;
-	}
-
-	public Path getInputDataFilePath()
-	{
-		return inputDataFilePath;
-	}
-
-	public void setInputDataFilePath( Path path )
-	{
-		this.inputDataFilePath = path;
-	}
-
-	public Path getOutputFolder()
-	{
-		return outputFolder;
-	}
-
-	public void setOutputFolder( Path path )
-	{
-		this.outputFolder = path;
 	}
 
 	public boolean hasTrueClassAttribute()
