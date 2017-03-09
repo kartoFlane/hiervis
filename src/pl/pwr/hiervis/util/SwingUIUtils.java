@@ -24,6 +24,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
@@ -83,6 +84,29 @@ public final class SwingUIUtils
 				public void actionPerformed( ActionEvent e )
 				{
 					dialog.dispatchEvent( new WindowEvent( dialog, WindowEvent.WINDOW_CLOSING ) );
+				}
+			}
+		);
+	}
+
+	/**
+	 * <p>
+	 * Installs a close action in the specified frame.
+	 * This action sends the window closing event, so all listeners should be correctly triggered.
+	 * </p>
+	 * - Bound to the Escape key.<br/>
+	 * - Active when the frame is focused.
+	 * 
+	 * @see #AMK_DISPATCH_WINDOW_CLOSING
+	 */
+	public static void installEscapeCloseOperation( final JFrame frame )
+	{
+		installOperation(
+			frame, JComponent.WHEN_IN_FOCUSED_WINDOW, KS_ESCAPE, AMK_DISPATCH_WINDOW_CLOSING,
+			new AbstractAction( AMK_DISPATCH_WINDOW_CLOSING ) {
+				public void actionPerformed( ActionEvent e )
+				{
+					frame.dispatchEvent( new WindowEvent( frame, WindowEvent.WINDOW_CLOSING ) );
 				}
 			}
 		);
