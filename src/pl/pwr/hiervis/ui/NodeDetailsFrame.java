@@ -351,7 +351,10 @@ public class NodeDetailsFrame extends JFrame
 				);
 
 				// TODO: Check if the selection was an internal node or leaf node, and decide where to load the new hierarchy based on that
-				HierarchyVisualizer.spawnNewInstance( getParameterString(), tmp );
+				HierarchyVisualizer.spawnNewInstance(
+					getParameterString(),
+					tmp, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected()
+				);
 			}
 			catch ( IOException ex ) {
 				logHK.error( ex );

@@ -314,16 +314,24 @@ public final class HierarchyVisualizer
 		}
 	}
 
-	public static void spawnNewInstance( String subtitle, File inputFile ) throws IOException
+	public static void spawnNewInstance(
+		String subtitle,
+		File inputFile, boolean withTrueClass, boolean withInstanceNames ) throws IOException
 	{
 		List<String> argsList = new ArrayList<>();
-		if ( subtitle != null ) {
-			argsList.add( "-s" );
-			argsList.add( subtitle );
-		}
 		if ( inputFile != null ) {
 			argsList.add( "-i" );
 			argsList.add( inputFile.getPath() );
+			if ( withTrueClass )
+				argsList.add( "true-class" );
+			if ( withInstanceNames )
+				argsList.add( "instance-names" );
+			argsList.add( "header" );
+			// argsList.add( "fix-breadth-gaps" );
+		}
+		if ( subtitle != null ) {
+			argsList.add( "-s" );
+			argsList.add( subtitle );
 		}
 
 		String[] args = argsList.toArray( new String[0] );
