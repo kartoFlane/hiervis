@@ -26,7 +26,6 @@ import basic_hierarchy.implementation.BasicNode;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
-import basic_hierarchy.reader.GeneratedCSVReader;
 
 
 public class HierarchyUtils
@@ -346,23 +345,6 @@ public class HierarchyUtils
 		}
 
 		return null;
-	}
-
-	/**
-	 * Shorthand for {@code new GeneratedCSVReader().load( ... )}
-	 *
-	 * @see {@link GeneratedCSVReader#load(String, boolean, boolean, boolean, boolean, boolean)}
-	 */
-	public static Hierarchy load(
-		String path,
-		boolean hasInstanceNames, boolean hasTrueClass, boolean hasHeader,
-		boolean fillBreadthGaps, boolean useSubtree ) throws IOException
-	{
-		return new GeneratedCSVReader().load(
-			path,
-			hasInstanceNames, hasTrueClass, hasHeader,
-			fillBreadthGaps, useSubtree
-		);
 	}
 
 	// -----------------------------------------------------------------------------------------------

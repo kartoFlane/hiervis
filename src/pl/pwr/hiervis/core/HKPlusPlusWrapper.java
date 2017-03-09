@@ -7,8 +7,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import basic_hierarchy.interfaces.Hierarchy;
+import basic_hierarchy.interfaces.Node;
+import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.ui.OperationProgressFrame;
 import pl.pwr.hiervis.util.Event;
+import pl.pwr.hiervis.util.HierarchyUtils;
 
 
 public class HKPlusPlusWrapper
@@ -16,8 +20,8 @@ public class HKPlusPlusWrapper
 	private static final File hkBaseDir = new File( "./hk" );
 	private static final File hkOutDir = new File( hkBaseDir, "out" );
 	private static final File hkJarFile = new File( hkBaseDir, "hk.jar" );
-	private static final File hkHierarchyFile = new File( hkOutDir, "finalHierarchyOfGroups.csv.csv" );
 	private static final File hkInputFile = new File( hkBaseDir, "in.csv" );
+	private static final File hkOutputFile = new File( hkOutDir, "finalHierarchyOfGroups.csv.csv" );
 
 	/**
 	 * Sent when the subprocess terminates by itself.
@@ -92,7 +96,7 @@ public class HKPlusPlusWrapper
 				trueClassAttribute, instanceNames, diagonalMatrix, disableStaticCenter, generateImages,
 				epsilon, littleValue, clusters, iterations, repeats, dendrogramSize, maxNodeCount
 			)
-		).directory( hkOutDir ).start();
+		).redirectErrorStream( true ).directory( hkOutDir ).start();
 
 		// Create a separate thread to wait for HK to terminate
 		Thread subprocessObserver = new Thread(
@@ -129,6 +133,51 @@ public class HKPlusPlusWrapper
 		waitFrame.setSize( 300, 150 );
 		waitFrame.setLocationRelativeTo( owner );
 		waitFrame.setVisible( true );
+	}
+
+	/**
+	 * Prepares the input file that the HK subprocess will load by serializing the specified hierarchy
+	 * and saving it in the file that HK is configured to load.
+	 * 
+	 * @param hierarchy
+	 *            the source hierarchy
+	 * @param selectedNode
+	 *            the node in the specified hierarchy denoting the subtree that is to be
+	 *            serialized to the file
+	 * @param withTrueClass
+	 *            whether the input file should include true class column
+	 * @param withInstanceNames
+	 *            whether the input file should include instance name column
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 */
+	public void prepareInputFile(
+		Hierarchy hierarchy, Node selectedNode,
+		boolean withTrueClass, boolean withInstanceNames ) throws IOException
+	{
+		Hierarchy subHierarchy = HierarchyUtils.subHierarchyShallow( hierarchy, selectedNode.getId() );
+		HierarchyUtils.save( hkInputFile.getAbsolutePath(), subHierarchy, false, withTrueClass, withInstanceNames, true );
+	}
+
+	/**
+	 * Loads and returns the output hierarchy that was created by the HK subprocess.
+	 * 
+	 * @param withTrueClass
+	 *            whether the output file should be read assuming that it contains true class column
+	 * @param withInstanceNames
+	 *            whether the output file should be read assuming that it contains instance names column
+	 * @param useSubtree
+	 *            whether nodes should be created with 'useSubtree' option
+	 * @return the HK output hierarchy
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 */
+	public Hierarchy getOutputHierarchy( boolean withTrueClass, boolean withInstanceNames, boolean useSubtree ) throws IOException
+	{
+		return new GeneratedCSVReader( false ).load(
+			hkOutputFile.getAbsolutePath(),
+			withInstanceNames, withTrueClass, true, false, useSubtree
+		);
 	}
 
 	/**
