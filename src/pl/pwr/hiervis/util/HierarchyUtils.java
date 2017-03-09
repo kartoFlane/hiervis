@@ -89,7 +89,7 @@ public class HierarchyUtils
 		nodes.forEach( n -> classCountMap.put( n.getId(), n.getNodeInstances().size() ) );
 
 		HierarchyBuilder.createParentChildRelations( nodes, null );
-		HierarchyBuilder.fixDepthGaps( (BasicNode)dest.getRoot(), nodes, useSubtree, null );
+		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
 
 		return new BasicHierarchy( dest.getRoot(), nodes, dest.getDataNames(), classCountMap );
 	}
@@ -161,6 +161,7 @@ public class HierarchyUtils
 		rebaseDeep( Arrays.stream( source.getGroups() ), nodeId, destNodeId, nodes, classCountMap, useSubtree );
 
 		HierarchyBuilder.createParentChildRelations( nodes, null );
+		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
 
 		BasicNode root = nodes.stream().filter( n -> n.getId().equals( fDestNodeId ) ).findFirst().get();
 		return new BasicHierarchy( root, nodes, source.getDataNames(), classCountMap );
