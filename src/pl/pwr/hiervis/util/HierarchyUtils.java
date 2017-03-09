@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -83,6 +84,14 @@ public class HierarchyUtils
 		List<BasicNode> nodes = new LinkedList<>();
 		Map<String, Integer> classCountMap = new HashMap<>();
 
+		// Remove the merging point node from the dest hierarchy to replace it with the one from source
+		Optional<Node> optNode = Arrays.stream( dest.getGroups() )
+			.filter( n -> n.getId().equals( nodeId ) )
+			.findAny();
+		if ( optNode.isPresent() ) {
+			dest = remove( dest, nodeId );
+		}
+
 		Arrays.stream( dest.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
 		Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
 
@@ -92,6 +101,11 @@ public class HierarchyUtils
 		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
 
 		return new BasicHierarchy( dest.getRoot(), nodes, dest.getDataNames(), classCountMap );
+	}
+
+	public static Hierarchy remove( Hierarchy source, String nodeId )
+	{
+		return cloneDeep( source, n -> !n.getId().startsWith( nodeId ) );
 	}
 
 	/**
