@@ -271,6 +271,10 @@ public final class HierarchyVisualizer
 			config.setPreferredLookAndFeel( UIManager.getLookAndFeel().getName() );
 		}
 
+		// Windows L&F uses Monospaced 9 as default font for JTextAreas, but other L&Fs don't.
+		// Fix that by manually setting the default to the same font as JTextField.
+		UIManager.getDefaults().put( "TextArea.font", UIManager.getFont( "TextField.font" ) );
+
 		try {
 			// Due to some internal workings of Swing, default sounds are not played for non-default L&Fs.
 			// Details: stackoverflow.com/questions/12128231/12156617#12156617

@@ -27,10 +27,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -430,27 +433,26 @@ public class HierarchyStatisticsFrame extends JFrame
 			double[] data = (double[])result;
 
 			StringBuilder buf = new StringBuilder();
-			buf.append( "<html><body>" );
 			for ( int i = 0; i < data.length; ++i ) {
 				buf.append( Integer.toString( i ) )
 					.append( ": " )
 					.append( Double.toString( data[i] ) );
 
 				if ( i + 1 < data.length )
-					buf.append( "<br/>" );
+					buf.append( "\n" );
 			}
-			buf.append( "</html></body>" );
-			return new JLabel( buf.toString() );
+
+			return createFixedTextComponent( buf.toString() );
 		}
 		else if ( result instanceof AvgWithStdev ) {
 			AvgWithStdev avg = (AvgWithStdev)result;
-			return new JLabel( String.format( "%s ± %s", avg.getAvg(), avg.getStdev() ) );
+			return createFixedTextComponent( String.format( "%s ± %s", avg.getAvg(), avg.getStdev() ) );
 		}
 		else if ( result instanceof Double ) {
-			return new JLabel( result.toString() );
+			return createFixedTextComponent( result.toString() );
 		}
 		else if ( result instanceof String ) {
-			return new JLabel( result.toString() );
+			return createFixedTextComponent( result.toString() );
 		}
 		else {
 			throw new IllegalArgumentException(
@@ -460,6 +462,15 @@ public class HierarchyStatisticsFrame extends JFrame
 				)
 			);
 		}
+	}
+
+	private JTextComponent createFixedTextComponent( String msg )
+	{
+		JTextArea result = new JTextArea( msg );
+		result.setEditable( false );
+		result.setBorder( UIManager.getBorder( "TextField.border" ) );
+
+		return result;
 	}
 
 	private void updateMeasurePanel( Entry<String, Object> result )
