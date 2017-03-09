@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
 
 import basic_hierarchy.common.Constants;
 import basic_hierarchy.common.HierarchyBuilder;
+import basic_hierarchy.common.NodeIdComparator;
 import basic_hierarchy.implementation.BasicHierarchy;
 import basic_hierarchy.implementation.BasicInstance;
 import basic_hierarchy.implementation.BasicNode;
@@ -365,7 +367,12 @@ public class HierarchyUtils
 			buf.append( '\n' );
 		}
 
-		for ( Node node : h.getGroups() ) {
+		List<Node> nodes = new ArrayList<>();
+		for ( Node n : h.getGroups() )
+			nodes.add( n );
+		nodes.sort( new NodeIdComparator() );
+
+		for ( Node node : nodes ) {
 			for ( Instance instance : node.getNodeInstances() ) {
 				appendInstance( buf, instance, withAssignClass, withTrueClass, withInstanceNames );
 				buf.append( '\n' );
