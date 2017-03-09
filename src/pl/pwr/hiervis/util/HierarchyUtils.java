@@ -124,13 +124,13 @@ public class HierarchyUtils
 	 */
 	public static Hierarchy subHierarchyShallow( Hierarchy source, String nodeId )
 	{
-		Node node = Arrays.stream( source.getGroups() ).filter( n -> n.getId().equals( nodeId ) ).findFirst().get();
+		Node root = Arrays.stream( source.getGroups() ).filter( n -> n.getId().equals( nodeId ) ).findFirst().get();
 
 		List<Node> nodes = new LinkedList<>();
 		Map<String, Integer> classCountMap = new HashMap<>();
 
 		Arrays.stream( source.getGroups() )
-			.filter( n -> n.getId().startsWith( node.getId() ) )
+			.filter( n -> n.getId().startsWith( root.getId() ) )
 			.forEach(
 				n -> {
 					nodes.add( n );
@@ -138,7 +138,7 @@ public class HierarchyUtils
 				}
 			);
 
-		return new BasicHierarchy( node, nodes, source.getDataNames(), classCountMap );
+		return new BasicHierarchy( root, nodes, source.getDataNames(), classCountMap );
 	}
 
 	/**
