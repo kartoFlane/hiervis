@@ -20,7 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
-import pl.pwr.hiervis.HierarchyVisualizer;
+import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
@@ -68,7 +68,7 @@ public class VisualizerFrame extends JFrame
 		setSize( defaultFrameWidth, defaultFrameHeight );
 
 		createMenu();
-		createGUI();
+		createGUI( subtitle );
 
 		createFileDrop( this, log, "csv", this::loadFile );
 
@@ -110,7 +110,7 @@ public class VisualizerFrame extends JFrame
 		context.getInstanceFrame().setVisible( true );
 	}
 
-	private void createGUI()
+	private void createGUI( String subtitle )
 	{
 		hierarchyDisplay = new Display( HVConstants.EMPTY_VISUALIZATION );
 
@@ -138,6 +138,22 @@ public class VisualizerFrame extends JFrame
 				}
 			)
 		);
+
+		mouseControl.addAction(
+			new MouseAction(
+				TriggerAreaTypes.VISUAL_ITEM, MouseEvent.BUTTON1, 2, ( item, e ) -> {
+					if ( item instanceof NodeItem ) {
+						Node n = context.findGroup( item.getRow() );
+
+						NodeDetailsFrame detailsFrame = new NodeDetailsFrame( context, this, n, subtitle );
+
+						detailsFrame.setVisible( true );
+						detailsFrame.setLocationRelativeTo( this );
+					}
+				}
+			)
+		);
+
 		hierarchyDisplay.addControlListener( mouseControl );
 
 		getContentPane().add( hierarchyDisplay );
