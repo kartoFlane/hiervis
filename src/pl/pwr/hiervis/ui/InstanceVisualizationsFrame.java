@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -372,6 +373,11 @@ public class InstanceVisualizationsFrame extends JFrame
 			cboxV.addItemListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, false ) ) );
 
 			cDimsH.add( cboxH );
+			if ( i + 1 < dims ) {
+				// Add a 10-pixel strut to visually separate the neighboring checkboxes
+				cDimsH.add( Box.createHorizontalStrut( 10 ) );
+			}
+
 			cDimsV.add( cboxV );
 
 			cboxesHorizontal[i] = cboxH;
