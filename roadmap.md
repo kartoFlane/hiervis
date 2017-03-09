@@ -1,7 +1,7 @@
 # Roadmap
 This file outlines the purpose of each folder in the repository.
 
-## libs
+## lib
 This folder contains all libraries used by the program. Linking them in your project as-is should allow the source code to compile successfully.
 
 ## skel
