@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import pl.pwr.hiervis.util.Event;
+import pl.pwr.hiervis.util.SwingUIUtils;
 
 
 /**
@@ -91,14 +92,18 @@ public class MeasureComputeThread extends Thread
 					Object result = currentTask.function.apply( hierarchy );
 					measureComputed.broadcast( Pair.of( currentTask.identifier, result ) );
 				}
-				catch ( Exception e ) {
-					log.error( String.format( "An error ocurred while computing measure '%s'.", currentTask.identifier ), e );
+				catch ( Throwable e ) {
+					String msg = String.format( "An error occurred while computing measure '%s'", currentTask.identifier );
+					log.error( msg, e );
+					SwingUIUtils.showErrorDialog( msg + ":\n\n" + e.getMessage() + "\n\nCheck log for details." );
 				}
 			}
-			catch ( Exception e ) {
-				log.error( "Unexpected error ocurred while processing measures.", e );
+			catch ( Throwable e ) {
+				log.error( "Unexpected error occurred while processing measures.", e );
 			}
 		}
+
+		log.trace( "Compute thread terminated." );
 	}
 
 	/**
