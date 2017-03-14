@@ -4,6 +4,19 @@ import java.util.function.Function;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import distance_measures.Euclidean;
+import external_measures.AdaptedFmeasure;
+import external_measures.information_based.FlatEntropy1;
+import external_measures.information_based.FlatEntropy2;
+import external_measures.information_based.FlatInformationGain;
+import external_measures.information_based.FlatMutualInformation;
+import external_measures.information_based.FlatNormalizedMutualInformation;
+import external_measures.purity.FlatClusterPurity;
+import external_measures.purity.HierarchicalClassPurity;
+import external_measures.statistical_hypothesis.FlatHypotheses;
+import external_measures.statistical_hypothesis.Fmeasure;
+import external_measures.statistical_hypothesis.FowlkesMallowsIndex;
+import external_measures.statistical_hypothesis.JaccardIndex;
+import external_measures.statistical_hypothesis.RandIndex;
 import internal_measures.FlatCalinskiHarabasz;
 import internal_measures.FlatDaviesBouldin;
 import internal_measures.FlatDunn1;
@@ -101,6 +114,86 @@ public final class MeasureTask
 	public static final MeasureTask flatCalinskiHarabasz = new MeasureTask(
 		"Flat Calinski-Harabasz",
 		new FlatCalinskiHarabasz( new Euclidean() )::getMeasure
+	);
+
+	// ---------------------------------------------------------------
+	// External Measures
+	/** {@link AdaptedFmeasure} */
+	public static final MeasureTask adaptedF = new MeasureTask(
+		"Adapted F-Measure",
+		new AdaptedFmeasure( false )::getMeasure
+	);
+
+	// ---------------------------------------------------------------
+	// External Measures - Information Based
+	/** {@link FlatEntropy1} */
+	public static final MeasureTask flatEntropy1 = new MeasureTask(
+		"Flat Entropy 1",
+		new FlatEntropy1()::getMeasure
+	);
+
+	/** {@link FlatEntropy2} */
+	public static final MeasureTask flatEntropy2 = new MeasureTask(
+		"Flat Entropy 2",
+		new FlatEntropy2()::getMeasure
+	);
+
+	/** {@link FlatInformationGain} */
+	public static final MeasureTask flatInformationGain = new MeasureTask(
+		"Flat Information Gain [Flat Entropy 1]",
+		new FlatInformationGain( 2, new FlatEntropy1() )::getMeasure
+	);
+
+	/** {@link FlatMutualInformation} */
+	public static final MeasureTask flatMutualInformation = new MeasureTask(
+		"Flat Mutual Information",
+		new FlatMutualInformation()::getMeasure
+	);
+
+	/** {@link FlatNormalizedMutualInformation} */
+	public static final MeasureTask flatMutualInformationNormalized = new MeasureTask(
+		"Flat Normalized Mutual Information",
+		new FlatNormalizedMutualInformation()::getMeasure
+	);
+
+	// ---------------------------------------------------------------
+	// External Measures - Purity
+	/** {@link FlatClusterPurity} */
+	public static final MeasureTask flatClusterPurity = new MeasureTask(
+		"Flat Cluster Purity",
+		new FlatClusterPurity()::getMeasure
+	);
+
+	/** {@link HierarchicalClassPurity} */
+	public static final MeasureTask hierarchicalClassPurity = new MeasureTask(
+		"Hierarchical Class Purity",
+		new HierarchicalClassPurity()::getMeasure
+	);
+
+	// ---------------------------------------------------------------
+	// External Measures - Statistical Hypothesis
+	/** {@link Fmeasure} */
+	public static final MeasureTask fMeasure = new MeasureTask(
+		"F-Measure",
+		new Fmeasure( 1.0f, new FlatHypotheses() )::getMeasure
+	);
+
+	/** {@link FowlkesMallowsIndex} */
+	public static final MeasureTask fowlkesMallowsIndex = new MeasureTask(
+		"Fowlkes-Mallows Index",
+		new FowlkesMallowsIndex( new FlatHypotheses() )::getMeasure
+	);
+
+	/** {@link JaccardIndex} */
+	public static final MeasureTask jaccardIndex = new MeasureTask(
+		"Jaccard Index",
+		new JaccardIndex( new FlatHypotheses() )::getMeasure
+	);
+
+	/** {@link RandIndex} */
+	public static final MeasureTask randIndex = new MeasureTask(
+		"Rand Index",
+		new RandIndex( new FlatHypotheses() )::getMeasure
 	);
 
 	// ---------------------------------------------------------------

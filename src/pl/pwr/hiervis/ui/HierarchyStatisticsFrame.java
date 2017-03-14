@@ -268,6 +268,34 @@ public class HierarchyStatisticsFrame extends JFrame
 			createPendingMeasurePanel( MeasureTask.flatDaviesBouldin ),
 			createPendingMeasurePanel( MeasureTask.flatCalinskiHarabasz )
 		);
+
+		if ( context.getConfig().hasTrueClassAttribute() ) {
+			addMeasurePanels(
+				createFillerPanel( 10 ),
+				createSeparatorPanel( "External Measures" ),
+				createBulkTaskPanel(
+					"Calculate All External Measures",
+					MeasureTask.adaptedF, MeasureTask.flatEntropy1, MeasureTask.flatEntropy2,
+					MeasureTask.flatInformationGain, MeasureTask.flatMutualInformation,
+					MeasureTask.flatMutualInformationNormalized,
+					MeasureTask.flatClusterPurity, MeasureTask.hierarchicalClassPurity,
+					MeasureTask.fMeasure, MeasureTask.fowlkesMallowsIndex,
+					MeasureTask.jaccardIndex, MeasureTask.randIndex
+				),
+				createPendingMeasurePanel( MeasureTask.adaptedF ),
+				createPendingMeasurePanel( MeasureTask.flatEntropy1 ),
+				createPendingMeasurePanel( MeasureTask.flatEntropy2 ),
+				createPendingMeasurePanel( MeasureTask.flatInformationGain ),
+				createPendingMeasurePanel( MeasureTask.flatMutualInformation ),
+				createPendingMeasurePanel( MeasureTask.flatMutualInformationNormalized ),
+				createPendingMeasurePanel( MeasureTask.flatClusterPurity ),
+				createPendingMeasurePanel( MeasureTask.hierarchicalClassPurity ),
+				createPendingMeasurePanel( MeasureTask.fMeasure ),
+				createPendingMeasurePanel( MeasureTask.fowlkesMallowsIndex ),
+				createPendingMeasurePanel( MeasureTask.jaccardIndex ),
+				createPendingMeasurePanel( MeasureTask.randIndex )
+			);
+		}
 	}
 
 	private void addMeasurePanels( JPanel... panels )
