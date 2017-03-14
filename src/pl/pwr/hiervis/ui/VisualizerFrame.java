@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -33,6 +34,7 @@ import pl.pwr.hiervis.ui.control.NodeSelectionControl;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.SubtreeDragControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
+import pl.pwr.hiervis.util.HierarchyUtils;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
@@ -53,6 +55,7 @@ public class VisualizerFrame extends JFrame
 	private HVContext context;
 
 	private Display hierarchyDisplay;
+	private JMenuItem mntmSaveFile;
 
 
 	public VisualizerFrame( HVContext context, String subtitle )
@@ -218,6 +221,11 @@ public class VisualizerFrame extends JFrame
 		mntmOpenFile.addActionListener( e -> openFileSelectionDialog() );
 		mnFile.add( mntmOpenFile );
 
+		mntmSaveFile = new JMenuItem( "Save hierarchy..." );
+		mntmSaveFile.addActionListener( e -> openSaveDialog() );
+		mntmSaveFile.setEnabled( false );
+		mnFile.add( mntmSaveFile );
+
 		JSeparator separator = new JSeparator();
 		mnFile.add( separator );
 
@@ -261,7 +269,7 @@ public class VisualizerFrame extends JFrame
 	{
 		JFileChooser fileDialog = new JFileChooser();
 		fileDialog.setCurrentDirectory( new File( "." ) );
-		fileDialog.setDialogTitle( "Choose a file" );
+		fileDialog.setDialogTitle( "Select a file to load" );
 		fileDialog.setFileSelectionMode( JFileChooser.FILES_ONLY );
 		fileDialog.setAcceptAllFileFilterUsed( false );
 		fileDialog.setFileFilter( new FileNameExtensionFilter( "*.csv", "csv" ) );
@@ -271,6 +279,39 @@ public class VisualizerFrame extends JFrame
 		}
 		else {
 			log.trace( "Loading aborted." );
+		}
+	}
+
+	/**
+	 * Opens a file selection dialog, allowing the user to select a destination file to save the hierarchy to.
+	 */
+	private void openSaveDialog()
+	{
+		JFileChooser fileDialog = new JFileChooser();
+		fileDialog.setCurrentDirectory( new File( "." ) );
+		fileDialog.setDialogTitle( "Select destination file" );
+		fileDialog.setFileSelectionMode( JFileChooser.FILES_ONLY );
+		fileDialog.setAcceptAllFileFilterUsed( true );
+		fileDialog.addChoosableFileFilter( new FileNameExtensionFilter( "*.csv", "csv" ) );
+
+		if ( fileDialog.showSaveDialog( this ) == JFileChooser.APPROVE_OPTION ) {
+			HVConfig cfg = context.getConfig();
+
+			try {
+				HierarchyUtils.save(
+					fileDialog.getSelectedFile().getAbsolutePath(),
+					context.getHierarchy(),
+					true, cfg.hasTrueClassAttribute(),
+					cfg.hasInstanceNameAttribute(), true
+				);
+			}
+			catch ( IOException e ) {
+				log.error( "Error while saving hierarchy: ", e );
+				SwingUIUtils.showErrorDialog( "Error occurred while saving the hierarchy:\n\n" + e.getMessage() );
+			}
+		}
+		else {
+			log.trace( "Saving aborted." );
 		}
 	}
 
@@ -335,6 +376,8 @@ public class VisualizerFrame extends JFrame
 
 	private void onHierarchyChanging( Hierarchy oldHierarchy )
 	{
+		mntmSaveFile.setEnabled( false );
+
 		hierarchyDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 		hierarchyDisplay.setEnabled( false );
 		Utils.unzoom( hierarchyDisplay, 0 );
@@ -345,6 +388,8 @@ public class VisualizerFrame extends JFrame
 		if ( context.isHierarchyDataLoaded() ) {
 			recreateHierarchyVisualizationAsync();
 		}
+
+		mntmSaveFile.setEnabled( true );
 
 		// Try to coax the VM into reclaiming some of that freed memory.
 		System.gc();
