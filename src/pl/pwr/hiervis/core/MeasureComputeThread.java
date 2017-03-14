@@ -25,6 +25,8 @@ public class MeasureComputeThread extends Thread
 
 	/** Sent when a measure task is posted for processing. */
 	public final Event<MeasureTask> taskPosted = new Event<>();
+	/** Sent when a measure task computation failed due to an exception. */
+	public final Event<MeasureTask> taskFailed = new Event<>();
 	/** Sent when a measure computation is started. */
 	public final Event<String> measureComputing = new Event<>();
 	/** Sent when a measure computation is finished. */
@@ -93,12 +95,17 @@ public class MeasureComputeThread extends Thread
 					measureComputed.broadcast( Pair.of( currentTask.identifier, result ) );
 				}
 				catch ( Throwable e ) {
-					String msg = String.format( "An error occurred while computing measure '%s'", currentTask.identifier );
+					MeasureTask t = currentTask;
+					currentTask = null;
+
+					taskFailed.broadcast( t );
+					String msg = String.format( "An error occurred while computing measure '%s'", t.identifier );
 					log.error( msg, e );
 					SwingUIUtils.showErrorDialog( msg + ":\n\n" + e.getMessage() + "\n\nCheck log for details." );
 				}
 			}
 			catch ( Throwable e ) {
+				currentTask = null;
 				log.error( "Unexpected error occurred while processing measures.", e );
 			}
 		}

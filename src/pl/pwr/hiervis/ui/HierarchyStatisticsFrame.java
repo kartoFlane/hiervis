@@ -123,6 +123,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		context.getMeasureComputeThread().measureComputing.addListener( this::onMeasureComputing );
 		context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
+		context.getMeasureComputeThread().taskFailed.addListener( this::onTaskFailed );
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 
@@ -511,6 +512,16 @@ public class HierarchyStatisticsFrame extends JFrame
 		panel.repaint();
 	}
 
+	private void recreateMeasurePanel( MeasureTask task )
+	{
+		JPanel panel = measurePanelMap.get( task.identifier );
+		panel.removeAll();
+
+		panel.add( createTaskButton( task ), BorderLayout.NORTH );
+		panel.revalidate();
+		panel.repaint();
+	}
+
 	private void onMeasureComputing( String measureName )
 	{
 		SwingUtilities.invokeLater(
@@ -536,6 +547,11 @@ public class HierarchyStatisticsFrame extends JFrame
 	private void onMeasureComputed( Pair<String, Object> result )
 	{
 		SwingUtilities.invokeLater( () -> updateMeasurePanel( result ) );
+	}
+
+	private void onTaskFailed( MeasureTask task )
+	{
+		SwingUtilities.invokeLater( () -> recreateMeasurePanel( task ) );
 	}
 
 	private void onHierarchyChanging( Hierarchy oldHierarchy )
