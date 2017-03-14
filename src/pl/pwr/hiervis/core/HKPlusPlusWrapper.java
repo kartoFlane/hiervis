@@ -87,6 +87,8 @@ public class HKPlusPlusWrapper
 		int clusters, int iterations, int repeats,
 		int dendrogramSize, int maxNodeCount ) throws IOException
 	{
+		hkOutDir.mkdirs();
+
 		// Clear the output dir so's not to litter
 		Arrays.stream( hkOutDir.listFiles() ).forEach( file -> file.delete() );
 
