@@ -63,10 +63,12 @@ public class InputStreamObserverThread extends Thread
 	{
 		try {
 			while ( !interrupted() ) {
-				String line = in.readLine();
-				if ( line != null ) {
-					message = line;
-					messageReceived.broadcast( message );
+				if ( in.ready() ) {
+					String line = in.readLine();
+					if ( line != null ) {
+						message = line;
+						messageReceived.broadcast( message );
+					}
 				}
 			}
 		}
