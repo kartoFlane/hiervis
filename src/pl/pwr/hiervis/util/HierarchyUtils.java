@@ -83,23 +83,40 @@ public class HierarchyUtils
 		List<BasicNode> nodes = new LinkedList<>();
 		Map<String, Integer> classCountMap = new HashMap<>();
 
-		// Remove the merging point node from the dest hierarchy to replace it with the one from source
-		Optional<Node> optNode = Arrays.stream( dest.getGroups() )
-			.filter( n -> n.getId().equals( nodeId ) )
-			.findAny();
-		if ( optNode.isPresent() ) {
-			dest = remove( dest, nodeId );
+		if ( Constants.ROOT_ID.equals( nodeId ) ) {
+			// No point in replacing the root, just substitute the entire hierarchy.
+			Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+
+			nodes.forEach( n -> classCountMap.put( n.getId(), n.getNodeInstances().size() ) );
+
+			HierarchyBuilder.createParentChildRelations( nodes, null );
+			nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
+
+			nodes.sort( new NodeIdComparator() );
+
+			return new BasicHierarchy( nodes.get( 0 ), nodes, dest.getDataNames(), classCountMap );
 		}
+		else {
+			// Remove the merging point node from the dest hierarchy to replace it with the one from source
+			Optional<Node> optNode = Arrays.stream( dest.getGroups() )
+				.filter( n -> n.getId().equals( nodeId ) )
+				.findAny();
+			if ( optNode.isPresent() ) {
+				dest = remove( dest, nodeId );
+			}
 
-		Arrays.stream( dest.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
-		Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+			Arrays.stream( dest.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+			Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
 
-		nodes.forEach( n -> classCountMap.put( n.getId(), n.getNodeInstances().size() ) );
+			nodes.forEach( n -> classCountMap.put( n.getId(), n.getNodeInstances().size() ) );
 
-		HierarchyBuilder.createParentChildRelations( nodes, null );
-		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
+			HierarchyBuilder.createParentChildRelations( nodes, null );
+			nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
 
-		return new BasicHierarchy( dest.getRoot(), nodes, dest.getDataNames(), classCountMap );
+			nodes.sort( new NodeIdComparator() );
+
+			return new BasicHierarchy( dest.getRoot(), nodes, dest.getDataNames(), classCountMap );
+		}
 	}
 
 	public static Hierarchy remove( Hierarchy source, String nodeId )
