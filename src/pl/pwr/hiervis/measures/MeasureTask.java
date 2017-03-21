@@ -1,40 +1,9 @@
 package pl.pwr.hiervis.measures;
 
+import java.nio.file.Paths;
 import java.util.function.Function;
 
 import basic_hierarchy.interfaces.Hierarchy;
-import distance_measures.Euclidean;
-import external_measures.AdaptedFmeasure;
-import external_measures.information_based.FlatEntropy1;
-import external_measures.information_based.FlatEntropy2;
-import external_measures.information_based.FlatInformationGain;
-import external_measures.information_based.FlatMutualInformation;
-import external_measures.information_based.FlatNormalizedMutualInformation;
-import external_measures.purity.FlatClusterPurity;
-import external_measures.purity.HierarchicalClassPurity;
-import external_measures.statistical_hypothesis.FlatHypotheses;
-import external_measures.statistical_hypothesis.Fmeasure;
-import external_measures.statistical_hypothesis.FowlkesMallowsIndex;
-import external_measures.statistical_hypothesis.JaccardIndex;
-import external_measures.statistical_hypothesis.RandIndex;
-import internal_measures.FlatCalinskiHarabasz;
-import internal_measures.FlatDaviesBouldin;
-import internal_measures.FlatDunn1;
-import internal_measures.FlatDunn2;
-import internal_measures.FlatDunn3;
-import internal_measures.FlatDunn4;
-import internal_measures.FlatWithinBetweenIndex;
-import internal_measures.VarianceDeviation;
-import internal_measures.VarianceDeviation2;
-import internal_measures.statistics.AvgPathLength;
-import internal_measures.statistics.Height;
-import internal_measures.statistics.NumberOfLeaves;
-import internal_measures.statistics.NumberOfNodes;
-import internal_measures.statistics.histogram.ChildPerNodePerLevel;
-import internal_measures.statistics.histogram.HistogramOfNumberOfChildren;
-import internal_measures.statistics.histogram.InstancesPerLevel;
-import internal_measures.statistics.histogram.LeavesPerLevel;
-import internal_measures.statistics.histogram.NodesPerLevel;
 
 
 /**
@@ -45,183 +14,140 @@ import internal_measures.statistics.histogram.NodesPerLevel;
  */
 public final class MeasureTask
 {
+	private static MeasureTaskFactory factory = new JavascriptMeasureTaskFactory( false );
+
 	// ---------------------------------------------------------------
 	// Statistics
-	/** {@link NumberOfNodes} */
-	public static final MeasureTask numberOfNodes = new MeasureTask(
-		"Number of Nodes",
-		new NumberOfNodes()::calculate
+	public static final MeasureTask numberOfNodes = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/NumberOfNodes.js" )
 	);
-	/** {@link NumberOfLeaves} */
-	public static final MeasureTask numberOfLeaves = new MeasureTask(
-		"Number of Leaves",
-		new NumberOfLeaves()::calculate
+
+	public static final MeasureTask numberOfLeaves = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/NumberOfLeaves.js" )
 	);
-	/** {@link Height} */
-	public static final MeasureTask height = new MeasureTask(
-		"Height",
-		new Height()::calculate
+
+	public static final MeasureTask height = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/Height.js" )
 	);
-	/** {@link AvgPathLength} */
-	public static final MeasureTask averagePathLength = new MeasureTask(
-		"Average Path Length",
-		new AvgPathLength()::calculate
+
+	public static final MeasureTask averagePathLength = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/AveragePathLength.js" )
 	);
 
 	// ---------------------------------------------------------------
 	// Internal Measures
-	/** {@link VarianceDeviation} */
-	public static final MeasureTask varianceDeviation = new MeasureTask(
-		"Variance Deviation",
-		new VarianceDeviation( 1.0 )::getMeasure
+	public static final MeasureTask varianceDeviation = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/VarianceDeviation.js" )
 	);
-	/** {@link VarianceDeviation2} */
-	public static final MeasureTask varianceDeviation2 = new MeasureTask(
-		"Variance Deviation 2",
-		new VarianceDeviation2()::getMeasure
+
+	public static final MeasureTask varianceDeviation2 = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/VarianceDeviation2.js" )
 	);
-	/** {@link FlatWithinBetweenIndex} */
-	public static final MeasureTask flatWithinBetween = new MeasureTask(
-		"Flat Within Between Index",
-		new FlatWithinBetweenIndex( new Euclidean() )::getMeasure
+
+	public static final MeasureTask flatWithinBetween = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/FlatWithinBetweenIndex-Euclidean.js" )
 	);
-	/** {@link FlatDunn1} */
-	public static final MeasureTask flatDunn1 = new MeasureTask(
-		"Flat Dunn 1",
-		new FlatDunn1( new Euclidean() )::getMeasure
+
+	public static final MeasureTask flatDunn1 = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/FlatDunn1-Euclidean.js" )
 	);
-	/** {@link FlatDunn2} */
-	public static final MeasureTask flatDunn2 = new MeasureTask(
-		"Flat Dunn 2",
-		new FlatDunn2( new Euclidean() )::getMeasure
+
+	public static final MeasureTask flatDunn2 = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/FlatDunn2-Euclidean.js" )
 	);
-	/** {@link FlatDunn3} */
-	public static final MeasureTask flatDunn3 = new MeasureTask(
-		"Flat Dunn 3",
-		new FlatDunn3( new Euclidean() )::getMeasure
+
+	public static final MeasureTask flatDunn3 = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/FlatDunn3-Euclidean.js" )
 	);
-	/** {@link FlatDunn4} */
-	public static final MeasureTask flatDunn4 = new MeasureTask(
-		"Flat Dunn 4",
-		new FlatDunn4( new Euclidean() )::getMeasure
+
+	public static final MeasureTask flatDunn4 = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/FlatDunn4-Euclidean.js" )
 	);
-	/** {@link FlatDaviesBouldin} */
-	public static final MeasureTask flatDaviesBouldin = new MeasureTask(
-		"Flat Davies-Bouldin",
-		new FlatDaviesBouldin( new Euclidean() )::getMeasure
+
+	public static final MeasureTask flatDaviesBouldin = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/FlatDaviesBouldin-Euclidean.js" )
 	);
-	/** {@link FlatCalinskiHarabasz} */
-	public static final MeasureTask flatCalinskiHarabasz = new MeasureTask(
-		"Flat Calinski-Harabasz",
-		new FlatCalinskiHarabasz( new Euclidean() )::getMeasure
+
+	public static final MeasureTask flatCalinskiHarabasz = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/FlatCalinskiHarabasz-Euclidean.js" )
 	);
 
 	// ---------------------------------------------------------------
 	// External Measures
-	/** {@link AdaptedFmeasure} */
-	public static final MeasureTask adaptedF = new MeasureTask(
-		"Adapted F-Measure",
-		new AdaptedFmeasure( false )::getMeasure
+	public static final MeasureTask adaptedF = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/AdaptedFMeasure.js" )
 	);
 
 	// ---------------------------------------------------------------
 	// External Measures - Information Based
-	/** {@link FlatEntropy1} */
-	public static final MeasureTask flatEntropy1 = new MeasureTask(
-		"Flat Entropy 1",
-		new FlatEntropy1()::getMeasure
+	public static final MeasureTask flatEntropy1 = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/information_based/FlatEntropy1.js" )
 	);
 
-	/** {@link FlatEntropy2} */
-	public static final MeasureTask flatEntropy2 = new MeasureTask(
-		"Flat Entropy 2",
-		new FlatEntropy2()::getMeasure
+	public static final MeasureTask flatEntropy2 = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/information_based/FlatEntropy2.js" )
 	);
 
-	/** {@link FlatInformationGain} */
-	public static final MeasureTask flatInformationGain = new MeasureTask(
-		"Flat Information Gain [Flat Entropy 1]",
-		new FlatInformationGain( 2, new FlatEntropy1() )::getMeasure
+	public static final MeasureTask flatInformationGain = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/information_based/FlatInformationGain-2-Flat1.js" )
 	);
 
-	/** {@link FlatMutualInformation} */
-	public static final MeasureTask flatMutualInformation = new MeasureTask(
-		"Flat Mutual Information",
-		new FlatMutualInformation()::getMeasure
+	public static final MeasureTask flatMutualInformation = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/information_based/FlatMutualInformation.js" )
 	);
 
-	/** {@link FlatNormalizedMutualInformation} */
-	public static final MeasureTask flatMutualInformationNormalized = new MeasureTask(
-		"Flat Normalized Mutual Information",
-		new FlatNormalizedMutualInformation()::getMeasure
+	public static final MeasureTask flatMutualInformationNormalized = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/information_based/FlatNormalizedMutualInformation.js" )
 	);
 
 	// ---------------------------------------------------------------
 	// External Measures - Purity
-	/** {@link FlatClusterPurity} */
-	public static final MeasureTask flatClusterPurity = new MeasureTask(
-		"Flat Cluster Purity",
-		new FlatClusterPurity()::getMeasure
+	public static final MeasureTask flatClusterPurity = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/purity/FlatClusterPurity.js" )
 	);
 
-	/** {@link HierarchicalClassPurity} */
-	public static final MeasureTask hierarchicalClassPurity = new MeasureTask(
-		"Hierarchical Class Purity",
-		new HierarchicalClassPurity()::getMeasure
+	public static final MeasureTask hierarchicalClassPurity = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/purity/HierarchicalClassPurity.js" )
 	);
 
 	// ---------------------------------------------------------------
 	// External Measures - Statistical Hypothesis
-	/** {@link Fmeasure} */
-	public static final MeasureTask fMeasure = new MeasureTask(
-		"F-Measure",
-		new Fmeasure( 1.0f, new FlatHypotheses() )::getMeasure
+	public static final MeasureTask fMeasure = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/statistical_hypothesis/FMeasure-1-Flat.js" )
 	);
 
-	/** {@link FowlkesMallowsIndex} */
-	public static final MeasureTask fowlkesMallowsIndex = new MeasureTask(
-		"Fowlkes-Mallows Index",
-		new FowlkesMallowsIndex( new FlatHypotheses() )::getMeasure
+	public static final MeasureTask fowlkesMallowsIndex = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/statistical_hypothesis/FowlkesMallowsIndex-Flat.js" )
 	);
 
-	/** {@link JaccardIndex} */
-	public static final MeasureTask jaccardIndex = new MeasureTask(
-		"Jaccard Index",
-		new JaccardIndex( new FlatHypotheses() )::getMeasure
+	public static final MeasureTask jaccardIndex = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/statistical_hypothesis/JaccardIndex-Flat.js" )
 	);
 
-	/** {@link RandIndex} */
-	public static final MeasureTask randIndex = new MeasureTask(
-		"Rand Index",
-		new RandIndex( new FlatHypotheses() )::getMeasure
+	public static final MeasureTask randIndex = factory.getMeasureTask(
+		Paths.get( "scripts/measures/external/statistical_hypothesis/RandIndex-Flat.js" )
 	);
 
 	// ---------------------------------------------------------------
 	// Histograms
-	/** {@link NodesPerLevel} */
-	public static final MeasureTask nodesPerLevel = new MeasureTask(
-		"Nodes Per Level",
-		new NodesPerLevel()::calculate
+	public static final MeasureTask nodesPerLevel = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/histogram/NodesPerLevel.js" )
 	);
-	/** {@link LeavesPerLevel} */
-	public static final MeasureTask leavesPerLevel = new MeasureTask(
-		"Leaves Per Level",
-		new LeavesPerLevel()::calculate
+
+	public static final MeasureTask leavesPerLevel = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/histogram/LeavesPerLevel.js" )
 	);
-	/** {@link InstancesPerLevel} */
-	public static final MeasureTask instancesPerLevel = new MeasureTask(
-		"Instances Per Level",
-		new InstancesPerLevel()::calculate
+
+	public static final MeasureTask instancesPerLevel = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/histogram/InstancesPerLevel.js" )
 	);
-	/** {@link ChildPerNodePerLevel} */
-	public static final MeasureTask childrenPerNodePerLevel = new MeasureTask(
-		"Children Per Node Per Level",
-		new ChildPerNodePerLevel()::calculate
+
+	public static final MeasureTask childrenPerNodePerLevel = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/histogram/ChildrenPerNodePerLevel.js" )
 	);
-	/** {@link HistogramOfNumberOfChildren} */
-	public static final MeasureTask numberOfChildren = new MeasureTask(
-		"Number of Children",
-		new HistogramOfNumberOfChildren()::calculate
+
+	public static final MeasureTask numberOfChildren = factory.getMeasureTask(
+		Paths.get( "scripts/measures/internal/statistics/histogram/NumberOfChildren.js" )
 	);
 
 	// ---------------------------------------------------------------
@@ -229,7 +155,6 @@ public final class MeasureTask
 	// Both fields are immutable, so it should be safe to expose them.
 	public final String identifier;
 	public final Function<Hierarchy, Object> function;
-	// TODO: Maybe also include the result type as a field?
 
 
 	/**
