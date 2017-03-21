@@ -441,7 +441,25 @@ public final class SwingUIUtils
 	 */
 	public static boolean isXFCE()
 	{
-		return System.getenv( "XDG_CURRENT_DESKTOP" ).toLowerCase( Locale.ENGLISH ).equals( "xfce" );
+		// Normally we can rely on XDG_CURRENT_DESKTOP to identify XFCE,
+		// but *sometimes* it returns null (when program is ran using sudo?).
+		// So, we check all vars that can contain information about the desktop env.
+		String[] vars = {
+			getAnyVar( "XDG_CURRENT_DESKTOP" ),
+			getAnyVar( "GDMSESSION" ),
+			getAnyVar( "DESKTOP_SESSION" ),
+			getAnyVar( "XDG_SESSION_DESKTOP" )
+		};
+
+		for ( String var : vars ) {
+			if ( var == null ) continue;
+
+			var = var.toLowerCase( Locale.ENGLISH );
+			if ( var.contains( "xfce" ) )
+				return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -450,8 +468,35 @@ public final class SwingUIUtils
 	 */
 	public static boolean isOpenJDK()
 	{
-		String vmName = System.getProperty( "java.vm.name" ).toLowerCase( Locale.ENGLISH );
+		String vmName = System.getProperty( "java.vm.name" );
+
+		if ( vmName == null ) return false; // Can't tell, assume it's not OpenJDK.
+
+		vmName = vmName.toLowerCase( Locale.ENGLISH );
 		return vmName.contains( "open jdk" ) || vmName.contains( "openjdk" );
+	}
+
+	/**
+	 * Attempts to retrieve the value of the specified system or environment variable, or
+	 * its uppercase / lowercase variants (in that order) if the original is not found.
+	 * 
+	 * @param key
+	 *            the variable to look for
+	 * @return value of the variable, or null if not found.
+	 */
+	public static String getAnyVar( String key )
+	{
+		String keyUp = key.toUpperCase( Locale.ENGLISH );
+		String keyLow = key.toLowerCase( Locale.ENGLISH );
+
+		String v = System.getenv( key );
+		if ( v == null ) v = System.getProperty( key );
+		if ( v == null ) v = System.getenv( keyUp );
+		if ( v == null ) v = System.getProperty( keyUp );
+		if ( v == null ) v = System.getenv( keyLow );
+		if ( v == null ) v = System.getProperty( keyLow );
+
+		return v;
 	}
 
 	/**
