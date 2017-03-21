@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import internal_measures.statistics.AvgWithStdev;
+import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
 import pl.pwr.hiervis.ui.HierarchyStatisticsFrame;
 import pl.pwr.hiervis.ui.InstanceVisualizationsFrame;

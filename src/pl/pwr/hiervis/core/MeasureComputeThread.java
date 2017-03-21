@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.SwingUIUtils;
 
