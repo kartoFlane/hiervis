@@ -69,7 +69,7 @@ public class MeasureComputeThread extends Thread
 		while ( !isInterrupted() ) {
 			if ( tasks.isEmpty() ) {
 				try {
-					// Nothing to do -- keep the thread alive, polling the queue for new tasks once every second.
+					// Nothing to do -- keep the thread alive, polling the queue for new tasks.
 					Thread.sleep( 100 );
 				}
 				catch ( InterruptedException e ) {

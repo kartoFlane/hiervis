@@ -239,7 +239,7 @@ public final class MeasureTask
 	 * @param function
 	 *            The function that will compute the measure
 	 */
-	private MeasureTask( String identifier, Function<Hierarchy, Object> function )
+	public MeasureTask( String identifier, Function<Hierarchy, Object> function )
 	{
 		if ( identifier == null || identifier.isEmpty() ) {
 			throw new IllegalArgumentException( "Identifier is null or an empty string!" );
