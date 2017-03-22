@@ -3,26 +3,15 @@ package pl.pwr.hiervis.core;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
-import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
 import pl.pwr.hiervis.ui.HierarchyStatisticsFrame;
@@ -69,6 +58,8 @@ public class HVContext
 	// Members
 
 	private HVConfig config = null;
+	private MeasureManager measureManager = null;
+
 	/** The raw hierarchy data, as it was loaded from the file. */
 	private Hierarchy inputHierarchy = null;
 	/** Tree structure representing relationships between groups (nodes) in the hierarchy */
@@ -78,9 +69,6 @@ public class HVContext
 	/** Table containing processed instance data */
 	private Table instanceTable = null;
 	private int selectedRow = 0;
-	private Map<String, Object> measureMap = new HashMap<>();
-
-	private MeasureComputeThread computeThread = null;
 
 	private VisualizerFrame hierarchyFrame;
 	private HierarchyStatisticsFrame statsFrame;
@@ -91,13 +79,10 @@ public class HVContext
 	{
 		setConfig( new HVConfig() );
 
-		computeThread = new MeasureComputeThread();
-		computeThread.measureComputed.addListener( this::onMeasureComputed );
+		measureManager = new MeasureManager( this );
 
 		hierarchyChanging.addListener( this::onHierarchyChanging );
 		hierarchyChanged.addListener( this::onHierarchyChanged );
-
-		computeThread.start();
 	}
 
 	public void createGUI( String subtitle )
@@ -109,21 +94,6 @@ public class HVContext
 		}
 	}
 
-	public VisualizerFrame getHierarchyFrame()
-	{
-		return hierarchyFrame;
-	}
-
-	public HierarchyStatisticsFrame getStatisticsFrame()
-	{
-		return statsFrame;
-	}
-
-	public InstanceVisualizationsFrame getInstanceFrame()
-	{
-		return visFrame;
-	}
-
 	/**
 	 * @return true if there is hierarchy data available (ie. has been loaded),
 	 *         false otherwise.
@@ -132,6 +102,9 @@ public class HVContext
 	{
 		return inputHierarchy != null;
 	}
+
+	// -------------------------------------------------------------------------------------------
+	// Getters / setters
 
 	public void setConfig( HVConfig config )
 	{
@@ -147,6 +120,11 @@ public class HVContext
 	public HVConfig getConfig()
 	{
 		return config;
+	}
+
+	public MeasureManager getMeasureManager()
+	{
+		return measureManager;
 	}
 
 	public void setHierarchy( Hierarchy hierarchy )
@@ -201,56 +179,23 @@ public class HVContext
 		}
 	}
 
-	/**
-	 * Returns a set of measures that have been computed thus far for the currently loaded hierarchy.
-	 * <p>
-	 * This method is not particularly thread-safe, as the map of measures might be updated with new entries
-	 * while you are processing the set, resulting in missed entries.
-	 * </p>
-	 * <p>
-	 * For a thread-safe alternative, see {@link #forComputedMeasures(Consumer)}
-	 * </p>
-	 * 
-	 * @see #forComputedMeasures(Consumer)
-	 */
-	public Set<Map.Entry<String, Object>> getComputedMeasures()
+	public VisualizerFrame getHierarchyFrame()
 	{
-		synchronized ( measureMap ) {
-			return Collections.unmodifiableMap( measureMap ).entrySet();
-		}
+		return hierarchyFrame;
 	}
 
-	/**
-	 * @param identifier
-	 *            identifier of the task to look for
-	 * @return true if the task is already computed, false otherwise
-	 */
-	public boolean isMeasureComputed( String identifier )
+	public HierarchyStatisticsFrame getStatisticsFrame()
 	{
-		synchronized ( measureMap ) {
-			return measureMap.containsKey( identifier );
-		}
+		return statsFrame;
 	}
 
-	/**
-	 * Performs the specified function on the set of measures that have been computed thus far for
-	 * the currently loaded hierarchy.
-	 * <p>
-	 * This method executes the function inside of a synchronized block, preventing the set from
-	 * being updated while this method is executing.
-	 * </p>
-	 */
-	public void forComputedMeasures( Consumer<Set<Map.Entry<String, Object>>> function )
+	public InstanceVisualizationsFrame getInstanceFrame()
 	{
-		synchronized ( measureMap ) {
-			function.accept( Collections.unmodifiableMap( measureMap ).entrySet() );
-		}
+		return visFrame;
 	}
 
-	public MeasureComputeThread getMeasureComputeThread()
-	{
-		return computeThread;
-	}
+	// -------------------------------------------------------------------------------------------
+	// Convenience methods
 
 	public Visualization createHierarchyVisualization()
 	{
@@ -353,6 +298,7 @@ public class HVContext
 	}
 
 	// -------------------------------------------------------------------------------------------
+	// Listeners
 
 	private void onFileLoaded( Hierarchy loadedHierarchy )
 	{
@@ -384,30 +330,10 @@ public class HVContext
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
-		int dataDimCount = h.getRoot().getSubtreeInstances().get( 0 ).getData().length;
-		log.trace(
-			String.format(
-				"Loaded hierarchy with %s data dimensions. Visualizations needed: %s",
-				dataDimCount, CombinatoricsUtils.binomialCoefficient( dataDimCount, 2 )
-			)
-		);
-
-		computeThread.clearPendingTasks();
-		computeThread.setHierarchy( h );
-
-		measureMap.clear();
-
-		computeThread.postTask( MeasureTask.averagePathLength );
-		computeThread.postTask( MeasureTask.height );
-		computeThread.postTask( MeasureTask.numberOfLeaves );
-		computeThread.postTask( MeasureTask.numberOfNodes );
-	}
-
-	private void onMeasureComputed( Pair<String, Object> result )
-	{
-		synchronized ( measureMap ) {
-			measureMap.put( result.getKey(), result.getValue() );
-		}
+		measureManager.postTask( MeasureTask.averagePathLength );
+		measureManager.postTask( MeasureTask.height );
+		measureManager.postTask( MeasureTask.numberOfLeaves );
+		measureManager.postTask( MeasureTask.numberOfNodes );
 	}
 
 	/**
@@ -432,87 +358,5 @@ public class HVContext
 		instanceTable = HierarchyProcessor.createInstanceTable(
 			config, hierarchy, hierarchyTree
 		);
-	}
-
-	public void dumpMeasures( String destinationFile )
-	{
-		StringBuilder buf = new StringBuilder();
-
-		buf.append( "Use subtree for internal measures?;" )
-			.append( MeasureTask.numberOfNodes.identifier ).append( ";stdev;" )
-			.append( MeasureTask.numberOfLeaves.identifier ).append( ";stdev;" )
-			.append( MeasureTask.height.identifier ).append( ";stdev;" )
-			.append( MeasureTask.averagePathLength.identifier ).append( ";stdev;" )
-			.append( MeasureTask.varianceDeviation.identifier ).append( ";stdev;" )
-			.append( MeasureTask.varianceDeviation2.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatWithinBetween.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn1.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn2.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn3.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn4.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDaviesBouldin.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatCalinskiHarabasz.identifier ).append( ";stdev;" )
-			.append( '\n' );
-
-		final Function<Object, String> dumpData = data -> {
-			if ( data instanceof Double || data instanceof Integer )
-				return Objects.toString( data ) + ";0.0;";
-			else if ( data instanceof AvgWithStdev ) {
-				AvgWithStdev avg = (AvgWithStdev)data;
-				return avg.getAvg() + ";" + avg.getStdev() + ";";
-			}
-			throw new IllegalArgumentException( data.getClass().getName() );
-		};
-
-		buf.append( config.isUseSubtree() ).append( ';' )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.numberOfNodes.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.numberOfLeaves.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.height.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.averagePathLength.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.varianceDeviation.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.varianceDeviation2.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatWithinBetween.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn1.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn2.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn3.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn4.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDaviesBouldin.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatCalinskiHarabasz.identifier, 0 ) ) )
-			.append( '\n' );
-
-		buf.append( '\n' );
-
-		final Function<MeasureTask, String> dumpHistogram = task -> {
-			StringBuilder buf2 = new StringBuilder();
-			double[] data = (double[])measureMap.getOrDefault( task.identifier, new double[0] );
-
-			if ( data.length > 0 ) {
-				buf2.append( task.identifier ).append( '\n' );
-				for ( int i = 0; i < data.length; ++i )
-					buf2.append( i ).append( ';' );
-				buf2.append( '\n' );
-				for ( int i = 0; i < data.length; ++i )
-					buf2.append( data[i] ).append( ';' );
-				buf2.append( '\n' );
-				for ( int i = 0; i < data.length; ++i )
-					buf2.append( "0.0;" );
-				buf2.append( "\n\n" );
-			}
-
-			return buf2.toString();
-		};
-
-		buf.append( dumpHistogram.apply( MeasureTask.nodesPerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.leavesPerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.instancesPerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.childrenPerNodePerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.numberOfChildren ) );
-
-		try ( FileWriter writer = new FileWriter( destinationFile ) ) {
-			writer.write( buf.toString() );
-		}
-		catch ( IOException ex ) {
-			ex.printStackTrace();
-		}
 	}
 }

@@ -427,10 +427,6 @@ public class VisualizerFrame extends JFrame
 
 		context.getStatisticsFrame().dispose();
 		context.getInstanceFrame().dispose();
-
-		MeasureComputeThread thread = context.getMeasureComputeThread();
-		if ( thread != null ) {
-			thread.shutdown();
-		}
+		context.getMeasureManager().dispose();
 	}
 }

@@ -10,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -42,6 +43,7 @@ import org.apache.logging.log4j.Logger;
 import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.MeasureManager;
 import pl.pwr.hiervis.measures.MeasureTask;
 
 
@@ -121,15 +123,17 @@ public class HierarchyStatisticsFrame extends JFrame
 		createMenu();
 		createMeasurePanels();
 
-		context.getMeasureComputeThread().measureComputing.addListener( this::onMeasureComputing );
-		context.getMeasureComputeThread().measureComputed.addListener( this::onMeasureComputed );
-		context.getMeasureComputeThread().taskFailed.addListener( this::onTaskFailed );
+		MeasureManager measureManager = context.getMeasureManager();
+
+		measureManager.measureComputing.addListener( this::onMeasureComputing );
+		measureManager.measureComputed.addListener( this::onMeasureComputed );
+		measureManager.taskFailed.addListener( this::onTaskFailed );
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 
 		VisualizerFrame.createFileDrop( this, log, "csv", file -> context.loadFile( this, file ) );
 
-		context.forComputedMeasures(
+		measureManager.forComputedMeasures(
 			set -> {
 				set.stream().forEach( this::updateMeasurePanel );
 			}
@@ -173,7 +177,10 @@ public class HierarchyStatisticsFrame extends JFrame
 				fileDialog.setSelectedFile( new File( "dump.csv" ) );
 
 				if ( fileDialog.showSaveDialog( this ) == JFileChooser.APPROVE_OPTION ) {
-					context.dumpMeasures( fileDialog.getSelectedFile().getAbsolutePath() );
+					context.getMeasureManager().dumpMeasures(
+						Paths.get( fileDialog.getSelectedFile().getAbsolutePath() ),
+						context.getConfig()
+					);
 				}
 			}
 		);
@@ -402,11 +409,11 @@ public class HierarchyStatisticsFrame extends JFrame
 			( e ) -> {
 				button.setEnabled( false );
 
+				MeasureManager measureManager = context.getMeasureManager();
 				for ( MeasureTask task : tasks ) {
-					if ( !context.isMeasureComputed( task.identifier ) &&
-						!context.getMeasureComputeThread().isMeasurePending( task.identifier ) ) {
-
-						context.getMeasureComputeThread().postTask( task );
+					if ( !measureManager.isMeasureComputed( task.identifier )
+						&& !measureManager.isMeasurePending( task.identifier ) ) {
+						measureManager.postTask( task );
 					}
 				}
 			}
@@ -423,14 +430,16 @@ public class HierarchyStatisticsFrame extends JFrame
 		JButton button = new JButton();
 		button.addActionListener(
 			( e ) -> {
-				boolean pending = context.getMeasureComputeThread().isMeasurePending( task.identifier );
+				MeasureManager measureManager = context.getMeasureManager();
+
+				boolean pending = measureManager.isMeasurePending( task.identifier );
 				updateTaskButton( button, !pending );
 
 				if ( pending ) {
-					context.getMeasureComputeThread().removeTask( task );
+					measureManager.removeTask( task );
 				}
 				else {
-					context.getMeasureComputeThread().postTask( task );
+					measureManager.postTask( task );
 				}
 			}
 		);
