@@ -330,11 +330,6 @@ public class HVContext
 
 	private void onHierarchyChanged( Hierarchy h )
 	{
-		measureManager.postTask( MeasureTask.averagePathLength );
-		measureManager.postTask( MeasureTask.height );
-		measureManager.postTask( MeasureTask.numberOfLeaves );
-		measureManager.postTask( MeasureTask.numberOfNodes );
-		
 		// Schedule auto-compute tasks
 		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
 			if ( task.autoCompute && task.applicabilityFunction.apply( h ) ) {

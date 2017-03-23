@@ -11,8 +11,10 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -121,7 +123,10 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		createGUI();
 		createMenu();
-		createMeasurePanels();
+
+		if ( context.isHierarchyDataLoaded() ) {
+			createMeasurePanels();
+		}
 
 		MeasureManager measureManager = context.getMeasureManager();
 
@@ -217,92 +222,35 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private void createMeasurePanels()
 	{
-		addMeasurePanels(
-			createBulkTaskPanel(
-				"Calculate All",
-				MeasureTask.numberOfNodes, MeasureTask.numberOfLeaves,
-				MeasureTask.height, MeasureTask.averagePathLength,
-				MeasureTask.nodesPerLevel, MeasureTask.leavesPerLevel,
-				MeasureTask.instancesPerLevel, MeasureTask.childrenPerNodePerLevel,
-				MeasureTask.numberOfChildren,
-				MeasureTask.varianceDeviation, MeasureTask.varianceDeviation2,
-				MeasureTask.flatWithinBetween, MeasureTask.flatDunn1,
-				MeasureTask.flatDunn2, MeasureTask.flatDunn3, MeasureTask.flatDunn4,
-				MeasureTask.flatDaviesBouldin, MeasureTask.flatCalinskiHarabasz
-			),
+		MeasureManager measureManager = context.getMeasureManager();
+		Collection<MeasureTask> allMeasureTasks = measureManager.getAllMeasureTasks();
 
-			createFillerPanel( 10 ),
-			createSeparatorPanel( "Statistics" ),
-			createBulkTaskPanel(
-				"Calculate All Statistics",
-				MeasureTask.numberOfNodes, MeasureTask.numberOfLeaves,
-				MeasureTask.height, MeasureTask.averagePathLength
-			),
-			createPendingMeasurePanel( MeasureTask.numberOfNodes ),
-			createPendingMeasurePanel( MeasureTask.numberOfLeaves ),
-			createPendingMeasurePanel( MeasureTask.height ),
-			createPendingMeasurePanel( MeasureTask.averagePathLength ),
+		addMeasurePanels( createBulkTaskPanel( "Calculate All", allMeasureTasks ) );
 
-			createFillerPanel( 10 ),
-			createSeparatorPanel( "Histograms" ),
-			createBulkTaskPanel(
-				"Calculate All Histograms",
-				MeasureTask.nodesPerLevel, MeasureTask.leavesPerLevel,
-				MeasureTask.instancesPerLevel, MeasureTask.childrenPerNodePerLevel,
-				MeasureTask.numberOfChildren
-			),
-			createPendingMeasurePanel( MeasureTask.nodesPerLevel ),
-			createPendingMeasurePanel( MeasureTask.leavesPerLevel ),
-			createPendingMeasurePanel( MeasureTask.instancesPerLevel ),
-			createPendingMeasurePanel( MeasureTask.childrenPerNodePerLevel ),
-			createPendingMeasurePanel( MeasureTask.numberOfChildren ),
+		for ( String groupPath : measureManager.listMeasureTaskGroups() ) {
+			Collection<MeasureTask> measureTasks = measureManager.getMeasureTaskGroup( groupPath ).stream()
+				.filter( task -> task.applicabilityFunction.apply( context.getHierarchy() ) )
+				.collect( Collectors.toList() );
 
-			createFillerPanel( 10 ),
-			createSeparatorPanel( "Internal Measures" ),
-			createBulkTaskPanel(
-				"Calculate All Internal Measures",
-				MeasureTask.varianceDeviation, MeasureTask.varianceDeviation2,
-				MeasureTask.flatWithinBetween, MeasureTask.flatDunn1,
-				MeasureTask.flatDunn2, MeasureTask.flatDunn3, MeasureTask.flatDunn4,
-				MeasureTask.flatDaviesBouldin, MeasureTask.flatCalinskiHarabasz
-			),
-			createPendingMeasurePanel( MeasureTask.varianceDeviation ),
-			createPendingMeasurePanel( MeasureTask.varianceDeviation2 ),
-			createPendingMeasurePanel( MeasureTask.flatWithinBetween ),
-			createPendingMeasurePanel( MeasureTask.flatDunn1 ),
-			createPendingMeasurePanel( MeasureTask.flatDunn2 ),
-			createPendingMeasurePanel( MeasureTask.flatDunn3 ),
-			createPendingMeasurePanel( MeasureTask.flatDunn4 ),
-			createPendingMeasurePanel( MeasureTask.flatDaviesBouldin ),
-			createPendingMeasurePanel( MeasureTask.flatCalinskiHarabasz )
-		);
+			if ( !measureTasks.isEmpty() ) {
+				String friendlyGroupName = groupPath.contains( "/" )
+					? groupPath.substring( groupPath.lastIndexOf( "/" ) + 1 )
+					: groupPath;
+				friendlyGroupName = toCamelCase( friendlyGroupName.replaceAll( "_([a-z])", " $1" ), " " );
 
-		if ( context.getConfig().hasTrueClassAttribute() ) {
-			addMeasurePanels(
-				createFillerPanel( 10 ),
-				createSeparatorPanel( "External Measures" ),
-				createBulkTaskPanel(
-					"Calculate All External Measures",
-					MeasureTask.adaptedF, MeasureTask.flatEntropy1, MeasureTask.flatEntropy2,
-					MeasureTask.flatInformationGain, MeasureTask.flatMutualInformation,
-					MeasureTask.flatMutualInformationNormalized,
-					MeasureTask.flatClusterPurity, MeasureTask.hierarchicalClassPurity,
-					MeasureTask.fMeasure, MeasureTask.fowlkesMallowsIndex,
-					MeasureTask.jaccardIndex, MeasureTask.randIndex
-				),
-				createPendingMeasurePanel( MeasureTask.adaptedF ),
-				createPendingMeasurePanel( MeasureTask.flatEntropy1 ),
-				createPendingMeasurePanel( MeasureTask.flatEntropy2 ),
-				createPendingMeasurePanel( MeasureTask.flatInformationGain ),
-				createPendingMeasurePanel( MeasureTask.flatMutualInformation ),
-				createPendingMeasurePanel( MeasureTask.flatMutualInformationNormalized ),
-				createPendingMeasurePanel( MeasureTask.flatClusterPurity ),
-				createPendingMeasurePanel( MeasureTask.hierarchicalClassPurity ),
-				createPendingMeasurePanel( MeasureTask.fMeasure ),
-				createPendingMeasurePanel( MeasureTask.fowlkesMallowsIndex ),
-				createPendingMeasurePanel( MeasureTask.jaccardIndex ),
-				createPendingMeasurePanel( MeasureTask.randIndex )
-			);
+				addMeasurePanels(
+					createFillerPanel( 10 ),
+					createSeparatorPanel( friendlyGroupName )
+				);
+
+				if ( measureTasks.size() > 1 ) {
+					addMeasurePanels( createBulkTaskPanel( "Calculate All " + friendlyGroupName, measureTasks ) );
+				}
+
+				for ( MeasureTask task : measureTasks ) {
+					addMeasurePanels( createPendingMeasurePanel( task ) );
+				}
+			}
 		}
 	}
 
@@ -393,7 +341,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		return cMeasure;
 	}
 
-	private JPanel createBulkTaskPanel( String title, MeasureTask... tasks )
+	private JPanel createBulkTaskPanel( String title, Iterable<MeasureTask> tasks )
 	{
 		JPanel cMeasure = new JPanel();
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
@@ -402,7 +350,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		return cMeasure;
 	}
 
-	private JButton createTaskButton( String title, MeasureTask... tasks )
+	private JButton createTaskButton( String title, Iterable<MeasureTask> tasks )
 	{
 		JButton button = new JButton();
 		button.addActionListener(
@@ -530,6 +478,19 @@ public class HierarchyStatisticsFrame extends JFrame
 		panel.revalidate();
 		panel.repaint();
 	}
+
+	private static String toCamelCase( String input, String delimiter )
+	{
+		String[] words = input.split( delimiter );
+		for ( int i = 0; i < words.length; ++i ) {
+			String word = words[i];
+			words[i] = Character.toUpperCase( word.charAt( 0 ) ) + word.substring( 1 ).toLowerCase();
+		}
+		return String.join( " ", words );
+	}
+
+	// ----------------------------------------------------------------------------------------
+	// Listeners
 
 	private void onMeasureComputing( String measureName )
 	{

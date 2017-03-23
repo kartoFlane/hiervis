@@ -356,8 +356,9 @@ public class NodeDetailsFrame extends JFrame
 					tmp, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected()
 				);
 			}
-			catch ( IOException ex ) {
-				logHK.error( ex );
+			catch ( Throwable ex ) {
+				logHK.error( "Subprocess finished successfully, but failed during processing: ", ex );
+				ex.printStackTrace();
 			}
 		}
 		else {

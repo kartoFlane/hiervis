@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -104,6 +105,16 @@ public final class HierarchyVisualizer
 			if ( !inputFile.exists() ) {
 				throw new FileNotFoundException( inputFile.getPath() );
 			}
+		}
+
+		try {
+			context.getMeasureManager().loadMeasureFiles( Paths.get( "scripts/measures" ) );
+		}
+		catch ( IOException e ) {
+			log.error( "IO exception while loading measure files: ", e );
+		}
+		catch ( Throwable e ) {
+			log.error( "Unexpected error occurred while loading measure files: ", e );
 		}
 
 		executeGUI( context, subtitle, inputFile );
