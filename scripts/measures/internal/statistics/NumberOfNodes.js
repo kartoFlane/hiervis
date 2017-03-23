@@ -8,6 +8,7 @@ function() {
 	// Create and return the result holder object
 	var measureData = {};
 	measureData.id = 'Number of Nodes';
+	measureData.autoCompute = true;
 	measureData.callback = function ( hierarchy ) {
 		return measure.calculate( hierarchy );
 	}

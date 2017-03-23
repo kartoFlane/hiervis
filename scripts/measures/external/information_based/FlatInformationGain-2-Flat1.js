@@ -10,6 +10,10 @@ function() {
 	// Create and return the result holder object
 	var measureData = {};
 	measureData.id = 'Flat Information Gain (2, Flat1)';
+	measureData.isApplicable = function ( hierarchy ) {
+		// Applicable only to hierarchies with ground truth attribute
+		return hierarchy.getNumberOfClasses() > 0;
+	}
 	measureData.callback = function ( hierarchy ) {
 		return measure.getMeasure( hierarchy );
 	}
