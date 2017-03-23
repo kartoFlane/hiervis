@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var VarianceDeviation = Java.type( 'internal_measures.VarianceDeviation' );
 

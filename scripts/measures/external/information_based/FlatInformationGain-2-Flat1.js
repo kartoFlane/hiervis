@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var FlatInformationGain = Java.type( 'external_measures.information_based.FlatInformationGain' );
 	var FlatEntropy1 = Java.type( 'external_measures.information_based.FlatEntropy1' );

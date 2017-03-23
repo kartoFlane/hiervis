@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var FlatCalinskiHarabasz = Java.type( 'internal_measures.FlatCalinskiHarabasz' );
 	var Euclidean = Java.type( 'distance_measures.Euclidean' );

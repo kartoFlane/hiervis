@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var FlatClusterPurity = Java.type( 'external_measures.purity.FlatClusterPurity' );
 

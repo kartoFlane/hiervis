@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var FlatMutualInformation = Java.type( 'external_measures.information_based.FlatMutualInformation' );
 

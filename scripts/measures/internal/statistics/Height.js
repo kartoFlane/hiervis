@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var Height = Java.type( 'internal_measures.statistics.Height' );
 

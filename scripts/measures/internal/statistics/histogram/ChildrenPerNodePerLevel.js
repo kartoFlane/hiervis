@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var ChildPerNodePerLevel = Java.type( 'internal_measures.statistics.histogram.ChildPerNodePerLevel' );
 

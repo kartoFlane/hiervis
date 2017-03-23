@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var RandIndex = Java.type( 'external_measures.statistical_hypothesis.RandIndex' );
 	var FlatHypotheses = Java.type( 'external_measures.statistical_hypothesis.FlatHypotheses' );

@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var HierarchicalClassPurity = Java.type( 'external_measures.purity.HierarchicalClassPurity' );
 

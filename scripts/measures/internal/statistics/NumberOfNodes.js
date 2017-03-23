@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var NumberOfNodes = Java.type( 'internal_measures.statistics.NumberOfNodes' );
 

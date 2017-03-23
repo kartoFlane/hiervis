@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var Fmeasure = Java.type( 'external_measures.statistical_hypothesis.Fmeasure' );
 	var FlatHypotheses = Java.type( 'external_measures.statistical_hypothesis.FlatHypotheses' );

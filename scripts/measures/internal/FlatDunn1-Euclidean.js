@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var FlatDunn1 = Java.type( 'internal_measures.FlatDunn1' );
 	var Euclidean = Java.type( 'distance_measures.Euclidean' );

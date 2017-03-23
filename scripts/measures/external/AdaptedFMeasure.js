@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var AdaptedFmeasure = Java.type( 'external_measures.AdaptedFmeasure' );
 

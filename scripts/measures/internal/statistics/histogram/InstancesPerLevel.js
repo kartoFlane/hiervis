@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var InstancesPerLevel = Java.type( 'internal_measures.statistics.histogram.InstancesPerLevel' );
 

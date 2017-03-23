@@ -1,4 +1,4 @@
-function createMeasureData() {
+function() {
 	// Load required classes
 	var AvgPathLength = Java.type( 'internal_measures.statistics.AvgPathLength' );
 
