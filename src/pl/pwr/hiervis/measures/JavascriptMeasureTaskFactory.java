@@ -136,33 +136,47 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 			}
 
 			JSObject measureData = (JSObject)scriptCallback.call( null );
-			String id = tryGetMember( measureData, "id" );
-			JSObject callback = tryGetMember( measureData, "callback" );
+			String id = getMember( measureData, "id" );
+			JSObject computeCallback = getMember( measureData, "callback" );
 
-			if ( id instanceof String == false ) {
-				throw new IllegalArgumentException( "Member 'id' is not a String!" );
-			}
+			boolean autoCompute = getOptionalMember( measureData, "autoCompute", false );
+			JSObject applicabilityCallback = getOptionalMember( measureData, "isApplicable", null );
 
-			if ( !callback.isFunction() ) {
+			if ( !computeCallback.isFunction() ) {
 				throw new IllegalArgumentException( "Member 'callback' is not a Function!" );
 			}
+			if ( applicabilityCallback != null && !applicabilityCallback.isFunction() ) {
+				throw new IllegalArgumentException( "Member 'isApplicable' is not a Function!" );
+			}
 
-			Function<Hierarchy, Object> callbackFunction = hierarchy -> {
+			Function<Hierarchy, Boolean> applicabilityFunction = hierarchy -> {
+				try {
+					return (Boolean)inv.invokeMethod( measureData, "isApplicable", hierarchy );
+				}
+				catch ( NoSuchMethodException e ) {
+					return true;
+				}
+				catch ( Throwable e ) {
+					log.error(
+						String.format( "Unexpected rrror while invoking applicability callback for measure '%s': ", id ), e
+					);
+				}
+				return false;
+			};
+
+			Function<Hierarchy, Object> computeFunction = hierarchy -> {
 				try {
 					return inv.invokeMethod( measureData, "callback", hierarchy );
 				}
 				catch ( NoSuchMethodException | ScriptException e ) {
 					log.error(
-						String.format(
-							"Error while invoking MeasureTask callback for measure '%s': ",
-							id
-						), e
+						String.format( "Error while invoking compute callback for measure '%s': ", id ), e
 					);
 				}
 				return null;
 			};
 
-			return new MeasureTask( id, callbackFunction );
+			return new MeasureTask( id, autoCompute, applicabilityFunction, computeFunction );
 		}
 		catch ( IllegalArgumentException e ) {
 			log.error(
@@ -186,13 +200,19 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> T tryGetMember( JSObject jsObject, String member ) throws NoSuchFieldException
+	private static <T> T getOptionalMember( JSObject jsObject, String member, T defaultValue )
 	{
-		try {
+		return jsObject.hasMember( member )
+			? (T)jsObject.getMember( member )
+			: defaultValue;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T getMember( JSObject jsObject, String member ) throws NoSuchFieldException
+	{
+		if ( jsObject.hasMember( member ) )
 			return (T)jsObject.getMember( member );
-		}
-		catch ( ClassCastException e ) {
+		else
 			throw new NoSuchFieldException( member );
-		}
 	}
 }

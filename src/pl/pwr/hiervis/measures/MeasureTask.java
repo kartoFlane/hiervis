@@ -154,26 +154,38 @@ public final class MeasureTask
 	// Members
 	// Both fields are immutable, so it should be safe to expose them.
 	public final String identifier;
-	public final Function<Hierarchy, Object> function;
+	public final boolean autoCompute;
+	public final Function<Hierarchy, Boolean> applicabilityFunction;
+	public final Function<Hierarchy, Object> computeFunction;
 
 
 	/**
 	 * 
 	 * @param identifier
 	 *            Name of the computed measure. This will be displayed in the interface for the user to see.
-	 * @param function
+	 * @param autoCompute
+	 *            Whether this measure should be computed automatically as soon as the hierarchy is loaded,
+	 *            if the measure is applicable to the hierarchy
+	 * @param applicabilityFunction
+	 *            The function that returns a boolean value indicating whether the measure is applicable for
+	 *            the currently loaded hierarchy. Null if the measure is always applicable.
+	 * @param computeFunction
 	 *            The function that will compute the measure
 	 */
-	public MeasureTask( String identifier, Function<Hierarchy, Object> function )
+	public MeasureTask(
+		String identifier, boolean autoCompute,
+		Function<Hierarchy, Boolean> applicabilityFunction, Function<Hierarchy, Object> computeFunction )
 	{
 		if ( identifier == null || identifier.isEmpty() ) {
 			throw new IllegalArgumentException( "Identifier is null or an empty string!" );
 		}
-		if ( function == null ) {
+		if ( computeFunction == null ) {
 			throw new IllegalArgumentException( "Function is null!" );
 		}
 		this.identifier = identifier;
-		this.function = function;
+		this.autoCompute = autoCompute;
+		this.applicabilityFunction = applicabilityFunction;
+		this.computeFunction = computeFunction;
 	}
 
 	@Override

@@ -334,6 +334,13 @@ public class HVContext
 		measureManager.postTask( MeasureTask.height );
 		measureManager.postTask( MeasureTask.numberOfLeaves );
 		measureManager.postTask( MeasureTask.numberOfNodes );
+		
+		// Schedule auto-compute tasks
+		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
+			if ( task.autoCompute && task.applicabilityFunction.apply( h ) ) {
+				measureManager.postTask( task );
+			}
+		}
 	}
 
 	/**

@@ -92,7 +92,7 @@ public class MeasureComputeThread extends Thread
 				log.trace( String.format( "Computing measure '%s'...", currentTask.identifier ) );
 				measureComputing.broadcast( currentTask.identifier );
 				try {
-					Object result = currentTask.function.apply( hierarchy );
+					Object result = currentTask.computeFunction.apply( hierarchy );
 					measureComputed.broadcast( Pair.of( currentTask.identifier, result ) );
 				}
 				catch ( Throwable e ) {
