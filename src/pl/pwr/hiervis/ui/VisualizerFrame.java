@@ -25,7 +25,6 @@ import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.core.MeasureComputeThread;
 import pl.pwr.hiervis.ui.components.FileDrop;
 import pl.pwr.hiervis.ui.control.MouseControl;
 import pl.pwr.hiervis.ui.control.MouseControl.MouseAction;
@@ -56,6 +55,7 @@ public class VisualizerFrame extends JFrame
 
 	private Display hierarchyDisplay;
 	private JMenuItem mntmSaveFile;
+	private JMenuItem mntmFlatten;
 
 
 	public VisualizerFrame( HVContext context, String subtitle )
@@ -209,6 +209,7 @@ public class VisualizerFrame extends JFrame
 		setJMenuBar( menuBar );
 
 		createFileMenu( menuBar );
+		createEditMenu( menuBar );
 		createViewMenu( menuBar );
 	}
 
@@ -232,6 +233,19 @@ public class VisualizerFrame extends JFrame
 		JMenuItem mntmConfig = new JMenuItem( "Config" );
 		mntmConfig.addActionListener( e -> openConfigDialog() );
 		mnFile.add( mntmConfig );
+	}
+
+	private void createEditMenu( JMenuBar menuBar )
+	{
+		JMenu mnEdit = new JMenu( "Edit" );
+		menuBar.add( mnEdit );
+
+		mntmFlatten = new JMenuItem( "Flatten Hierarchy" );
+		mntmFlatten.addActionListener(
+			e -> context.loadHierarchy( HierarchyUtils.flattenHierarchy( context.getHierarchy() ) )
+		);
+		mntmFlatten.setEnabled( false );
+		mnEdit.add( mntmFlatten );
 	}
 
 	private void createViewMenu( JMenuBar menuBar )
@@ -377,6 +391,7 @@ public class VisualizerFrame extends JFrame
 	private void onHierarchyChanging( Hierarchy oldHierarchy )
 	{
 		mntmSaveFile.setEnabled( false );
+		mntmFlatten.setEnabled( false );
 
 		hierarchyDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
 		hierarchyDisplay.setEnabled( false );
@@ -390,6 +405,7 @@ public class VisualizerFrame extends JFrame
 		}
 
 		mntmSaveFile.setEnabled( true );
+		mntmFlatten.setEnabled( true );
 
 		// Try to coax the VM into reclaiming some of that freed memory.
 		System.gc();

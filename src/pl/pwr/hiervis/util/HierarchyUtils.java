@@ -123,6 +123,48 @@ public class HierarchyUtils
 	}
 
 	/**
+	 * Returns a copy of the specified hierarchy. The returned copy is a flat
+	 * hierarchy containing all instances from the source hierarchy in the root node.
+	 * 
+	 * @param source
+	 *            the hierarchy to flatten
+	 * @return flattened hierarchy
+	 */
+	public static Hierarchy flattenHierarchy( Hierarchy source )
+	{
+		final boolean useSubtree = false;
+
+		BasicNode root = new BasicNode( Constants.ROOT_ID, null, false );
+
+		List<BasicNode> nodes = new LinkedList<>();
+		nodes.add( root );
+
+		source.getRoot().getSubtreeInstances().forEach(
+			in -> {
+				root.addInstance(
+					new BasicInstance(
+						in.getInstanceName(),
+						Constants.ROOT_ID,
+						in.getData(),
+						in.getTrueClass()
+					)
+				);
+			}
+		);
+
+		HierarchyBuilder.createParentChildRelations( nodes, null );
+		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
+		HierarchyBuilder.recalculateCentroids( nodes, useSubtree, null );
+
+		nodes.sort( new NodeIdComparator() );
+
+		return new BasicHierarchy(
+			root, nodes,
+			source.getDataNames(), computeClassCountMap( root )
+		);
+	}
+
+	/**
 	 * @param h
 	 *            the hierarchy to get the class count map for
 	 * @return the ground-truth class counts map, as reported by the hierarchy

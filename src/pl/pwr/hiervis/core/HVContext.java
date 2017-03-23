@@ -297,6 +297,12 @@ public class HVContext
 		progressFrame.setVisible( true );
 	}
 
+	public void loadHierarchy( Hierarchy h )
+	{
+		log.trace( "Switching hierarchy..." );
+		setHierarchy( h );
+	}
+
 	// -------------------------------------------------------------------------------------------
 	// Listeners
 
@@ -304,8 +310,7 @@ public class HVContext
 	{
 		SwingUtilities.invokeLater(
 			() -> {
-				log.trace( "Switching hierarchy..." );
-				setHierarchy( loadedHierarchy );
+				loadHierarchy( loadedHierarchy );
 			}
 		);
 	}
