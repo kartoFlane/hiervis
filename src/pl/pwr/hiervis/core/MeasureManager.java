@@ -227,11 +227,13 @@ public class MeasureManager
 	}
 
 	/**
-	 * @return a collection of ids of all measure groups that have been loaded.
+	 * @return a sorted collection of ids of all measure groups that have been loaded.
 	 */
 	public Collection<String> listMeasureTaskGroups()
 	{
-		return measureGroupMap.keySet();
+		return measureGroupMap.keySet().stream()
+			.sorted()
+			.collect( Collectors.toList() );
 	}
 
 	public void dispose()
