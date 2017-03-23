@@ -178,7 +178,7 @@ public class HKPlusPlusWrapper
 	{
 		return new GeneratedCSVReader( false ).load(
 			hkOutputFile.getAbsolutePath(),
-			withInstanceNames, withTrueClass, true, false, useSubtree
+			withInstanceNames, withTrueClass, false, false, useSubtree
 		);
 	}
 
