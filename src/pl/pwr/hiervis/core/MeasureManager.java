@@ -2,7 +2,11 @@ package pl.pwr.hiervis.core;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,12 +14,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
+import pl.pwr.hiervis.measures.JavascriptMeasureTaskFactory;
 import pl.pwr.hiervis.measures.MeasureTask;
+import pl.pwr.hiervis.measures.MeasureTaskFactory;
 import pl.pwr.hiervis.util.Event;
 
 
@@ -37,12 +44,14 @@ public class MeasureManager
 	public final Event<Pair<String, Object>> measureComputed = new Event<>();
 
 	private MeasureComputeThread computeThread = null;
-	private Map<String, Object> measureMap = null;
+	private Map<String, Object> computedMeasureMap = null;
+	private Map<String, Collection<MeasureTask>> measureGroupMap = null;
 
 
 	public MeasureManager( HVContext context )
 	{
-		measureMap = new HashMap<>();
+		computedMeasureMap = new HashMap<>();
+		measureGroupMap = new HashMap<>();
 
 		computeThread = new MeasureComputeThread();
 
@@ -127,8 +136,8 @@ public class MeasureManager
 	 */
 	public Set<Map.Entry<String, Object>> getComputedMeasures()
 	{
-		synchronized ( measureMap ) {
-			return Collections.unmodifiableMap( measureMap ).entrySet();
+		synchronized ( computedMeasureMap ) {
+			return Collections.unmodifiableMap( computedMeasureMap ).entrySet();
 		}
 	}
 
@@ -139,8 +148,8 @@ public class MeasureManager
 	 */
 	public boolean isMeasureComputed( String identifier )
 	{
-		synchronized ( measureMap ) {
-			return measureMap.containsKey( identifier );
+		synchronized ( computedMeasureMap ) {
+			return computedMeasureMap.containsKey( identifier );
 		}
 	}
 
@@ -154,9 +163,75 @@ public class MeasureManager
 	 */
 	public void forComputedMeasures( Consumer<Set<Map.Entry<String, Object>>> function )
 	{
-		synchronized ( measureMap ) {
-			function.accept( Collections.unmodifiableMap( measureMap ).entrySet() );
+		synchronized ( computedMeasureMap ) {
+			function.accept( Collections.unmodifiableMap( computedMeasureMap ).entrySet() );
 		}
+	}
+
+	/**
+	 * Loads {@link MeasureTask}s from script files in the specified directory.
+	 * 
+	 * @param dirPath
+	 *            the directory containing all {@link MeasureTask} script files.
+	 * @throws IOException
+	 *             if an IO error occurs
+	 */
+	public void loadMeasureFiles( Path dirPath ) throws IOException
+	{
+		if ( !Files.isDirectory( dirPath ) )
+			throw new IllegalArgumentException( "Argument must point to a directory!" );
+
+		MeasureTaskFactory factory = new JavascriptMeasureTaskFactory( false );
+
+		Files.walk( dirPath ).forEach(
+			filePath -> {
+				if ( Files.isRegularFile( filePath, LinkOption.NOFOLLOW_LINKS ) ) {
+					// MeasureTask task = factory.getMeasureTask( filePath );
+					// System.out.println( filePath );
+
+					String groupPath = filePath.getParent().toString()
+						.replace( dirPath.toString(), "" )
+						.substring( 1 )
+						.replace( "\\", "/" );
+
+					Collection<MeasureTask> group = measureGroupMap.get( groupPath );
+					if ( group == null ) {
+						group = new ArrayList<MeasureTask>();
+						measureGroupMap.put( groupPath, group );
+					}
+
+					group.add( factory.getMeasureTask( filePath ) );
+				}
+			}
+		);
+	}
+
+	/**
+	 * @param groupId
+	 *            id of the measure group we want to receive
+	 * @return returns an unmodifiable collection of all measures belonging to
+	 *         the group with the specified id.
+	 */
+	public Collection<MeasureTask> getMeasureTaskGroup( String groupId )
+	{
+		if ( !measureGroupMap.containsKey( groupId ) )
+			throw new IllegalArgumentException( "No such measure task group: " + groupId );
+		return Collections.unmodifiableCollection( measureGroupMap.get( groupId ) );
+	}
+
+	public Collection<MeasureTask> getAllMeasureTasks()
+	{
+		return measureGroupMap.values().stream()
+			.flatMap( Collection::stream )
+			.collect( Collectors.toList() );
+	}
+
+	/**
+	 * @return a collection of ids of all measure groups that have been loaded.
+	 */
+	public Collection<String> listMeasureTaskGroups()
+	{
+		return measureGroupMap.keySet();
 	}
 
 	public void dispose()
@@ -166,55 +241,26 @@ public class MeasureManager
 
 	public void dumpMeasures( Path destinationFile, HVConfig config )
 	{
-		StringBuilder buf = new StringBuilder();
-
-		buf.append( "Use subtree for internal measures?;" )
-			.append( MeasureTask.numberOfNodes.identifier ).append( ";stdev;" )
-			.append( MeasureTask.numberOfLeaves.identifier ).append( ";stdev;" )
-			.append( MeasureTask.height.identifier ).append( ";stdev;" )
-			.append( MeasureTask.averagePathLength.identifier ).append( ";stdev;" )
-			.append( MeasureTask.varianceDeviation.identifier ).append( ";stdev;" )
-			.append( MeasureTask.varianceDeviation2.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatWithinBetween.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn1.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn2.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn3.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDunn4.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatDaviesBouldin.identifier ).append( ";stdev;" )
-			.append( MeasureTask.flatCalinskiHarabasz.identifier ).append( ";stdev;" )
-			.append( '\n' );
-
-		final Function<Object, String> dumpData = data -> {
+		final Function<Object, String> resultToCSV = data -> {
 			if ( data instanceof Double || data instanceof Integer )
 				return Objects.toString( data ) + ";0.0;";
 			else if ( data instanceof AvgWithStdev ) {
 				AvgWithStdev avg = (AvgWithStdev)data;
 				return avg.getAvg() + ";" + avg.getStdev() + ";";
 			}
-			throw new IllegalArgumentException( data.getClass().getName() );
+			else {
+				throw new IllegalArgumentException( "Unexpected data type in measure result: " + data.getClass().getName() );
+			}
 		};
-
-		buf.append( config.isUseSubtree() ).append( ';' )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.numberOfNodes.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.numberOfLeaves.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.height.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.averagePathLength.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.varianceDeviation.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.varianceDeviation2.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatWithinBetween.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn1.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn2.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn3.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDunn4.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatDaviesBouldin.identifier, 0 ) ) )
-			.append( dumpData.apply( measureMap.getOrDefault( MeasureTask.flatCalinskiHarabasz.identifier, 0 ) ) )
-			.append( '\n' );
-
-		buf.append( '\n' );
 
 		final Function<MeasureTask, String> dumpHistogram = task -> {
 			StringBuilder buf2 = new StringBuilder();
-			double[] data = (double[])measureMap.getOrDefault( task.identifier, new double[0] );
+			Object measureResult = computedMeasureMap.getOrDefault( task.identifier, new double[0] );
+
+			if ( measureResult instanceof double[] == false )
+				throw new IllegalArgumentException( "Not a histogram measure: " + task.identifier );
+
+			double[] data = (double[])measureResult;
 
 			if ( data.length > 0 ) {
 				buf2.append( task.identifier ).append( '\n' );
@@ -232,11 +278,51 @@ public class MeasureManager
 			return buf2.toString();
 		};
 
-		buf.append( dumpHistogram.apply( MeasureTask.nodesPerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.leavesPerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.instancesPerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.childrenPerNodePerLevel ) );
-		buf.append( dumpHistogram.apply( MeasureTask.numberOfChildren ) );
+		StringBuilder buf = new StringBuilder();
+
+		// -------------------------------------------------------------------------------------------------------
+		// Measures
+		buf.append( "Use subtree for internal measures?;" );
+
+		Collection<MeasureTask> measures = getAllMeasureTasks();
+
+		measures.forEach(
+			task -> {
+				Object measureResult = computedMeasureMap.get( task.identifier );
+
+				// Ignore uncomputed measures or histograms for now
+				if ( !( measureResult == null || measureResult instanceof double[] ) )
+					buf.append( task.identifier ).append( ";stdev;" );
+			}
+		);
+
+		buf.append( "\n" );
+		// Append data values
+		buf.append( config.isUseSubtree() ).append( ';' );
+
+		measures.forEach(
+			task -> {
+				Object measureResult = computedMeasureMap.get( task.identifier );
+
+				// Ignore uncomputed measures or histograms for now
+				if ( !( measureResult == null || measureResult instanceof double[] ) )
+					buf.append( resultToCSV.apply( measureResult ) );
+			}
+		);
+
+		buf.append( "\n\n" );
+
+		// -------------------------------------------------------------------------------------------------------
+		// Histograms
+		measures.forEach(
+			task -> {
+				Object measureResult = computedMeasureMap.get( task.identifier );
+
+				// Ignore uncomputed histograms
+				if ( measureResult == null )
+					buf.append( dumpHistogram.apply( task ) );
+			}
+		);
 
 		try ( FileWriter writer = new FileWriter( destinationFile.toFile() ) ) {
 			writer.write( buf.toString() );
@@ -253,7 +339,7 @@ public class MeasureManager
 		computeThread.clearPendingTasks();
 		computeThread.setHierarchy( newHierarchy );
 
-		measureMap.clear();
+		computedMeasureMap.clear();
 	}
 
 	private void onTaskPosted( MeasureTask task )
@@ -273,8 +359,8 @@ public class MeasureManager
 
 	private void onMeasureComputed( Pair<String, Object> result )
 	{
-		synchronized ( measureMap ) {
-			measureMap.put( result.getKey(), result.getValue() );
+		synchronized ( computedMeasureMap ) {
+			computedMeasureMap.put( result.getKey(), result.getValue() );
 		}
 
 		measureComputed.broadcast( result );
