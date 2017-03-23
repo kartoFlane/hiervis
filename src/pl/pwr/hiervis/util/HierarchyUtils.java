@@ -81,20 +81,21 @@ public class HierarchyUtils
 		rebaseShallow( Arrays.stream( source.getGroups() ), Constants.ROOT_ID, nodeId );
 
 		List<BasicNode> nodes = new LinkedList<>();
-		Map<String, Integer> classCountMap = new HashMap<>();
 
 		if ( Constants.ROOT_ID.equals( nodeId ) ) {
 			// No point in replacing the root, just substitute the entire hierarchy.
 			Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
-
-			nodes.forEach( n -> classCountMap.put( n.getId(), n.getNodeInstances().size() ) );
 
 			HierarchyBuilder.createParentChildRelations( nodes, null );
 			nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
 
 			nodes.sort( new NodeIdComparator() );
 
-			return new BasicHierarchy( nodes.get( 0 ), nodes, dest.getDataNames(), classCountMap );
+			Node root = nodes.get( 0 );
+			return new BasicHierarchy(
+				root, nodes,
+				dest.getDataNames(), computeClassCountMap( root )
+			);
 		}
 		else {
 			// Remove the merging point node from the dest hierarchy to replace it with the one from source
@@ -108,15 +109,57 @@ public class HierarchyUtils
 			Arrays.stream( dest.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
 			Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
 
-			nodes.forEach( n -> classCountMap.put( n.getId(), n.getNodeInstances().size() ) );
-
 			HierarchyBuilder.createParentChildRelations( nodes, null );
 			nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
+			HierarchyBuilder.recalculateCentroids( nodes, useSubtree, null );
 
 			nodes.sort( new NodeIdComparator() );
 
-			return new BasicHierarchy( dest.getRoot(), nodes, dest.getDataNames(), classCountMap );
+			return new BasicHierarchy(
+				dest.getRoot(), nodes,
+				dest.getDataNames(), computeClassCountMap( dest.getRoot() )
+			);
 		}
+	}
+
+	/**
+	 * @param h
+	 *            the hierarchy to get the class count map for
+	 * @return the ground-truth class counts map, as reported by the hierarchy
+	 */
+	public static Map<String, Integer> getClassCountMap( Hierarchy h )
+	{
+		Map<String, Integer> classCountMap = new HashMap<>();
+
+		String[] classes = h.getClasses();
+		int[] counts = h.getClassesCount();
+
+		for ( int i = 0; i < classes.length; ++i ) {
+			classCountMap.put( classes[i], counts[i] );
+		}
+
+		return classCountMap;
+	}
+
+	/**
+	 * Recomputes the ground-truth class count map for the specified hierarchy.
+	 * 
+	 * @param root
+	 *            root node of the hierarchy to recompute the class count map for
+	 * @return the recomputed ground-truth class count map
+	 */
+	public static Map<String, Integer> computeClassCountMap( Node root )
+	{
+		Map<String, Integer> classCountMap = new HashMap<>();
+
+		for ( Instance in : root.getSubtreeInstances() ) {
+			String trueClass = in.getTrueClass();
+			if ( trueClass == null )
+				break;
+			classCountMap.put( trueClass, classCountMap.getOrDefault( trueClass, 0 ) + 1 );
+		}
+
+		return classCountMap;
 	}
 
 	public static Hierarchy remove( Hierarchy source, String nodeId )
@@ -142,19 +185,17 @@ public class HierarchyUtils
 	{
 		Node root = Arrays.stream( source.getGroups() ).filter( n -> n.getId().equals( nodeId ) ).findFirst().get();
 
-		List<Node> nodes = new LinkedList<>();
-		Map<String, Integer> classCountMap = new HashMap<>();
+		List<BasicNode> nodes = new LinkedList<>();
 
 		Arrays.stream( source.getGroups() )
 			.filter( n -> n.getId().startsWith( root.getId() ) )
 			.forEach(
 				n -> {
-					nodes.add( n );
-					classCountMap.put( n.getId(), source.getParticularClassCount( n.getId(), false ) );
+					nodes.add( (BasicNode)n );
 				}
 			);
 
-		return new BasicHierarchy( root, nodes, source.getDataNames(), classCountMap );
+		return new BasicHierarchy( root, nodes, source.getDataNames(), computeClassCountMap( root ) );
 	}
 
 	/**
@@ -185,16 +226,21 @@ public class HierarchyUtils
 
 		final String fDestNodeId = destNodeId;
 
-		Map<String, Integer> classCountMap = new HashMap<>();
 		List<BasicNode> nodes = new LinkedList<>();
 
-		rebaseDeep( Arrays.stream( source.getGroups() ), nodeId, destNodeId, nodes, classCountMap, useSubtree );
+		rebaseDeep( Arrays.stream( source.getGroups() ), nodeId, destNodeId, nodes, useSubtree );
 
 		HierarchyBuilder.createParentChildRelations( nodes, null );
 		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
+		HierarchyBuilder.recalculateCentroids( nodes, useSubtree, null );
+
+		nodes.sort( new NodeIdComparator() );
 
 		BasicNode root = nodes.stream().filter( n -> n.getId().equals( fDestNodeId ) ).findFirst().get();
-		return new BasicHierarchy( root, nodes, source.getDataNames(), classCountMap );
+		return new BasicHierarchy(
+			root, nodes,
+			source.getDataNames(), computeClassCountMap( root )
+		);
 	}
 
 	/**
@@ -234,15 +280,12 @@ public class HierarchyUtils
 	 *            the new id to rebase the nodes as
 	 * @param destNodes
 	 *            the list to put the rebased nodes in
-	 * @param classCountMap
-	 *            map holding number of instances for each instance
 	 * @param useSubtree
 	 *            whether the centroid calculation should also include child nodes' instances
 	 */
 	public static void rebaseDeep(
 		Stream<Node> nodes, String oldId, String newId,
-		List<BasicNode> destNodes, Map<String, Integer> classCountMap,
-		boolean useSubtree )
+		List<BasicNode> destNodes, boolean useSubtree )
 	{
 		int prefixSub = oldId.length();
 
@@ -264,10 +307,6 @@ public class HierarchyUtils
 					);
 
 					destNodes.add( rebasedNode );
-
-					if ( classCountMap != null ) {
-						classCountMap.put( id, n.getNodeInstances().size() );
-					}
 				}
 			);
 	}
@@ -287,7 +326,6 @@ public class HierarchyUtils
 	{
 		final boolean useSubtree = false;
 
-		Map<String, Integer> classCountMap = new HashMap<>();
 		List<BasicNode> nodes = new LinkedList<>();
 
 		Arrays.stream( h.getGroups() ).forEach(
@@ -310,19 +348,20 @@ public class HierarchyUtils
 				);
 
 				nodes.add( clonedNode );
-
-				if ( classCountMap != null ) {
-					classCountMap.put( n.getId(), n.getNodeInstances().size() );
-				}
 			}
 		);
 
 		HierarchyBuilder.createParentChildRelations( nodes, null );
 		nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
+		HierarchyBuilder.recalculateCentroids( nodes, useSubtree, null );
 
 		nodes.sort( new NodeIdComparator() );
 
-		return new BasicHierarchy( nodes.get( 0 ), nodes, h.getDataNames(), classCountMap );
+		Node root = nodes.get( 0 );
+		return new BasicHierarchy(
+			root, nodes,
+			h.getDataNames(), computeClassCountMap( root )
+		);
 	}
 
 	/**
