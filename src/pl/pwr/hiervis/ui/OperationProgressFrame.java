@@ -16,6 +16,7 @@ import javax.swing.SwingUtilities;
 
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.SwingUIUtils;
+import javax.swing.SwingConstants;
 
 
 /**
@@ -54,6 +55,7 @@ public class OperationProgressFrame extends JDialog
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 
 		status = new JLabel();
+		status.setHorizontalAlignment( SwingConstants.CENTER );
 		getContentPane().add( status, builder.insets( 5, 5, 5, 5 ).position( 0, 0 ).fillHorizontal().anchorSouth().build() );
 
 		progressBar = new JProgressBar();
