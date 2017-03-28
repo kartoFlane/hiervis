@@ -6,6 +6,7 @@ import java.awt.GridBagLayout;
 import java.awt.Window;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -17,8 +18,10 @@ import org.apache.logging.log4j.Logger;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.ui.components.HKOptionsPanel;
+import pl.pwr.hiervis.ui.components.NodeCharacteristicsTable;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.SwingUIUtils;
+import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 
 
 @SuppressWarnings("serial")
@@ -61,45 +64,70 @@ public class NodeDetailsFrame extends JFrame
 		createNodeDetailsTab( cTabs );
 	}
 
-	private void createNodeDetailsTab( JTabbedPane tabPane )
-	{
-		JPanel cNodeDetails = new JPanel();
-		tabPane.addTab( "Node Details", null, cNodeDetails, null );
-
-		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 0, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 1.0 };
-		gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
-		cNodeDetails.setLayout( gridBagLayout );
-	}
-
 	private void createHKPlusPlusTab( JTabbedPane tabPane )
 	{
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 
-		JPanel cHkTabContainer = new JPanel();
-		tabPane.addTab( "HK++", null, cHkTabContainer, null );
+		JPanel tabContainer = new JPanel();
+		tabPane.addTab( "HK++", null, tabContainer, null );
 
 		GridBagLayout layout = new GridBagLayout();
 		layout.columnWidths = new int[] { 0 };
 		layout.rowHeights = new int[] { 0, 0 };
 		layout.columnWeights = new double[] { 1.0 };
 		layout.rowWeights = new double[] { 1.0, 0.0 };
-		cHkTabContainer.setLayout( layout );
+		tabContainer.setLayout( layout );
 
-		HKOptionsPanel hkPanel = new HKOptionsPanel( context, node, logHK );
-		hkPanel.setupDefaultValues();
+		HKOptionsPanel content = new HKOptionsPanel( context, node, logHK );
+		content.setupDefaultValues();
 
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.getVerticalScrollBar().setUnitIncrement( 16 );
-		scrollPane.setViewportView( hkPanel );
+		scrollPane.setViewportView( content );
 
-		cHkTabContainer.add( scrollPane, builder.fill().position( 0, 0 ).build() );
+		tabContainer.add( scrollPane, builder.fill().position( 0, 0 ).build() );
 
 		JButton btnGenerate = new JButton( "Generate" );
-		btnGenerate.addActionListener( e -> hkPanel.generate() );
-		cHkTabContainer.add( btnGenerate, builder.insets( 5 ).fillHorizontal().position( 0, 1 ).build() );
+		btnGenerate.addActionListener( e -> content.generate() );
+		tabContainer.add( btnGenerate, builder.insets( 5 ).fillHorizontal().position( 0, 1 ).build() );
+	}
+
+	private void createNodeDetailsTab( JTabbedPane tabPane )
+	{
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
+		JPanel tabContainer = new JPanel();
+		tabPane.addTab( "Node Details", null, tabContainer, null );
+
+		GridBagLayout gridBagLayout = new GridBagLayout();
+		gridBagLayout.columnWidths = new int[] { 0 };
+		gridBagLayout.rowHeights = new int[] { 0, 0 };
+		gridBagLayout.columnWeights = new double[] { 1.0, 1.0 };
+		gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
+		tabContainer.setLayout( gridBagLayout );
+
+		NodeCharacteristicsTable content = new NodeCharacteristicsTable(
+			HierarchyProcessor.getFeatureNames( context.getHierarchy() ), node
+		);
+
+		content.setFillsViewportHeight( true );
+
+		JCheckBox cboxUseSubtree = new JCheckBox( "Use subtree instances" );
+		cboxUseSubtree.addItemListener(
+			e -> {
+				content.setUseSubtree( !content.isUseSubtree() );
+				content.updateTable();
+			}
+		);
+		tabContainer.add( cboxUseSubtree, builder.fillHorizontal().position( 0, 0 ).build() );
+
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.getVerticalScrollBar().setUnitIncrement( 16 );
+		scrollPane.setViewportView( content );
+
+		tabContainer.add( scrollPane, builder.fill().position( 0, 1 ).build() );
+
+		content.updateTable();
 	}
 }
 
