@@ -5,12 +5,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -28,6 +30,10 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
@@ -55,7 +61,19 @@ public final class HierarchyVisualizer
 	{
 		createOptions();
 
-		HVContext context = new HVContext();
+		CommandLine cmd = parseArgs( args );
+
+		if ( cmd.hasOption( 'h' ) || cmd.hasOption( "help" ) ) {
+			printHelp();
+			System.exit( 0 );
+		}
+
+		String subtitle = null;
+		if ( cmd.hasOption( 's' ) ) {
+			subtitle = cmd.getOptionValue( 's' );
+		}
+
+		configureLoggers( subtitle == null ? "hv" : subtitle );
 
 		// Check if the program can access its own folder
 		if ( new File( "." ).exists() == false ) {
@@ -69,19 +87,8 @@ public final class HierarchyVisualizer
 			System.exit( 0 );
 		}
 
+		HVContext context = new HVContext();
 		context.setConfig( loadConfig() );
-
-		CommandLine cmd = parseArgs( args );
-
-		if ( cmd.hasOption( 'h' ) || cmd.hasOption( "help" ) ) {
-			printHelp();
-			System.exit( 0 );
-		}
-
-		String subtitle = null;
-		if ( cmd.hasOption( 's' ) ) {
-			subtitle = cmd.getOptionValue( 's' );
-		}
 
 		File inputFile = null;
 		if ( cmd.hasOption( 'i' ) ) {
@@ -327,6 +334,33 @@ public final class HierarchyVisualizer
 		if ( inputFile != null ) {
 			SwingUtilities.invokeLater( () -> ctx.loadFile( frame, inputFile, ctx.getConfig() ) );
 		}
+	}
+
+	/**
+	 * Setup the file logger so that it outputs messages to the appropriately named file,
+	 * depending on the subtitle of the current program instance.
+	 */
+	private static void configureLoggers( String subtitle )
+	{
+		// Remove all characters that are not allowed for Windows filenames.
+		subtitle = subtitle.replaceAll( "[\\s" + Pattern.quote( "\\/:*?\"<>|" ) + "]", "" );
+
+		LoggerContext context = (LoggerContext)LogManager.getContext();
+		Configuration config = context.getConfiguration();
+
+		PatternLayout layout = PatternLayout.createLayout(
+			"%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%throwable%n",
+			null, null, null, Charset.defaultCharset(), false, false, null, null
+		);
+
+		FileAppender appender = FileAppender.createAppender(
+			"logs/log-" + subtitle + ".txt", "false", "false", "LogFile-" + subtitle, "true", "true", "true",
+			"8192", layout, null, "false", "", config
+		);
+
+		org.apache.logging.log4j.core.Logger rootLogger = (org.apache.logging.log4j.core.Logger)LogManager.getRootLogger();
+		rootLogger.addAppender( appender );
+		appender.start();
 	}
 
 	public static void spawnNewInstance(
