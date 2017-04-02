@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -219,11 +220,26 @@ public class MeasureManager
 		return Collections.unmodifiableCollection( measureGroupMap.get( groupId ) );
 	}
 
-	public Collection<MeasureTask> getAllMeasureTasks()
+	/**
+	 * @param predicate
+	 *            the predicate that {@link MeasureTask}s have to match in order
+	 *            to be included in the result.
+	 * @return a list of {@link MeasureTask}s that match the specified predicate
+	 */
+	public Collection<MeasureTask> getMeasureTasks( Predicate<MeasureTask> predicate )
 	{
 		return measureGroupMap.values().stream()
 			.flatMap( Collection::stream )
+			.filter( predicate )
 			.collect( Collectors.toList() );
+	}
+
+	/**
+	 * @return a list of all {@link MeasureTask}s the manager is aware of
+	 */
+	public Collection<MeasureTask> getAllMeasureTasks()
+	{
+		return getMeasureTasks( t -> true );
 	}
 
 	/**

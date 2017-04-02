@@ -223,9 +223,12 @@ public class HierarchyStatisticsFrame extends JFrame
 	private void createMeasurePanels()
 	{
 		MeasureManager measureManager = context.getMeasureManager();
-		Collection<MeasureTask> allMeasureTasks = measureManager.getAllMeasureTasks();
 
-		addMeasurePanels( createBulkTaskPanel( "Calculate All", allMeasureTasks ) );
+		Collection<MeasureTask> validMeasureTasks = measureManager.getMeasureTasks(
+			task -> task.applicabilityFunction.apply( context.getHierarchy() )
+		);
+
+		addMeasurePanels( createBulkTaskPanel( "Calculate All", validMeasureTasks ) );
 
 		for ( String groupPath : measureManager.listMeasureTaskGroups() ) {
 			Collection<MeasureTask> measureTasks = measureManager.getMeasureTaskGroup( groupPath ).stream()
