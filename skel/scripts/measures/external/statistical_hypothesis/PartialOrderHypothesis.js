@@ -1,21 +1,19 @@
 function() {
 	// Load required classes
-	var FlatInformationGain = Java.type( 'external_measures.information_based.FlatInformationGain' );
-	var FlatEntropy1 = Java.type( 'external_measures.information_based.FlatEntropy1' );
+	var PartialOrderHypothesis = Java.type( 'external_measures.statistical_hypothesis.PartialOrderHypotheses' );
 
 	// Initialize the measure object
-	var logBase = 2;
-	var measure = new FlatInformationGain( logBase, new FlatEntropy1() );
+	var measure = new PartialOrderHypothesis();
 
 	// Create and return the result holder object
 	var measureData = {};
-	measureData.id = 'Flat Information Gain (2, FlatEntropy1)';
+	measureData.id = 'Partial Order Hypothesis';
 	measureData.isApplicable = function ( hierarchy ) {
 		// Applicable only to hierarchies with ground truth attribute
 		return hierarchy.getNumberOfClasses() > 0;
 	}
 	measureData.callback = function ( hierarchy ) {
-		return measure.getMeasure( hierarchy );
+		return measure.calculate( hierarchy );
 	}
 
 	return measureData;

@@ -1,13 +1,14 @@
 function() {
 	// Load required classes
-	var VarianceDeviation = Java.type( 'internal_measures.VarianceDeviation' );
+	var FlatReversedDunn2 = Java.type( 'internal_measures.FlatReversedDunn2' );
+	var Euclidean = Java.type( 'distance_measures.Euclidean' );
 
 	// Initialize the measure object
-	var measure = new VarianceDeviation( 1.0 );
+	var measure = new FlatReversedDunn2( new Euclidean() );
 
 	// Create and return the result holder object
 	var measureData = {};
-	measureData.id = 'Variance Deviation (1.0)';
+	measureData.id = 'Flat Reversed Dunn 2 (Euclidean)';
 	measureData.callback = function ( hierarchy ) {
 		return measure.getMeasure( hierarchy );
 	}
