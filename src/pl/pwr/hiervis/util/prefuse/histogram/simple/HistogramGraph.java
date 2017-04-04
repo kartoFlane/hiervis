@@ -20,6 +20,7 @@ import javax.swing.BorderFactory;
 import prefuse.Constants;
 import prefuse.Display;
 import prefuse.Visualization;
+import prefuse.action.Action;
 import prefuse.action.ActionList;
 import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
@@ -120,6 +121,21 @@ public class HistogramGraph extends Display
 		// STEP 4: launching the visualization
 
 		m_vis.run( "draw" );
+	}
+
+	public void setColorizeAction( ColorAction color )
+	{
+		Action oldColor = m_vis.removeAction( "color" );
+		m_vis.putAction( "color", color );
+
+		ActionList draw = (ActionList)m_vis.getAction( "draw" );
+		draw.remove( oldColor );
+		draw.add( 1, color );
+	}
+
+	public void setBarWidth( int width )
+	{
+		m_shapeR = new BarRenderer( width );
 	}
 
 	/**

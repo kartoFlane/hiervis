@@ -584,7 +584,7 @@ public class HierarchyProcessor
 	 * @return creates and returns a predicate which returns true for instances whose node's
 	 *         {@link ElementRole} is the same as the one passed in argument.
 	 */
-	private static ComparisonPredicate getPredicateFor( ElementRole elementRole )
+	public static ComparisonPredicate getPredicateFor( ElementRole elementRole )
 	{
 		return new ComparisonPredicate(
 			ComparisonPredicate.EQ,
