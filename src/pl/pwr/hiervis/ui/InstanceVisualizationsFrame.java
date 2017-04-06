@@ -51,10 +51,13 @@ import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.Utils;
+import pl.pwr.hiervis.util.prefuse.histogram.simple.HistogramGraph;
+import pl.pwr.hiervis.util.prefuse.histogram.simple.HistogramTable;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.controls.ToolTipControl;
+import prefuse.data.Table;
 import prefuse.visual.VisualItem;
 import prefuse.visual.sort.ItemSorter;
 
@@ -542,21 +545,88 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 	}
 
-	private Visualization createVisualizationFor( Node node, int dimX, int dimY )
+	/**
+	 * Creates a display for the specified dimensions and the specified node
+	 * 
+	 * @param node
+	 *            node that is currently selected in the hierarchy view
+	 * @param dimX
+	 *            index of the X dimension
+	 * @param dimY
+	 *            index of the Y dimension
+	 * @return the display
+	 */
+	private Display createDisplayFor( Node node, int dimX, int dimY )
 	{
-		Visualization vis = null;
+		Display display = null;
 
 		if ( dimX == dimY ) {
-			// TODO: Histogram
-			vis = new Visualization();
+			display = createHistogramDisplayFor( node, dimX );
 		}
 		else {
-			vis = HierarchyProcessor.createInstanceVisualization(
-				context, node, context.getConfig().getPointSize(), dimX, dimY, true
-			);
+			display = createInstanceDisplayFor( node, dimX, dimY );
 		}
 
-		return vis;
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+		cViewport.add(
+			display,
+			builder.position( dimX, dimY ).insets( displayInsets ).fill().build()
+		);
+
+		return display;
+	}
+
+	/**
+	 * Creates a histogram display for the specified dimension and the specified node
+	 * 
+	 * @param node
+	 *            node that is currently selected in the hierarchy view
+	 * @param dim
+	 *            dimension index
+	 * @return the display
+	 */
+	private Display createHistogramDisplayFor( Node node, int dim )
+	{
+		int bins = 100;
+		Table table = context.getInstanceTable();
+
+		HistogramTable histoTable = new HistogramTable( table, bins );
+		HistogramGraph display = new HistogramGraph( histoTable, table.getColumnName( dim ) );
+
+		display.setBackground( context.getConfig().getBackgroundColor() );
+		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
+
+		display.addControlListener( new PanControl( true ) );
+		ZoomScrollControl zoomControl = new ZoomScrollControl();
+		zoomControl.setModifierControl( true );
+		display.addControlListener( zoomControl );
+		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() && !e.isAltDown() ) );
+
+		display.addKeyListener(
+			new KeyAdapter() {
+				@Override
+				public void keyReleased( KeyEvent e )
+				{
+					if ( e.getKeyCode() == KeyEvent.VK_ALT ) {
+						// Consume alt key releases, so that the display doesn't lose focus
+						// (default behaviour of Alt key on Windows is to switch to menu bar when Alt
+						// is pressed, but this window has no menu bar anyway)
+						e.consume();
+					}
+				}
+			}
+		);
+
+		display.addComponentListener(
+			new ComponentAdapter() {
+				public void componentResized( ComponentEvent e )
+				{
+					redrawDisplayIfVisible( (Display)e.getComponent() );
+				}
+			}
+		);
+
+		return display;
 	}
 
 	/**
@@ -565,25 +635,24 @@ public class InstanceVisualizationsFrame extends JFrame
 	 * @param node
 	 *            node that is currently selected in the hierarchy view
 	 * @param dimX
-	 *            dimension number on the X axis (0 based)
+	 *            index of the X dimension
 	 * @param dimY
-	 *            dimension number on the Y axis (0 based)
-	 * @return container serving as a holder for the display.
+	 *            index of the Y dimension
+	 * @return the display
 	 */
 	private Display createInstanceDisplayFor( Node node, int dimX, int dimY )
 	{
 		Visualization vis = createVisualizationFor( node, dimX, dimY );
 		Display display = createInstanceDisplayFor( vis );
 
-		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
-		cViewport.add(
-			display,
-			builder.position( dimX, dimY ).insets( displayInsets ).fill().build()
-		);
-
-		vis.run( "draw" );
-
 		return display;
+	}
+
+	private Visualization createVisualizationFor( Node node, int dimX, int dimY )
+	{
+		return HierarchyProcessor.createInstanceVisualization(
+			context, node, context.getConfig().getPointSize(), dimX, dimY, true
+		);
 	}
 
 	/**
@@ -613,6 +682,7 @@ public class InstanceVisualizationsFrame extends JFrame
 						// Direct parents next, then indirect parents, then children, then other unrelated instances.
 						return Integer.MAX_VALUE - roleId;
 					}
+
 					return 0;
 				}
 			}
@@ -801,7 +871,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			else if ( vis ) {
 				if ( includeFlippedDims || ( !includeFlippedDims && x >= y ) ) {
 					// Lazily create the requested display.
-					display = createInstanceDisplayFor( node, x, y );
+					display = createDisplayFor( node, x, y );
 				}
 			}
 		}
