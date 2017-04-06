@@ -333,7 +333,7 @@ public class HistogramTable extends Table implements ColumnListener
 		return m_binMax.get( field );
 	}
 
-	public double getBinCount( String field )
+	public double getBinCount()
 	{
 		return m_binCount;
 	}

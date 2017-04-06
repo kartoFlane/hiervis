@@ -29,15 +29,20 @@ public class BarRenderer extends AbstractShapeRenderer
 	private boolean m_isVertical;
 	private int m_orientation = Constants.ORIENT_BOTTOM_TOP;
 
-	protected int m_barWidth = 10;
+	protected double m_barWidth = 10;
 	protected Rectangle2D m_rect = new Rectangle2D.Double();
 
 
-	public BarRenderer( int aWidth )
+	public BarRenderer( double aWidth )
 	{
 		// super(barWidth);
 		m_barWidth = aWidth;
 		setOrientation( m_orientation );
+	}
+
+	public void setBarWidth( double newWidth )
+	{
+		m_barWidth = newWidth;
 	}
 
 	public void setBounds( Rectangle2D bounds )

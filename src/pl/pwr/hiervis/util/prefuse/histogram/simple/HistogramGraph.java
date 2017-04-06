@@ -28,7 +28,6 @@ import prefuse.action.layout.AxisLabelLayout;
 import prefuse.action.layout.AxisLayout;
 import prefuse.data.query.NumberRangeModel;
 import prefuse.render.AxisRenderer;
-import prefuse.render.PolygonRenderer;
 import prefuse.render.Renderer;
 import prefuse.render.RendererFactory;
 import prefuse.util.ColorLib;
@@ -36,6 +35,7 @@ import prefuse.util.GraphicsLib;
 import prefuse.util.display.DisplayLib;
 import prefuse.visual.VisualItem;
 import prefuse.visual.expression.VisiblePredicate;
+import prefuse.visual.sort.ItemSorter;
 
 
 /**
@@ -62,7 +62,9 @@ import prefuse.visual.expression.VisiblePredicate;
  */
 public class HistogramGraph extends Display
 {
-	protected static final String group = "data";
+	protected static final String dataId = "data";
+	protected static final String xlabelsId = "xlabels";
+	protected static final String ylabelsId = "ylabels";
 
 	// KDS -- I tend to make things protected instead of private so
 	// that people can subclass them. I'm not sure that's the right
@@ -93,7 +95,7 @@ public class HistogramGraph extends Display
 		// --------------------------------------------------------------------
 		// STEP 1: setup the visualized data
 
-		m_vis.addTable( group, m_histoTable );
+		m_vis.addTable( dataId, m_histoTable );
 
 		initializeRenderer();
 
@@ -101,7 +103,7 @@ public class HistogramGraph extends Display
 		// STEP 2: create actions to process the visual data
 
 		ColorAction color = new ColorAction(
-			group,
+			dataId,
 			VisualItem.FILLCOLOR, ColorLib.rgb( 255, 100, 100 )
 		);
 		m_vis.putAction( "color", color );
@@ -133,9 +135,16 @@ public class HistogramGraph extends Display
 		draw.add( 1, color );
 	}
 
-	public void setBarWidth( int width )
+	/**
+	 * Updates the width of individual bars to the new value.
+	 * Display needs to be redrawn afterwards.
+	 * 
+	 * @param width
+	 *            the new bar width
+	 */
+	public void setBarWidth( double width )
 	{
-		m_shapeR = new BarRenderer( width );
+		m_shapeR.setBarWidth( width );
 	}
 
 	/**
@@ -152,16 +161,16 @@ public class HistogramGraph extends Display
 			new ComponentAdapter() {
 				public void componentResized( ComponentEvent e )
 				{
-					Display display = (Display)e.getComponent();
-
-					if ( !display.isTranformInProgress() ) {
+					if ( !isTranformInProgress() ) {
 						int margin = 10;
 
-						String m_group = Visualization.ALL_ITEMS;
-						Visualization vis = display.getVisualization();
-						Rectangle2D bounds = vis.getBounds( m_group );
-						GraphicsLib.expand( bounds, margin + (int)( 1 / display.getScale() ) );
-						DisplayLib.fitViewToBounds( display, bounds, 0 );
+						Rectangle2D bounds = m_vis.getBounds( Visualization.ALL_ITEMS );
+						double barWidth = bounds.getWidth() / m_histoTable.getBinCount();
+
+						GraphicsLib.expand( bounds, margin + (int)( 1 / getScale() ) );
+						DisplayLib.fitViewToBounds( HistogramGraph.this, bounds, 0 );
+
+						setBarWidth( barWidth );
 					}
 				}
 			}
@@ -181,7 +190,7 @@ public class HistogramGraph extends Display
 	private ActionList initializeAxes( String fieldName )
 	{
 		AxisLayout xAxis = new AxisLayout(
-			group, fieldName,
+			dataId, fieldName,
 			Constants.X_AXIS, VisiblePredicate.TRUE
 		);
 		xAxis.setLayoutBounds( m_dataB );
@@ -189,7 +198,7 @@ public class HistogramGraph extends Display
 
 		String countField = HistogramTable.getCountField( fieldName );
 		AxisLayout yAxis = new AxisLayout(
-			group, countField,
+			dataId, countField,
 			Constants.Y_AXIS, VisiblePredicate.TRUE
 		);
 
@@ -204,13 +213,13 @@ public class HistogramGraph extends Display
 		countNumberFormat.setMaximumFractionDigits( 0 );
 		countNumberFormat.setMinimumFractionDigits( 0 );
 
-		AxisLabelLayout xLabels = new AxisLabelLayout( "xlabels", xAxis, m_xlabB );
+		AxisLabelLayout xLabels = new AxisLabelLayout( xlabelsId, xAxis, m_xlabB );
 		xLabels.setNumberFormat( valueNumberFormat );
-		m_vis.putAction( "xlabels", xLabels );
+		m_vis.putAction( xlabelsId, xLabels );
 
-		AxisLabelLayout yLabels = new AxisLabelLayout( "ylabels", yAxis, m_ylabB );
+		AxisLabelLayout yLabels = new AxisLabelLayout( ylabelsId, yAxis, m_ylabB );
 		yLabels.setNumberFormat( countNumberFormat );
-		m_vis.putAction( "ylabels", yLabels );
+		m_vis.putAction( ylabelsId, yLabels );
 
 		updateAxes( fieldName, xAxis, yAxis, xLabels, yLabels );
 
@@ -229,18 +238,30 @@ public class HistogramGraph extends Display
 			new RendererFactory() {
 				Renderer xAxisRenderer = new AxisRenderer( Constants.CENTER, Constants.FAR_BOTTOM );
 				Renderer yAxisRenderer = new AxisRenderer( Constants.FAR_LEFT, Constants.CENTER );
-				Renderer barRenderer = new PolygonRenderer( Constants.POLY_TYPE_LINE );
 
 
 				public Renderer getRenderer( VisualItem item )
 				{
-					if ( item.isInGroup( "xlabels" ) )
+					if ( item.isInGroup( xlabelsId ) )
 						return xAxisRenderer;
-					if ( item.isInGroup( "ylabels" ) )
+					if ( item.isInGroup( ylabelsId ) )
 						return yAxisRenderer;
-					if ( item.isInGroup( "barchart" ) )
-						return barRenderer;
 					return m_shapeR;
+				}
+			}
+		);
+
+		// Via: http://www.ifs.tuwien.ac.at/~rind/w/doku.php/java/prefuse-scatterplot
+		// Sort items so that axes and lines are drawn below the actual histogram bars
+		setItemSorter(
+			new ItemSorter() {
+				public int score( VisualItem item )
+				{
+					if ( item.isInGroup( dataId ) ) {
+						return Integer.MAX_VALUE;
+					}
+
+					return 0;
 				}
 			}
 		);

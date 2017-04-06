@@ -593,6 +593,39 @@ public class InstanceVisualizationsFrame extends JFrame
 		HistogramTable histoTable = new HistogramTable( table, bins );
 		HistogramGraph display = new HistogramGraph( histoTable, table.getColumnName( dim ) );
 
+		display.setBackground( context.getConfig().getBackgroundColor() );
+		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
+
+		display.addControlListener( new PanControl( true ) );
+		ZoomScrollControl zoomControl = new ZoomScrollControl();
+		zoomControl.setModifierControl( true );
+		display.addControlListener( zoomControl );
+		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() && !e.isAltDown() ) );
+
+		display.addKeyListener(
+			new KeyAdapter() {
+				@Override
+				public void keyReleased( KeyEvent e )
+				{
+					if ( e.getKeyCode() == KeyEvent.VK_ALT ) {
+						// Consume alt key releases, so that the display doesn't lose focus
+						// (default behaviour of Alt key on Windows is to switch to menu bar when Alt
+						// is pressed, but this window has no menu bar anyway)
+						e.consume();
+					}
+				}
+			}
+		);
+
+		display.addComponentListener(
+			new ComponentAdapter() {
+				public void componentResized( ComponentEvent e )
+				{
+					redrawDisplayIfVisible( (Display)e.getComponent() );
+				}
+			}
+		);
+
 		return display;
 	}
 
