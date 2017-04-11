@@ -68,8 +68,7 @@ public class HierarchyProcessor
 	 *         associated with it, containing information as to how visualize the tree.
 	 */
 	public static Pair<Tree, TreeLayoutData> buildHierarchyTree(
-		HVConfig config, Node sourceRoot,
-		int availableWidth, int availableHeight )
+		Node sourceRoot, int availableWidth, int availableHeight )
 	{
 		Tree tree = new Tree();
 		tree.addColumn( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME, String.class );
@@ -124,7 +123,7 @@ public class HierarchyProcessor
 		maxTreeWidth = Collections.max( treeLevelToWidth.values() );
 
 		TreeLayoutData layoutData = new TreeLayoutData(
-			config, tree,
+			tree,
 			maxTreeDepth, maxTreeWidth,
 			availableWidth, availableHeight
 		);
@@ -136,7 +135,6 @@ public class HierarchyProcessor
 	public static void updateNodeRoles( HVContext context, int row )
 	{
 		Tree hierarchyTree = context.getTree();
-		HVConfig config = context.getConfig();
 
 		// Reset all nodes back to 'other'
 		for ( int i = 0; i < hierarchyTree.getNodeCount(); ++i ) {
@@ -160,7 +158,7 @@ public class HierarchyProcessor
 			}
 		}
 
-		if ( config.isDisplayAllPoints() && n.getParent() != null ) {
+		if ( n.getParent() != null ) {
 			stack = new LinkedList<>();
 			// when the parent is empty, then we need to search up in the hierarchy because empty
 			// parents are skipped, but displayed on output images
@@ -184,7 +182,6 @@ public class HierarchyProcessor
 	public static void updateTreeNodeRoles( HVContext context, String currentGroupId )
 	{
 		Tree hierarchyTree = context.getTree();
-		HVConfig config = context.getConfig();
 
 		if ( context.isHierarchyDataLoaded() ) {
 			boolean found = false;
@@ -214,7 +211,7 @@ public class HierarchyProcessor
 						}
 					}
 
-					if ( config.isDisplayAllPoints() && n.getParent() != null ) {
+					if ( n.getParent() != null ) {
 						stack.clear();
 
 						// IF the parent is empty, then we need to search up in the hierarchy because empty

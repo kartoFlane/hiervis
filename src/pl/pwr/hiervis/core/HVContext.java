@@ -356,8 +356,7 @@ public class HVContext
 		// Might want to use some kind of algorithm to figure out optimal tree layout area?
 		// 1024x1024 seems to work well enough for now.
 		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
-			config, hierarchy.getRoot(),
-			2048, 2048
+			hierarchy.getRoot(), 2048, 2048
 		);
 		hierarchyTree = treeData.getLeft();
 		hierarchyTreeLayout = treeData.getRight();

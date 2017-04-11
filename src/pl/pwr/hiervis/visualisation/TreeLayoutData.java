@@ -1,6 +1,5 @@
 package pl.pwr.hiervis.visualisation;
 
-import pl.pwr.hiervis.core.HVConfig;
 import prefuse.data.Tree;
 
 
@@ -27,7 +26,7 @@ public class TreeLayoutData
 
 
 	public TreeLayoutData(
-		HVConfig config, Tree tree,
+		Tree tree,
 		int treeDepth, int treeWidth,
 		int availableWidth, int availableHeight )
 	{
