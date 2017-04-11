@@ -11,8 +11,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 
-import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.ui.components.JMultilineLabel;
 import pl.pwr.hiervis.util.SwingUIUtils;
 
@@ -20,7 +20,8 @@ import pl.pwr.hiervis.util.SwingUIUtils;
 @SuppressWarnings("serial")
 public class FileLoadingOptionsDialog extends JDialog
 {
-	private HVConfig newConfig = null;
+	private LoadedHierarchy.Options options = null;
+
 	private JCheckBox cboxTrueClass;
 	private JCheckBox cboxInstanceName;
 	private JCheckBox cboxDataNames;
@@ -144,13 +145,13 @@ public class FileLoadingOptionsDialog extends JDialog
 		gbc_lblFillGaps.gridy = 7;
 		cOptions.add( lblFillGaps, gbc_lblFillGaps );
 
-		// Apply current config values
-		HVConfig cfg = context.getConfig();
+		// Apply previous options
+		LoadedHierarchy.Options prevOptions = context.getHierarchyOptions();
 
-		cboxTrueClass.setSelected( cfg.hasTrueClassAttribute() );
-		cboxInstanceName.setSelected( cfg.hasInstanceNameAttribute() );
-		cboxDataNames.setSelected( cfg.hasDataNamesRow() );
-		cboxFillGaps.setSelected( cfg.isFillBreadthGaps() );
+		cboxTrueClass.setSelected( prevOptions.hasTrueClassAttribute );
+		cboxInstanceName.setSelected( prevOptions.hasTnstanceNameAttribute );
+		cboxDataNames.setSelected( prevOptions.hasColumnHeader );
+		cboxFillGaps.setSelected( prevOptions.isFillBreadthGaps );
 	}
 
 	private void createButtonPanel( HVContext context )
@@ -181,33 +182,29 @@ public class FileLoadingOptionsDialog extends JDialog
 
 		btnConfirm.addActionListener(
 			( e ) -> {
-				updateConfig( context );
+				updateOptions( context );
 				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
 			}
 		);
 	}
 
-	private void updateConfig( HVContext context )
+	private void updateOptions( HVContext context )
 	{
-		newConfig = context.getConfig().copy();
-
-		newConfig.setTrueClassAttribute( cboxTrueClass.isSelected() );
-		newConfig.setInstanceNameAttribute( cboxInstanceName.isSelected() );
-		newConfig.setDataNamesRow( cboxDataNames.isSelected() );
-		newConfig.setFillBreadthGaps( cboxFillGaps.isSelected() );
-
-		if ( newConfig.isUseTrueClass() && !newConfig.hasTrueClassAttribute() ) {
-			// If the file being loaded has no true class attribute, then disable true usage.
-			newConfig.setUseTrueClass( false );
-		}
+		options = new LoadedHierarchy.Options(
+			cboxInstanceName.isSelected(),
+			cboxTrueClass.isSelected(),
+			cboxDataNames.isSelected(),
+			cboxFillGaps.isSelected(),
+			false // TODO
+		);
 	}
 
 	/**
-	 * @return the new config instance, if the user exited the dialog by
+	 * @return the new options instance, if the user exited the dialog by
 	 *         pressing the 'Confirm' button. Null otherwise.
 	 */
-	public HVConfig getConfig()
+	public LoadedHierarchy.Options getOptions()
 	{
-		return newConfig;
+		return options;
 	}
 }

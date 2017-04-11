@@ -8,7 +8,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Hierarchy;
 import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.SwingUIUtils;
@@ -36,7 +35,7 @@ public class MeasureComputeThread extends Thread
 	private final ReentrantLock lock = new ReentrantLock();
 	private Queue<MeasureTask> tasks = new LinkedList<>();
 	private MeasureTask currentTask = null;
-	private Hierarchy hierarchy;
+	private LoadedHierarchy hierarchy;
 
 
 	public MeasureComputeThread()
@@ -51,7 +50,7 @@ public class MeasureComputeThread extends Thread
 	 * @param hierarchy
 	 *            the hierarchy for which measures will be computed.
 	 */
-	public void setHierarchy( Hierarchy hierarchy )
+	public void setHierarchy( LoadedHierarchy hierarchy )
 	{
 		if ( hierarchy == null )
 			throw new IllegalArgumentException( "Hierarchy must not be null!" );
@@ -92,7 +91,7 @@ public class MeasureComputeThread extends Thread
 				log.trace( String.format( "Computing measure '%s'...", currentTask.identifier ) );
 				measureComputing.broadcast( currentTask.identifier );
 				try {
-					Object result = currentTask.computeFunction.apply( hierarchy );
+					Object result = currentTask.computeFunction.apply( hierarchy.data );
 					measureComputed.broadcast( Pair.of( currentTask.identifier, result ) );
 				}
 				catch ( Throwable e ) {

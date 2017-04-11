@@ -40,11 +40,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.ui.components.MouseWheelEventBubbler;
 import pl.pwr.hiervis.ui.components.VerticalLabelUI;
 import pl.pwr.hiervis.ui.control.PanControl;
@@ -665,7 +665,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	private Display createInstanceDisplayFor( Visualization vis )
 	{
 		Display display = new Display( vis );
-		display.setHighQuality( context.getHierarchy().getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
+		display.setHighQuality( context.getHierarchy().data.getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
 		display.setBackground( context.getConfig().getBackgroundColor() );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
 
@@ -910,7 +910,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		repaint();
 	}
 
-	private void onHierarchyChanging( Hierarchy h )
+	private void onHierarchyChanging( LoadedHierarchy h )
 	{
 		cboxAllH.setEnabled( false );
 		cboxAllV.setEnabled( false );
@@ -929,7 +929,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		repaint();
 	}
 
-	private void onHierarchyChanged( Hierarchy h )
+	private void onHierarchyChanged( LoadedHierarchy h )
 	{
 		recreateUI();
 

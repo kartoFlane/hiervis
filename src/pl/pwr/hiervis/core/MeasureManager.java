@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.measures.JavascriptMeasureTaskFactory;
 import pl.pwr.hiervis.measures.MeasureTask;
@@ -73,7 +72,7 @@ public class MeasureManager
 	 * @param hierarchy
 	 *            the hierarchy for which measures will be computed.
 	 */
-	public void setHierarchy( Hierarchy hierarchy )
+	public void setHierarchy( LoadedHierarchy hierarchy )
 	{
 		computeThread.setHierarchy( hierarchy );
 	}
@@ -257,7 +256,7 @@ public class MeasureManager
 		computeThread.shutdown();
 	}
 
-	public void dumpMeasures( Path destinationFile, HVConfig config )
+	public void dumpMeasures( Path destinationFile, LoadedHierarchy hierarchy )
 	{
 		final Function<Object, String> resultToCSV = data -> {
 			if ( data instanceof Double || data instanceof Integer )
@@ -316,7 +315,7 @@ public class MeasureManager
 
 		buf.append( "\n" );
 		// Append data values
-		buf.append( config.isUseSubtree() ).append( ';' );
+		buf.append( hierarchy.options.isUseSubtree ).append( ';' );
 
 		measures.forEach(
 			task -> {
@@ -352,7 +351,7 @@ public class MeasureManager
 
 	// -------------------------------------------------------------------------------------
 
-	private void onHierarchyChanged( Hierarchy newHierarchy )
+	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
 	{
 		computeThread.clearPendingTasks();
 		computeThread.setHierarchy( newHierarchy );

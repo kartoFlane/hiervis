@@ -37,6 +37,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.ui.VisualizerFrame;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;
@@ -91,20 +92,24 @@ public final class HierarchyVisualizer
 		context.setConfig( loadConfig() );
 
 		File inputFile = null;
+		LoadedHierarchy.Options loadOptions = null;
 		if ( cmd.hasOption( 'i' ) ) {
 			List<String> inputOptions = new ArrayList<String>( Arrays.asList( cmd.getOptionValues( 'i' ) ) );
 			boolean withTrueClass = inputOptions.remove( "true-class" );
 			boolean withInstanceNames = inputOptions.remove( "instance-names" );
 			boolean withHeader = inputOptions.remove( "header" );
 			boolean fixBreadthGaps = inputOptions.remove( "fix-breadth-gaps" );
+			boolean useSubtree = inputOptions.remove( "use-subtree" );
 
 			inputFile = new File( inputOptions.get( 0 ) );
 
-			HVConfig cfg = context.getConfig();
-			cfg.setTrueClassAttribute( withTrueClass );
-			cfg.setInstanceNameAttribute( withInstanceNames );
-			cfg.setDataNamesRow( withHeader );
-			cfg.setFillBreadthGaps( fixBreadthGaps );
+			loadOptions = new LoadedHierarchy.Options(
+				withInstanceNames,
+				withTrueClass,
+				withHeader,
+				fixBreadthGaps,
+				useSubtree
+			);
 
 			if ( inputFile.isDirectory() ) {
 				throw new IOException( inputFile.getPath() + " must be a path to a file!" );
@@ -124,7 +129,7 @@ public final class HierarchyVisualizer
 			log.error( "Unexpected error occurred while loading measure files: ", e );
 		}
 
-		executeGUI( context, subtitle, inputFile );
+		executeGUI( context, subtitle, inputFile, loadOptions );
 	}
 
 	@SuppressWarnings("static-access")
@@ -195,7 +200,7 @@ public final class HierarchyVisualizer
 		return config;
 	}
 
-	private static void executeGUI( HVContext ctx, String subtitle, File inputFile )
+	private static void executeGUI( HVContext ctx, String subtitle, File inputFile, LoadedHierarchy.Options loadOptions )
 	{
 		HVConfig config = ctx.getConfig();
 
@@ -319,10 +324,10 @@ public final class HierarchyVisualizer
 		}
 
 		// Ensure all popups are triggered from the event dispatch thread.
-		SwingUtilities.invokeLater( () -> initGUI( ctx, subtitle, inputFile ) );
+		SwingUtilities.invokeLater( () -> initGUI( ctx, subtitle, inputFile, loadOptions ) );
 	}
 
-	private static void initGUI( HVContext ctx, String subtitle, File inputFile )
+	private static void initGUI( HVContext ctx, String subtitle, File inputFile, LoadedHierarchy.Options loadOptions )
 	{
 		ctx.createGUI( subtitle );
 
@@ -332,7 +337,7 @@ public final class HierarchyVisualizer
 		frame.showFrames();
 
 		if ( inputFile != null ) {
-			SwingUtilities.invokeLater( () -> ctx.loadFile( frame, inputFile, ctx.getConfig() ) );
+			SwingUtilities.invokeLater( () -> ctx.loadFile( frame, inputFile, loadOptions ) );
 		}
 	}
 
@@ -377,6 +382,7 @@ public final class HierarchyVisualizer
 				argsList.add( "instance-names" );
 			argsList.add( "header" );
 			// argsList.add( "fix-breadth-gaps" );
+			// argsList.add( "use-subtree" );
 		}
 		if ( subtitle != null ) {
 			argsList.add( "-s" );

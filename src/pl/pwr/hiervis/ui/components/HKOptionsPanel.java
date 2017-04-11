@@ -16,11 +16,11 @@ import javax.swing.text.NumberFormatter;
 
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.HierarchyVisualizer;
 import pl.pwr.hiervis.core.HKPlusPlusWrapper;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.HierarchyUtils;
 
@@ -144,14 +144,14 @@ public class HKOptionsPanel extends JPanel
 		txtEpsilon.setText( "10" );
 		txtLittleVal.setText( "5" );
 
-		cboxTrueClass.setSelected( context.getConfig().hasTrueClassAttribute() );
+		cboxTrueClass.setSelected( context.getHierarchy().options.hasTrueClassAttribute );
 		cboxInstanceNames.setSelected( false );
 		cboxDiagonalMatrix.setSelected( false );
 		cboxNoStaticCenter.setSelected( false );
 		cboxGenerateImages.setSelected( false );
 
-		cboxTrueClass.setEnabled( context.getConfig().hasTrueClassAttribute() );
-		cboxInstanceNames.setEnabled( context.getConfig().hasInstanceNameAttribute() );
+		cboxTrueClass.setEnabled( context.getHierarchy().options.hasTrueClassAttribute );
+		cboxInstanceNames.setEnabled( context.getHierarchy().options.hasTnstanceNameAttribute );
 	}
 
 	public void generate()
@@ -260,26 +260,15 @@ public class HKOptionsPanel extends JPanel
 			logger.trace( "Finished successfully." );
 
 			try {
-				Hierarchy outputHierarchy = wrapper.getOutputHierarchy(
+				LoadedHierarchy outputHierarchy = wrapper.getOutputHierarchy(
 					cboxTrueClass.isSelected(),
 					cboxInstanceNames.isSelected(),
 					false
 				);
 
-				Hierarchy finalHierarchy = HierarchyUtils.merge( outputHierarchy, context.getHierarchy(), node.getId() );
+				LoadedHierarchy finalHierarchy = HierarchyUtils.merge( outputHierarchy, context.getHierarchy(), node.getId() );
 
-				File tmp = File.createTempFile( "hv-h-", ".tmp.csv" );
-				logger.trace( "Saving merged hierarchy to: " + tmp.getAbsolutePath() );
-				HierarchyUtils.save(
-					tmp.getAbsolutePath(), finalHierarchy,
-					true, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected(), true
-				);
-
-				// TODO: Check if the selection was an internal node or leaf node, and decide where to load the new hierarchy based on that
-				HierarchyVisualizer.spawnNewInstance(
-					getParameterString(),
-					tmp, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected()
-				);
+				openInNewInstance( finalHierarchy );
 			}
 			catch ( Throwable ex ) {
 				logger.error( "Subprocess finished successfully, but failed during processing: ", ex );
@@ -291,5 +280,21 @@ public class HKOptionsPanel extends JPanel
 		}
 
 		wrapper = null;
+	}
+
+	private void openInNewInstance( LoadedHierarchy hierarchy ) throws IOException
+	{
+		File tmp = File.createTempFile( "hv-h-", ".tmp.csv" );
+		logger.trace( "Saving merged hierarchy to: " + tmp.getAbsolutePath() );
+		HierarchyUtils.save(
+			tmp.getAbsolutePath(), hierarchy.data,
+			true, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected(), true
+		);
+
+		// TODO: Check if the selection was an internal node or leaf node, and decide where to load the new hierarchy based on that
+		HierarchyVisualizer.spawnNewInstance(
+			getParameterString(),
+			tmp, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected()
+		);
 	}
 }

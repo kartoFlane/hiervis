@@ -2,6 +2,7 @@ package pl.pwr.hiervis.core;
 
 import java.io.File;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,11 +16,11 @@ public class FileLoaderThread extends Thread
 {
 	private static final Logger log = LogManager.getLogger( FileLoaderThread.class );
 
-	public final Event<Hierarchy> fileLoaded = new Event<>();
+	public final Event<Pair<File, LoadedHierarchy>> fileLoaded = new Event<>();
 	public final Event<Exception> errorOcurred = new Event<>();
 
-	private final HVConfig cfg;
 	private final File file;
+	private final LoadedHierarchy.Options options;
 
 	private GeneratedCSVReader reader;
 
@@ -31,12 +32,12 @@ public class FileLoaderThread extends Thread
 	 * @param file
 	 *            the file to load (CSV format)
 	 */
-	public FileLoaderThread( HVConfig config, File file )
+	public FileLoaderThread( File file, LoadedHierarchy.Options options )
 	{
 		setDaemon( true );
 
-		this.cfg = config.copy();
 		this.file = file;
+		this.options = options;
 	}
 
 	@Override
@@ -51,17 +52,19 @@ public class FileLoaderThread extends Thread
 
 			Hierarchy hierarchy = reader.load(
 				file.getAbsolutePath(),
-				cfg.hasInstanceNameAttribute(),
-				cfg.hasTrueClassAttribute(),
-				cfg.hasDataNamesRow(),
-				cfg.isFillBreadthGaps(),
-				cfg.isUseSubtree()
+				options.hasTnstanceNameAttribute,
+				options.hasTrueClassAttribute,
+				options.hasColumnHeader,
+				options.isFillBreadthGaps,
+				options.isUseSubtree
 			);
 
 			log.trace( "Verifying..." );
 			verify( hierarchy );
 
-			fileLoaded.broadcast( hierarchy );
+			LoadedHierarchy lh = new LoadedHierarchy( hierarchy, options );
+
+			fileLoaded.broadcast( Pair.of( file, lh ) );
 		}
 		catch ( Utils.RuntimeInterruptedException ex ) {
 			log.trace( "File loading aborted by user." );

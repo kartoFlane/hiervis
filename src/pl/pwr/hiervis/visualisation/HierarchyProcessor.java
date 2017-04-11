@@ -21,6 +21,7 @@ import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.util.Utils;
 import prefuse.Constants;
 import prefuse.Visualization;
@@ -323,11 +324,11 @@ public class HierarchyProcessor
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	public static Table createInstanceTable( HVConfig config, Hierarchy hierarchy, Tree hierarchyTree )
+	public static Table createInstanceTable( HVConfig config, LoadedHierarchy hierarchy, Tree hierarchyTree )
 	{
 		String[] dataNames = getFeatureNames( hierarchy );
 
-		Table table = createEmptyInstanceTable( config, dataNames );
+		Table table = createEmptyInstanceTable( hierarchy.options, dataNames );
 		processInstanceData( config, hierarchy, hierarchyTree, table );
 
 		return table;
@@ -341,14 +342,14 @@ public class HierarchyProcessor
 	 *            the hierarchy to get the names for
 	 * @return array of names for instance features
 	 */
-	public static String[] getFeatureNames( Hierarchy hierarchy )
+	public static String[] getFeatureNames( LoadedHierarchy hierarchy )
 	{
-		String[] dataNames = hierarchy.getDataNames();
+		String[] dataNames = hierarchy.data.getDataNames();
 
 		if ( dataNames == null ) {
 			// Input file had no column names -- got to make them up ourselves.
 			try {
-				Instance instance = hierarchy.getRoot().getSubtreeInstances().get( 0 );
+				Instance instance = hierarchy.data.getRoot().getSubtreeInstances().get( 0 );
 				int dimCount = instance.getData().length;
 				dataNames = new String[dimCount];
 				for ( int i = 0; i < dimCount; ++i ) {
@@ -372,7 +373,7 @@ public class HierarchyProcessor
 	 *            array of names for instance features
 	 * @return the created table
 	 */
-	private static Table createEmptyInstanceTable( HVConfig config, String[] dataNames )
+	private static Table createEmptyInstanceTable( LoadedHierarchy.Options options, String[] dataNames )
 	{
 		Table table = new Table();
 
@@ -383,7 +384,7 @@ public class HierarchyProcessor
 		table.addColumn( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, prefuse.data.Node.class );
 		// table.addColumn( HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, boolean.class );
 		// table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
-		if ( config.hasInstanceNameAttribute() ) {
+		if ( options.hasTnstanceNameAttribute ) {
 			table.addColumn( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, String.class );
 		}
 
@@ -403,13 +404,14 @@ public class HierarchyProcessor
 	 *            the table the processed data will be saved in.
 	 */
 	private static void processInstanceData(
-		HVConfig config, Hierarchy hierarchy,
+		HVConfig config,
+		LoadedHierarchy hierarchy,
 		Tree hierarchyTree, Table table )
 	{
 		// TODO: Implement some sort of culling so that we remove overlapping instances?
 		// Could use k-d trees maybe?
 
-		for ( Instance instance : hierarchy.getRoot().getSubtreeInstances() ) {
+		for ( Instance instance : hierarchy.data.getRoot().getSubtreeInstances() ) {
 			int row = table.addRow();
 
 			double[] data = instance.getData();
@@ -427,7 +429,7 @@ public class HierarchyProcessor
 			table.set( row, HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, node );
 			// table.set( row, HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, true );
 			// table.set( row, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, 0 );
-			if ( config.hasInstanceNameAttribute() ) {
+			if ( hierarchy.options.hasTnstanceNameAttribute ) {
 				table.set( row, HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, instance.getInstanceName() );
 			}
 		}
@@ -490,7 +492,7 @@ public class HierarchyProcessor
 		Table table = context.getInstanceTable();
 		vis.addTable( HVConstants.INSTANCE_DATA_NAME, table );
 
-		Node root = context.getHierarchy().getRoot();
+		Node root = context.getHierarchy().data.getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root, dimX, dimY );
 
 		AxisLayout axisX = new AxisLayout(

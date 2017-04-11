@@ -154,11 +154,11 @@ public class HKPlusPlusWrapper
 	 *             if an I/O error occurs
 	 */
 	public void prepareInputFile(
-		Hierarchy hierarchy, Node selectedNode,
+		LoadedHierarchy hierarchy, Node selectedNode,
 		boolean withTrueClass, boolean withInstanceNames ) throws IOException
 	{
-		Hierarchy subHierarchy = HierarchyUtils.subHierarchyShallow( hierarchy, selectedNode.getId() );
-		HierarchyUtils.save( hkInputFile.getAbsolutePath(), subHierarchy, false, withTrueClass, withInstanceNames, true );
+		LoadedHierarchy subHierarchy = HierarchyUtils.subHierarchyShallow( hierarchy, selectedNode.getId() );
+		HierarchyUtils.save( hkInputFile.getAbsolutePath(), subHierarchy.data, false, withTrueClass, withInstanceNames, true );
 	}
 
 	/**
@@ -174,12 +174,22 @@ public class HKPlusPlusWrapper
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public Hierarchy getOutputHierarchy( boolean withTrueClass, boolean withInstanceNames, boolean useSubtree ) throws IOException
+	public LoadedHierarchy getOutputHierarchy( boolean withTrueClass, boolean withInstanceNames, boolean useSubtree ) throws IOException
 	{
-		return new GeneratedCSVReader( false ).load(
-			hkOutputFile.getAbsolutePath(),
+		LoadedHierarchy.Options options = new LoadedHierarchy.Options(
 			withInstanceNames, withTrueClass, false, false, useSubtree
 		);
+
+		Hierarchy output = new GeneratedCSVReader( false ).load(
+			hkOutputFile.getAbsolutePath(),
+			options.hasTnstanceNameAttribute,
+			options.hasTrueClassAttribute,
+			options.hasColumnHeader,
+			options.isFillBreadthGaps,
+			options.isUseSubtree
+		);
+
+		return new LoadedHierarchy( output, options );
 	}
 
 	/**

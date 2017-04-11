@@ -122,7 +122,7 @@ public class ConfigDialog extends JDialog
 		listLAF.setSelectedItem( cfg.getPreferredLookAndFeel() );
 		sldPointSize.setValue( cfg.getPointSize() );
 
-		if ( cfg.hasTrueClassAttribute() ) {
+		if ( context.getHierarchy().options.hasTrueClassAttribute ) {
 			cboxUseTrueClass.setEnabled( true );
 			cboxUseTrueClass.setSelected( cfg.isUseTrueClass() );
 

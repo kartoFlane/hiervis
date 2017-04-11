@@ -26,6 +26,7 @@ import basic_hierarchy.implementation.BasicNode;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 
 
 public class HierarchyUtils
@@ -48,7 +49,7 @@ public class HierarchyUtils
 	 *            Nodes from the source hierarchy will be rebased to have this id as root.
 	 * @return the new, merged hierarchy (shallow copy of both source and dest hierarchies)
 	 */
-	public static Hierarchy merge( Hierarchy source, Hierarchy dest, String nodeId )
+	public static LoadedHierarchy merge( LoadedHierarchy source, LoadedHierarchy dest, String nodeId )
 	{
 		// Check parameters...
 		if ( source == null ) {
@@ -58,8 +59,8 @@ public class HierarchyUtils
 			throw new IllegalArgumentException( "Destination hierarchy is null." );
 		}
 
-		int sourceDims = getFeatureCount( source );
-		int destDims = getFeatureCount( dest );
+		int sourceDims = getFeatureCount( source.data );
+		int destDims = getFeatureCount( dest.data );
 
 		if ( sourceDims != destDims ) {
 			throw new IllegalArgumentException(
@@ -74,17 +75,17 @@ public class HierarchyUtils
 		return merge0( source, dest, nodeId );
 	}
 
-	private static Hierarchy merge0( Hierarchy source, Hierarchy dest, String nodeId )
+	private static LoadedHierarchy merge0( LoadedHierarchy source, LoadedHierarchy dest, String nodeId )
 	{
 		final boolean useSubtree = false;
 
-		rebaseShallow( Arrays.stream( source.getGroups() ), Constants.ROOT_ID, nodeId );
+		rebaseShallow( Arrays.stream( source.data.getGroups() ), Constants.ROOT_ID, nodeId );
 
 		List<BasicNode> nodes = new LinkedList<>();
 
 		if ( Constants.ROOT_ID.equals( nodeId ) ) {
 			// No point in replacing the root, just substitute the entire hierarchy.
-			Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+			Arrays.stream( source.data.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
 
 			HierarchyBuilder.createParentChildRelations( nodes, null );
 			nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
@@ -92,22 +93,25 @@ public class HierarchyUtils
 			nodes.sort( new NodeIdComparator() );
 
 			Node root = nodes.get( 0 );
-			return new BasicHierarchy(
+
+			Hierarchy mergedHierarchy = new BasicHierarchy(
 				root, nodes,
-				dest.getDataNames(), computeClassCountMap( root )
+				dest.data.getDataNames(), computeClassCountMap( root )
 			);
+
+			return new LoadedHierarchy( mergedHierarchy, dest.options );
 		}
 		else {
 			// Remove the merging point node from the dest hierarchy to replace it with the one from source
-			Optional<Node> optNode = Arrays.stream( dest.getGroups() )
+			Optional<Node> optNode = Arrays.stream( dest.data.getGroups() )
 				.filter( n -> n.getId().equals( nodeId ) )
 				.findAny();
 			if ( optNode.isPresent() ) {
 				dest = remove( dest, nodeId );
 			}
 
-			Arrays.stream( dest.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
-			Arrays.stream( source.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+			Arrays.stream( dest.data.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
+			Arrays.stream( source.data.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
 
 			HierarchyBuilder.createParentChildRelations( nodes, null );
 			nodes.addAll( HierarchyBuilder.fixDepthGaps( nodes, useSubtree, null ) );
@@ -115,10 +119,12 @@ public class HierarchyUtils
 
 			nodes.sort( new NodeIdComparator() );
 
-			return new BasicHierarchy(
-				dest.getRoot(), nodes,
-				dest.getDataNames(), computeClassCountMap( dest.getRoot() )
+			Hierarchy mergedHierarchy = new BasicHierarchy(
+				dest.data.getRoot(), nodes,
+				dest.data.getDataNames(), computeClassCountMap( dest.data.getRoot() )
 			);
+
+			return new LoadedHierarchy( mergedHierarchy, dest.options );
 		}
 	}
 
@@ -130,7 +136,7 @@ public class HierarchyUtils
 	 *            the hierarchy to flatten
 	 * @return flattened hierarchy
 	 */
-	public static Hierarchy flattenHierarchy( Hierarchy source )
+	public static LoadedHierarchy flattenHierarchy( LoadedHierarchy source )
 	{
 		final boolean useSubtree = false;
 
@@ -139,7 +145,7 @@ public class HierarchyUtils
 		List<BasicNode> nodes = new LinkedList<>();
 		nodes.add( root );
 
-		source.getRoot().getSubtreeInstances().forEach(
+		source.data.getRoot().getSubtreeInstances().forEach(
 			in -> {
 				root.addInstance(
 					new BasicInstance(
@@ -158,10 +164,12 @@ public class HierarchyUtils
 
 		nodes.sort( new NodeIdComparator() );
 
-		return new BasicHierarchy(
+		Hierarchy flatHierarchy = new BasicHierarchy(
 			root, nodes,
-			source.getDataNames(), computeClassCountMap( root )
+			source.data.getDataNames(), computeClassCountMap( root )
 		);
+
+		return new LoadedHierarchy( flatHierarchy, source.options );
 	}
 
 	/**
@@ -204,7 +212,7 @@ public class HierarchyUtils
 		return classCountMap;
 	}
 
-	public static Hierarchy remove( Hierarchy source, String nodeId )
+	public static LoadedHierarchy remove( LoadedHierarchy source, String nodeId )
 	{
 		return cloneDeep( source, n -> !n.getId().startsWith( nodeId ) );
 	}
@@ -223,13 +231,13 @@ public class HierarchyUtils
 	 * @throws NoSuchElementException
 	 *             if the hierarchy doesn't contain a node with the specified name
 	 */
-	public static Hierarchy subHierarchyShallow( Hierarchy source, String nodeId )
+	public static LoadedHierarchy subHierarchyShallow( LoadedHierarchy source, String nodeId )
 	{
-		Node root = Arrays.stream( source.getGroups() ).filter( n -> n.getId().equals( nodeId ) ).findFirst().get();
+		Node root = Arrays.stream( source.data.getGroups() ).filter( n -> n.getId().equals( nodeId ) ).findFirst().get();
 
 		List<BasicNode> nodes = new LinkedList<>();
 
-		Arrays.stream( source.getGroups() )
+		Arrays.stream( source.data.getGroups() )
 			.filter( n -> n.getId().startsWith( root.getId() ) )
 			.forEach(
 				n -> {
@@ -237,7 +245,8 @@ public class HierarchyUtils
 				}
 			);
 
-		return new BasicHierarchy( root, nodes, source.getDataNames(), computeClassCountMap( root ) );
+		Hierarchy subHierarchy = new BasicHierarchy( root, nodes, source.data.getDataNames(), computeClassCountMap( root ) );
+		return new LoadedHierarchy( subHierarchy, source.options );
 	}
 
 	/**
@@ -364,13 +373,13 @@ public class HierarchyUtils
 	 *            Can be null to include all nodes.
 	 * @return the cloned hierarchy
 	 */
-	public static Hierarchy cloneDeep( Hierarchy h, Predicate<Node> nodeInclusionPredicate )
+	public static LoadedHierarchy cloneDeep( LoadedHierarchy h, Predicate<Node> nodeInclusionPredicate )
 	{
 		final boolean useSubtree = false;
 
 		List<BasicNode> nodes = new LinkedList<>();
 
-		Arrays.stream( h.getGroups() ).forEach(
+		Arrays.stream( h.data.getGroups() ).forEach(
 			n -> {
 				if ( nodeInclusionPredicate != null && !nodeInclusionPredicate.test( n ) ) {
 					return;
@@ -400,10 +409,12 @@ public class HierarchyUtils
 		nodes.sort( new NodeIdComparator() );
 
 		Node root = nodes.get( 0 );
-		return new BasicHierarchy(
+		Hierarchy clonedHierarchy = new BasicHierarchy(
 			root, nodes,
-			h.getDataNames(), computeClassCountMap( root )
+			h.data.getDataNames(), computeClassCountMap( root )
 		);
+
+		return new LoadedHierarchy( clonedHierarchy, h.options );
 	}
 
 	/**
@@ -415,9 +426,9 @@ public class HierarchyUtils
 	 *            the row in the data table at which the node is located.
 	 * @return the group at the specified row, or null if not found.
 	 */
-	public static Node findGroup( Hierarchy h, int row )
+	public static Node findGroup( LoadedHierarchy h, int row )
 	{
-		Node group = h.getRoot();
+		Node group = h.data.getRoot();
 
 		if ( row == 0 ) {
 			return group;

@@ -45,10 +45,12 @@ public class HVContext
 	public final Event<Integer> nodeSelectionChanging = new Event<>();
 	/** Sent when the node (group) selected by the user has changed. */
 	public final Event<Integer> nodeSelectionChanged = new Event<>();
+
 	/** Sent when the loaded hierarchy is about to change. */
-	public final Event<Hierarchy> hierarchyChanging = new Event<>();
+	public final Event<LoadedHierarchy> hierarchyChanging = new Event<>();
 	/** Sent when the loaded hierarchy has changed. */
-	public final Event<Hierarchy> hierarchyChanged = new Event<>();
+	public final Event<LoadedHierarchy> hierarchyChanged = new Event<>();
+
 	/** Send when the app configuration is about to change. */
 	public final Event<HVConfig> configChanging = new Event<>();
 	/** Send when the app configuration has changed. */
@@ -61,7 +63,7 @@ public class HVContext
 	private MeasureManager measureManager = null;
 
 	/** The raw hierarchy data, as it was loaded from the file. */
-	private Hierarchy inputHierarchy = null;
+	private LoadedHierarchy currentHierarchy = null;
 	/** Tree structure representing relationships between groups (nodes) in the hierarchy */
 	private Tree hierarchyTree = null;
 	/** Helper layout data for drawing the tree. */
@@ -100,7 +102,7 @@ public class HVContext
 	 */
 	public boolean isHierarchyDataLoaded()
 	{
-		return inputHierarchy != null;
+		return currentHierarchy != null;
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -127,24 +129,33 @@ public class HVContext
 		return measureManager;
 	}
 
-	public void setHierarchy( Hierarchy hierarchy )
+	public void setHierarchy( LoadedHierarchy hierarchy )
 	{
-		if ( this.inputHierarchy != hierarchy ) {
-			hierarchyChanging.broadcast( this.inputHierarchy );
-			this.inputHierarchy = hierarchy;
+		if ( this.currentHierarchy != hierarchy ) {
+			hierarchyChanging.broadcast( this.currentHierarchy );
+			this.currentHierarchy = hierarchy;
 
-			SwingUIUtils.executeAsyncWithWaitWindow(
-				null, "Processing hierarchy data...", log, true,
-				() -> processHierarchy( hierarchy ),
-				() -> hierarchyChanged.broadcast( hierarchy ),
-				null
-			);
+			if ( hierarchy != null ) {
+				SwingUIUtils.executeAsyncWithWaitWindow(
+					null, "Processing hierarchy data...", log, true,
+					() -> processHierarchy( hierarchy ),
+					() -> hierarchyChanged.broadcast( hierarchy ),
+					null
+				);
+			}
 		}
 	}
 
-	public Hierarchy getHierarchy()
+	public LoadedHierarchy getHierarchy()
 	{
-		return inputHierarchy;
+		return currentHierarchy;
+	}
+
+	public LoadedHierarchy.Options getHierarchyOptions()
+	{
+		return currentHierarchy == null
+			? LoadedHierarchy.Options.DEFAULT
+			: currentHierarchy.options;
 	}
 
 	public Tree getTree()
@@ -243,35 +254,61 @@ public class HVContext
 		optionsDialog.setLocationRelativeTo( window );
 		optionsDialog.setVisible( true );
 
-		HVConfig cfg = optionsDialog.getConfig();
-		if ( cfg == null ) {
+		LoadedHierarchy.Options options = optionsDialog.getOptions();
+		if ( options == null ) {
 			log.trace( "Loading aborted." );
 		}
 		else {
-			loadFile( window, file, cfg );
+			loadFile( window, file, options );
 		}
 	}
 
+	/**
+	 * Same as {@link #loadFile(Window, File)}, except this method allows to specify different
+	 * options to use while loading this file.
+	 * 
+	 * @param window
+	 *            a window, used to anchor dialog windows with file loading options / error messages.
+	 *            Typically this is the window from which the loading command was issued.
+	 * @param file
+	 *            the file to load
+	 * @param hasInstanceName
+	 *            if true, the reader will assume that the file includes a column containing instance names
+	 * @param hasTrueClass
+	 *            if true, the reader will assume that the file includes a column containing true class
+	 * @param hasHeader
+	 *            if true, the reader will assume that the first row contains column headers, specifying the name for each column
+	 * @param fillBreadth
+	 *            if true, the {@link HierarchyBuilder} will attempt to fix the raw hierarchy built from the file.
+	 * @param useSubtree
+	 *            whether the centroid calculation should also include child groups' instances.
+	 */
 	public void loadFile(
 		Window window, File file,
 		boolean hasInstanceName, boolean hasTrueClass, boolean hasHeader, boolean fillBreadth, boolean useSubtree )
 	{
-		HVConfig cfg = config.copy();
+		LoadedHierarchy.Options options = new LoadedHierarchy.Options(
+			hasInstanceName, hasTrueClass, hasHeader, fillBreadth, useSubtree
+		);
 
-		cfg.setInstanceNameAttribute( hasInstanceName );
-		cfg.setTrueClassAttribute( hasTrueClass );
-		cfg.setDataNamesRow( hasHeader );
-		cfg.setFillBreadthGaps( fillBreadth );
-		cfg.setUseSubtree( useSubtree );
-
-		loadFile( window, file, cfg );
+		loadFile( window, file, options );
 	}
 
-	public void loadFile( Window window, File file, HVConfig cfg )
+	/**
+	 * Same as {@link #loadFile(Window, File)}, except this method allows to specify different
+	 * options to use while loading this file.
+	 * 
+	 * @param window
+	 *            a window, used to anchor dialog windows with file loading options / error messages.
+	 *            Typically this is the window from which the loading command was issued.
+	 * @param file
+	 *            the file to load
+	 * @param options
+	 *            the options to use with the specified file
+	 */
+	public void loadFile( Window window, File file, LoadedHierarchy.Options options )
 	{
-		setConfig( cfg );
-
-		FileLoaderThread thread = new FileLoaderThread( cfg, file );
+		FileLoaderThread thread = new FileLoaderThread( file, options );
 
 		OperationProgressFrame progressFrame = new OperationProgressFrame( window, "Loading..." );
 		progressFrame.setProgressUpdateCallback( thread::getProgress );
@@ -297,17 +334,20 @@ public class HVContext
 		progressFrame.setVisible( true );
 	}
 
-	public void loadHierarchy( Hierarchy h )
+	public void loadHierarchy( LoadedHierarchy hierarchy )
 	{
-		log.trace( "Switching hierarchy..." );
-		setHierarchy( h );
+		setHierarchy( hierarchy );
+	}
 	}
 
 	// -------------------------------------------------------------------------------------------
 	// Listeners
 
-	private void onFileLoaded( Hierarchy loadedHierarchy )
+	private void onFileLoaded( Pair<File, LoadedHierarchy> args )
 	{
+		File file = args.getLeft();
+		LoadedHierarchy loadedHierarchy = args.getRight();
+
 		SwingUtilities.invokeLater(
 			() -> {
 				loadHierarchy( loadedHierarchy );
@@ -328,16 +368,16 @@ public class HVContext
 		);
 	}
 
-	private void onHierarchyChanging( Hierarchy h )
+	private void onHierarchyChanging( LoadedHierarchy h )
 	{
 		selectedRow = 0;
 	}
 
-	private void onHierarchyChanged( Hierarchy h )
+	private void onHierarchyChanged( LoadedHierarchy h )
 	{
 		// Schedule auto-compute tasks
 		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
-			if ( task.autoCompute && task.applicabilityFunction.apply( h ) ) {
+			if ( task.autoCompute && task.applicabilityFunction.apply( h.data ) ) {
 				measureManager.postTask( task );
 			}
 		}
@@ -350,13 +390,13 @@ public class HVContext
 	 * @param hierarchy
 	 *            the hierarchy to process
 	 */
-	private void processHierarchy( Hierarchy hierarchy )
+	private void processHierarchy( LoadedHierarchy hierarchy )
 	{
 		// TODO:
 		// Might want to use some kind of algorithm to figure out optimal tree layout area?
 		// 1024x1024 seems to work well enough for now.
 		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
-			hierarchy.getRoot(), 2048, 2048
+			hierarchy.data.getRoot(), 2048, 2048
 		);
 		hierarchyTree = treeData.getLeft();
 		hierarchyTreeLayout = treeData.getRight();

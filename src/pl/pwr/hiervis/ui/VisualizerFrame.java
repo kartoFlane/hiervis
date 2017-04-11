@@ -20,11 +20,11 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.ui.components.FileDrop;
 import pl.pwr.hiervis.ui.control.MouseControl;
 import pl.pwr.hiervis.ui.control.MouseControl.MouseAction;
@@ -309,14 +309,16 @@ public class VisualizerFrame extends JFrame
 		fileDialog.addChoosableFileFilter( new FileNameExtensionFilter( "*.csv", "csv" ) );
 
 		if ( fileDialog.showSaveDialog( this ) == JFileChooser.APPROVE_OPTION ) {
-			HVConfig cfg = context.getConfig();
-
 			try {
+				LoadedHierarchy lh = context.getHierarchy();
+
 				HierarchyUtils.save(
 					fileDialog.getSelectedFile().getAbsolutePath(),
-					context.getHierarchy(),
-					true, cfg.hasTrueClassAttribute(),
-					cfg.hasInstanceNameAttribute(), true
+					lh.data,
+					true,
+					lh.options.hasTrueClassAttribute,
+					lh.options.hasTnstanceNameAttribute,
+					true
 				);
 			}
 			catch ( IOException e ) {
@@ -388,7 +390,7 @@ public class VisualizerFrame extends JFrame
 
 	// -----------------------------------------------------------------------------------------
 
-	private void onHierarchyChanging( Hierarchy oldHierarchy )
+	private void onHierarchyChanging( LoadedHierarchy oldHierarchy )
 	{
 		mntmSaveFile.setEnabled( false );
 		mntmFlatten.setEnabled( false );
@@ -398,7 +400,7 @@ public class VisualizerFrame extends JFrame
 		Utils.unzoom( hierarchyDisplay, 0 );
 	}
 
-	private void onHierarchyChanged( Hierarchy newHierarchy )
+	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
 	{
 		if ( context.isHierarchyDataLoaded() ) {
 			recreateHierarchyVisualizationAsync();

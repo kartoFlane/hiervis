@@ -42,9 +42,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.core.MeasureManager;
 import pl.pwr.hiervis.measures.MeasureTask;
 
@@ -184,7 +184,7 @@ public class HierarchyStatisticsFrame extends JFrame
 				if ( fileDialog.showSaveDialog( this ) == JFileChooser.APPROVE_OPTION ) {
 					context.getMeasureManager().dumpMeasures(
 						Paths.get( fileDialog.getSelectedFile().getAbsolutePath() ),
-						context.getConfig()
+						context.getHierarchy()
 					);
 				}
 			}
@@ -225,14 +225,14 @@ public class HierarchyStatisticsFrame extends JFrame
 		MeasureManager measureManager = context.getMeasureManager();
 
 		Collection<MeasureTask> validMeasureTasks = measureManager.getMeasureTasks(
-			task -> task.applicabilityFunction.apply( context.getHierarchy() )
+			task -> task.applicabilityFunction.apply( context.getHierarchy().data )
 		);
 
 		addMeasurePanels( createBulkTaskPanel( "Calculate All", validMeasureTasks ) );
 
 		for ( String groupPath : measureManager.listMeasureTaskGroups() ) {
 			Collection<MeasureTask> measureTasks = measureManager.getMeasureTaskGroup( groupPath ).stream()
-				.filter( task -> task.applicabilityFunction.apply( context.getHierarchy() ) )
+				.filter( task -> task.applicabilityFunction.apply( context.getHierarchy().data ) )
 				.collect( Collectors.toList() );
 
 			if ( !measureTasks.isEmpty() ) {
@@ -527,7 +527,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		SwingUtilities.invokeLater( () -> recreateMeasurePanel( task ) );
 	}
 
-	private void onHierarchyChanging( Hierarchy oldHierarchy )
+	private void onHierarchyChanging( LoadedHierarchy oldHierarchy )
 	{
 		measurePanelMap.clear();
 
@@ -536,7 +536,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasures.repaint();
 	}
 
-	private void onHierarchyChanged( Hierarchy newHierarchy )
+	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
 	{
 		mntmDump.setEnabled( newHierarchy != null );
 		createMeasurePanels();

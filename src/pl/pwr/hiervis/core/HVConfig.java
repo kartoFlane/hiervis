@@ -62,20 +62,6 @@ public class HVConfig
 	private int numberOfHistogramBins;
 
 	@SerializableField
-	private boolean displayAllPoints;
-	@SerializableField
-	private boolean trueClassAttribute;
-	@SerializableField
-	private boolean instanceNameAttribute;
-	@SerializableField
-	private boolean dataNamesRow;
-	@SerializableField
-	private boolean fillBreadthGaps;
-	@SerializableField
-	private boolean skipVisualisations;
-	@SerializableField
-	private boolean useSubtree;
-	@SerializableField
 	private boolean useTrueClass;
 
 	@SerializableField
@@ -100,13 +86,6 @@ public class HVConfig
 		ancestorGroupColor = Color.blue.brighter();
 		otherGroupColor = Color.lightGray;
 		backgroundColor = new Color( -1 );
-
-		displayAllPoints = true;
-		trueClassAttribute = false;
-		instanceNameAttribute = false;
-		skipVisualisations = false;
-		useSubtree = true;
-		useTrueClass = false;
 
 		preferredLookAndFeel = "";
 		stopXfceLafChange = false;
@@ -463,56 +442,6 @@ public class HVConfig
 		this.pointSize = pointSize;
 	}
 
-	public boolean isDisplayAllPoints()
-	{
-		return displayAllPoints;
-	}
-
-	public void setDisplayAllPoints( boolean displayAllPoints )
-	{
-		this.displayAllPoints = displayAllPoints;
-	}
-
-	public boolean hasTrueClassAttribute()
-	{
-		return trueClassAttribute;
-	}
-
-	public void setTrueClassAttribute( boolean classAttribute )
-	{
-		this.trueClassAttribute = classAttribute;
-	}
-
-	public boolean hasInstanceNameAttribute()
-	{
-		return instanceNameAttribute;
-	}
-
-	public void setInstanceNameAttribute( boolean instanceNameAttribute )
-	{
-		this.instanceNameAttribute = instanceNameAttribute;
-	}
-
-	public boolean hasDataNamesRow()
-	{
-		return dataNamesRow;
-	}
-
-	public void setDataNamesRow( boolean dataNames )
-	{
-		this.dataNamesRow = dataNames;
-	}
-
-	public boolean isFillBreadthGaps()
-	{
-		return fillBreadthGaps;
-	}
-
-	public void setFillBreadthGaps( boolean fillBreadthGaps )
-	{
-		this.fillBreadthGaps = fillBreadthGaps;
-	}
-
 	public void setNumberOfHistogramBins( int numberOfHistogramBins )
 	{
 		this.numberOfHistogramBins = numberOfHistogramBins;
@@ -521,26 +450,6 @@ public class HVConfig
 	public int getNumberOfHistogramBins()
 	{
 		return numberOfHistogramBins;
-	}
-
-	public void setSkipVisualisations( boolean skipVisualisations )
-	{
-		this.skipVisualisations = skipVisualisations;
-	}
-
-	public boolean hasSkipVisualisations()
-	{
-		return this.skipVisualisations;
-	}
-
-	public void setUseSubtree( boolean useSubtree )
-	{
-		this.useSubtree = useSubtree;
-	}
-
-	public boolean isUseSubtree()
-	{
-		return this.useSubtree;
 	}
 
 	public void setUseTrueClass( boolean useTrueClass )
