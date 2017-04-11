@@ -135,7 +135,7 @@ public class HierarchyProcessor
 	@SuppressWarnings("unchecked")
 	public static void updateNodeRoles( HVContext context, int row )
 	{
-		Tree hierarchyTree = context.getTree();
+		Tree hierarchyTree = context.getHierarchy().getTree();
 
 		// Reset all nodes back to 'other'
 		for ( int i = 0; i < hierarchyTree.getNodeCount(); ++i ) {
@@ -182,7 +182,7 @@ public class HierarchyProcessor
 	@SuppressWarnings("unchecked")
 	public static void updateTreeNodeRoles( HVContext context, String currentGroupId )
 	{
-		Tree hierarchyTree = context.getTree();
+		Tree hierarchyTree = context.getHierarchy().getTree();
 
 		if ( context.isHierarchyDataLoaded() ) {
 			boolean found = false;
@@ -245,8 +245,8 @@ public class HierarchyProcessor
 	{
 		updateTreeNodeRoles( context, currentGroupId );
 
-		Tree hierarchyTree = context.getTree();
-		TreeLayoutData layoutData = context.getTreeLayoutData();
+		Tree hierarchyTree = context.getHierarchy().getTree();
+		TreeLayoutData layoutData = context.getHierarchy().getTreeLayoutData();
 		HVConfig config = context.getConfig();
 
 		Visualization vis = new Visualization();
@@ -489,7 +489,7 @@ public class HierarchyProcessor
 			);
 		}
 
-		Table table = context.getInstanceTable();
+		Table table = context.getHierarchy().getInstanceTable();
 		vis.addTable( HVConstants.INSTANCE_DATA_NAME, table );
 
 		Node root = context.getHierarchy().data.getRoot();

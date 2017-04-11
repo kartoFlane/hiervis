@@ -6,13 +6,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.hiervis.visualisation.HierarchyProcessor;
+import pl.pwr.hiervis.visualisation.TreeLayoutData;
+import prefuse.data.Table;
+import prefuse.data.Tree;
 
 
 /**
- * Container class that associates a {@link Hierarchy} with {@link HierarchyLoadOptions} that was
- * used to load it.
+ * Container class used to associate a {@link Hierarchy} instance with various other
+ * objects pertaining to that hierarchy, like loading options, and processed data used
+ * for visualizations.
  * 
  * @author Tomasz Bachmiński
  *
@@ -23,6 +30,10 @@ public class LoadedHierarchy
 	public final LoadedHierarchy.Options options;
 
 	private final Map<String, Object> computedMeasureMap;
+
+	private Tree hierarchyTree;
+	private TreeLayoutData hierarchyTreeLayout;
+	private Table instanceTable;
 
 
 	public LoadedHierarchy( Hierarchy h, LoadedHierarchy.Options o )
@@ -36,6 +47,61 @@ public class LoadedHierarchy
 		this.options = o;
 
 		this.computedMeasureMap = new HashMap<>();
+	}
+
+	/**
+	 * Processes the specified hierarchy, building hierarchy tree and creating instance table
+	 * used in visualizations.
+	 * 
+	 * @param hierarchy
+	 *            the hierarchy to process
+	 */
+	protected void processHierarchy( HVConfig config )
+	{
+		// TODO:
+		// Might want to use some kind of algorithm to figure out optimal tree layout area?
+		// 1024x1024 seems to work well enough for now.
+		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
+			data.getRoot(), 2048, 2048
+		);
+		hierarchyTree = treeData.getLeft();
+		hierarchyTreeLayout = treeData.getRight();
+
+		instanceTable = HierarchyProcessor.createInstanceTable(
+			config, this, hierarchyTree
+		);
+	}
+
+	/**
+	 * @return true if the hierarchy has been processed, and is ready to be visualized.
+	 */
+	public boolean isProcessed()
+	{
+		return hierarchyTree != null && hierarchyTreeLayout != null && instanceTable != null;
+	}
+
+	/**
+	 * @return tree structure representing relationships between groups (nodes) in the hierarchy
+	 */
+	public Tree getTree()
+	{
+		return hierarchyTree;
+	}
+
+	/**
+	 * @return helper layout data for drawing the tree.
+	 */
+	public TreeLayoutData getTreeLayoutData()
+	{
+		return hierarchyTreeLayout;
+	}
+
+	/**
+	 * @return table containing processed instance data
+	 */
+	public Table getInstanceTable()
+	{
+		return instanceTable;
 	}
 
 	/**

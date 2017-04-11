@@ -172,7 +172,8 @@ public class VisualizerFrame extends JFrame
 
 		display.addControlListener(
 			new NodeSelectionControl(
-				context::getTree, context::getSelectedRow, context::setSelectedRow
+				() -> context.getHierarchy().getTree(),
+				context::getSelectedRow, context::setSelectedRow
 			)
 		);
 		display.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
@@ -430,21 +431,16 @@ public class VisualizerFrame extends JFrame
 		mntmCloseFile.setEnabled( false );
 		mntmSaveFile.setEnabled( false );
 		mntmFlatten.setEnabled( false );
-
-		Display currentDisplay = getCurrentHierarchyDisplay();
-
-		if ( currentDisplay != null ) {
-			currentDisplay.setVisualization( HVConstants.EMPTY_VISUALIZATION );
-			currentDisplay.setEnabled( false );
-			Utils.unzoom( currentDisplay, 0 );
-		}
 	}
 
 	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
 	{
 		if ( context.isHierarchyDataLoaded() ) {
 			Display currentDisplay = getCurrentHierarchyDisplay();
-			recreateHierarchyVisualizationAsync( currentDisplay );
+			// Only recreate the visualization if it's the first time we're visiting that tab.
+			if ( currentDisplay.getVisualization() == HVConstants.EMPTY_VISUALIZATION ) {
+				recreateHierarchyVisualizationAsync( currentDisplay );
+			}
 		}
 
 		mntmCloseFile.setEnabled( true );

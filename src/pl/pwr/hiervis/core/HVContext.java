@@ -25,10 +25,7 @@ import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.HierarchyUtils;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
-import pl.pwr.hiervis.visualisation.TreeLayoutData;
 import prefuse.Visualization;
-import prefuse.data.Table;
-import prefuse.data.Tree;
 
 
 /**
@@ -67,12 +64,6 @@ public class HVContext
 
 	/** The raw hierarchy data, as it was loaded from the file. */
 	private LoadedHierarchy currentHierarchy = null;
-	/** Tree structure representing relationships between groups (nodes) in the hierarchy */
-	private Tree hierarchyTree = null;
-	/** Helper layout data for drawing the tree. */
-	private TreeLayoutData hierarchyTreeLayout = null;
-	/** Table containing processed instance data */
-	private Table instanceTable = null;
 	private int selectedRow = 0;
 
 	private List<LoadedHierarchy> hierarchyList = new ArrayList<>();
@@ -144,12 +135,17 @@ public class HVContext
 			this.currentHierarchy = hierarchy;
 
 			if ( hierarchy != null ) {
-				SwingUIUtils.executeAsyncWithWaitWindow(
-					null, "Processing hierarchy data...", log, true,
-					() -> processHierarchy( hierarchy ),
-					() -> hierarchyChanged.broadcast( hierarchy ),
-					null
-				);
+				if ( hierarchy.isProcessed() ) {
+					hierarchyChanged.broadcast( hierarchy );
+				}
+				else {
+					SwingUIUtils.executeAsyncWithWaitWindow(
+						null, "Processing hierarchy data...", log, true,
+						() -> hierarchy.processHierarchy( config ),
+						() -> hierarchyChanged.broadcast( hierarchy ),
+						null
+					);
+				}
 			}
 		}
 	}
@@ -164,21 +160,6 @@ public class HVContext
 		return currentHierarchy == null
 			? LoadedHierarchy.Options.DEFAULT
 			: currentHierarchy.options;
-	}
-
-	public Tree getTree()
-	{
-		return hierarchyTree;
-	}
-
-	public TreeLayoutData getTreeLayoutData()
-	{
-		return hierarchyTreeLayout;
-	}
-
-	public Table getInstanceTable()
-	{
-		return instanceTable;
 	}
 
 	/**
@@ -242,7 +223,7 @@ public class HVContext
 	 */
 	public prefuse.data.Node findGroup( String name )
 	{
-		return HierarchyProcessor.findGroup( hierarchyTree, name );
+		return HierarchyProcessor.findGroup( currentHierarchy.getTree(), name );
 	}
 
 	/**
@@ -413,28 +394,5 @@ public class HVContext
 	{
 		hierarchyList.remove( index );
 		setHierarchy( null );
-	}
-
-	/**
-	 * Processes the specified hierarchy, building hierarchy tree and creating instance table
-	 * used in visualizations.
-	 * 
-	 * @param hierarchy
-	 *            the hierarchy to process
-	 */
-	private void processHierarchy( LoadedHierarchy hierarchy )
-	{
-		// TODO:
-		// Might want to use some kind of algorithm to figure out optimal tree layout area?
-		// 1024x1024 seems to work well enough for now.
-		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
-			hierarchy.data.getRoot(), 2048, 2048
-		);
-		hierarchyTree = treeData.getLeft();
-		hierarchyTreeLayout = treeData.getRight();
-
-		instanceTable = HierarchyProcessor.createInstanceTable(
-			config, hierarchy, hierarchyTree
-		);
 	}
 }
