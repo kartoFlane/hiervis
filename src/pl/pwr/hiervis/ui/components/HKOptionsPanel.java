@@ -267,8 +267,7 @@ public class HKOptionsPanel extends JPanel
 				);
 
 				LoadedHierarchy finalHierarchy = HierarchyUtils.merge( outputHierarchy, context.getHierarchy(), node.getId() );
-
-				openInNewInstance( finalHierarchy );
+				context.loadHierarchy( getParameterString(), finalHierarchy );
 			}
 			catch ( Throwable ex ) {
 				logger.error( "Subprocess finished successfully, but failed during processing: ", ex );

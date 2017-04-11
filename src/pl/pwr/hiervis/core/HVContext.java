@@ -3,6 +3,8 @@ package pl.pwr.hiervis.core;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 
@@ -10,6 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.measures.MeasureTask;
@@ -72,6 +75,8 @@ public class HVContext
 	private Table instanceTable = null;
 	private int selectedRow = 0;
 
+	private List<LoadedHierarchy> hierarchyList = new ArrayList<>();
+
 	private VisualizerFrame hierarchyFrame;
 	private HierarchyStatisticsFrame statsFrame;
 	private InstanceVisualizationsFrame visFrame;
@@ -93,6 +98,9 @@ public class HVContext
 			hierarchyFrame = new VisualizerFrame( this, subtitle );
 			statsFrame = new HierarchyStatisticsFrame( this, hierarchyFrame, subtitle );
 			visFrame = new InstanceVisualizationsFrame( this, hierarchyFrame, subtitle );
+
+			hierarchyFrame.hierarchyTabClosed.addListener( this::onHierarchyTabClosed );
+			hierarchyFrame.hierarchyTabSelected.addListener( this::onHierarchyTabSelected );
 		}
 	}
 
@@ -334,10 +342,22 @@ public class HVContext
 		progressFrame.setVisible( true );
 	}
 
-	public void loadHierarchy( LoadedHierarchy hierarchy )
+	/**
+	 * Loads the specified hierarchy and creates a new tab for it with the specified name
+	 * 
+	 * @param tabName
+	 *            the name of the tab in the GUI
+	 * @param hierarchy
+	 *            the hierarchy to load and associate with the tab
+	 */
+	public void loadHierarchy( String tabName, LoadedHierarchy hierarchy )
 	{
-		setHierarchy( hierarchy );
-	}
+		hierarchyList.add( hierarchy );
+		hierarchyFrame.createHierarchyTab( tabName );
+
+		if ( currentHierarchy == null ) {
+			setHierarchy( hierarchy );
+		}
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -350,7 +370,7 @@ public class HVContext
 
 		SwingUtilities.invokeLater(
 			() -> {
-				loadHierarchy( loadedHierarchy );
+				loadHierarchy( file.getName(), loadedHierarchy );
 			}
 		);
 	}
@@ -381,6 +401,17 @@ public class HVContext
 				measureManager.postTask( task );
 			}
 		}
+	}
+
+	private void onHierarchyTabSelected( int index )
+	{
+		setHierarchy( hierarchyList.get( index ) );
+	}
+
+	private void onHierarchyTabClosed( int index )
+	{
+		hierarchyList.remove( index );
+		setHierarchy( null );
 	}
 
 	/**
