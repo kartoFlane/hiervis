@@ -28,6 +28,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextArea;
@@ -73,6 +74,7 @@ public class HierarchyStatisticsFrame extends JFrame
 	private JMenuItem mntmDump;
 
 	private WindowListener ownerListener;
+	private int verticalScrollValue = 0;
 
 	private HashMap<String, JPanel> measurePanelMap = new HashMap<>();
 
@@ -206,6 +208,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		scrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		scrollPane.getVerticalScrollBar().setUnitIncrement( 8 );
 		scrollPane.setBorder( BorderFactory.createEmptyBorder() );
+		scrollPane.setAutoscrolls( false );
 		getContentPane().add( scrollPane, BorderLayout.CENTER );
 
 		cMeasures = new JPanel();
@@ -464,12 +467,21 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private void updateMeasurePanel( Entry<String, Object> result )
 	{
+		// Inserting components into a JScrollPane tends to trigger its
+		// autoscrolling functionality, even when it has been explicitly disabled.
+		// Bandaid fix is to re-set the scrollbar ourselves when we're done.
+		JScrollPane scrollPane = (JScrollPane)getContentPane().getComponent( 0 );
+		JScrollBar vertical = scrollPane.getVerticalScrollBar();
+		int scrollValue = vertical.getValue();
+
 		JPanel panel = measurePanelMap.get( result.getKey() );
 		panel.removeAll();
 
 		panel.add( createMeasureContent( result.getValue() ), BorderLayout.NORTH );
 		panel.revalidate();
 		panel.repaint();
+
+		SwingUtilities.invokeLater( () -> vertical.setValue( scrollValue ) );
 	}
 
 	private void recreateMeasurePanel( MeasureTask task )
@@ -534,6 +546,11 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private void onHierarchyChanging( LoadedHierarchy oldHierarchy )
 	{
+		// Store the current scroll before the hierarchy is changed, so that we can
+		// restore it when the new hierarchy is loaded.
+		JScrollPane scrollPane = (JScrollPane)getContentPane().getComponent( 0 );
+		verticalScrollValue = scrollPane.getVerticalScrollBar().getValue();
+
 		measurePanelMap.clear();
 
 		cMeasures.removeAll();
@@ -551,6 +568,13 @@ public class HierarchyStatisticsFrame extends JFrame
 			newHierarchy.forComputedMeasures(
 				set -> {
 					set.stream().forEach( this::updateMeasurePanel );
+				}
+			);
+
+			SwingUtilities.invokeLater(
+				() -> {
+					JScrollPane scrollPane = (JScrollPane)getContentPane().getComponent( 0 );
+					scrollPane.getVerticalScrollBar().setValue( verticalScrollValue );
 				}
 			);
 		}
