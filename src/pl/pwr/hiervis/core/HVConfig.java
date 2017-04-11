@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import pl.pwr.hiervis.util.CmdLineParser;
-
 
 /**
  * Class storing the configuration of the visualizer at runtime
@@ -179,25 +177,6 @@ public class HVConfig
 		}
 
 		return config;
-	}
-
-	/**
-	 * Create a new config from the specified arguments array, with
-	 * an optional source config.
-	 * 
-	 * @param args
-	 *            the array of arguments
-	 * @param source
-	 *            the source config (optional)
-	 * @return the loaded config
-	 * @throws Exception
-	 *             if an error occurred while parsing the arguments
-	 */
-	public static HVConfig from( String[] args, HVConfig source )
-		throws Exception
-	{
-		CmdLineParser parser = new CmdLineParser();
-		return parser.parse( args, source );
 	}
 
 	/**
