@@ -43,14 +43,14 @@ public class MeasureManager
 	/** Sent when a measure computation is finished. */
 	public final Event<Pair<String, Object>> measureComputed = new Event<>();
 
+	private HVContext context;
 	private MeasureComputeThread computeThread = null;
-	private Map<String, Object> computedMeasureMap = null;
 	private Map<String, Collection<MeasureTask>> measureGroupMap = null;
 
 
 	public MeasureManager( HVContext context )
 	{
-		computedMeasureMap = new HashMap<>();
+		this.context = context;
 		measureGroupMap = new HashMap<>();
 
 		computeThread = new MeasureComputeThread();
@@ -136,9 +136,10 @@ public class MeasureManager
 	 */
 	public Set<Map.Entry<String, Object>> getComputedMeasures()
 	{
-		synchronized ( computedMeasureMap ) {
-			return Collections.unmodifiableMap( computedMeasureMap ).entrySet();
+		if ( context.isHierarchyDataLoaded() ) {
+			return context.getHierarchy().getComputedMeasures();
 		}
+		return Collections.emptySet();
 	}
 
 	/**
@@ -148,9 +149,10 @@ public class MeasureManager
 	 */
 	public boolean isMeasureComputed( String identifier )
 	{
-		synchronized ( computedMeasureMap ) {
-			return computedMeasureMap.containsKey( identifier );
+		if ( context.isHierarchyDataLoaded() ) {
+			return context.getHierarchy().isMeasureComputed( identifier );
 		}
+		return false;
 	}
 
 	/**
@@ -163,8 +165,8 @@ public class MeasureManager
 	 */
 	public void forComputedMeasures( Consumer<Set<Map.Entry<String, Object>>> function )
 	{
-		synchronized ( computedMeasureMap ) {
-			function.accept( Collections.unmodifiableMap( computedMeasureMap ).entrySet() );
+		if ( context.isHierarchyDataLoaded() ) {
+			context.getHierarchy().forComputedMeasures( function );
 		}
 	}
 
@@ -272,7 +274,7 @@ public class MeasureManager
 
 		final Function<MeasureTask, String> dumpHistogram = task -> {
 			StringBuilder buf2 = new StringBuilder();
-			Object measureResult = computedMeasureMap.getOrDefault( task.identifier, new double[0] );
+			Object measureResult = hierarchy.getMeasureResultOrDefault( task.identifier, new double[0] );
 
 			if ( measureResult instanceof double[] == false )
 				throw new IllegalArgumentException( "Not a histogram measure: " + task.identifier );
@@ -305,7 +307,7 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = computedMeasureMap.get( task.identifier );
+				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
 				// Ignore uncomputed measures or histograms for now
 				if ( !( measureResult == null || measureResult instanceof double[] ) )
@@ -319,7 +321,7 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = computedMeasureMap.get( task.identifier );
+				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
 				// Ignore uncomputed measures or histograms for now
 				if ( !( measureResult == null || measureResult instanceof double[] ) )
@@ -333,7 +335,7 @@ public class MeasureManager
 		// Histograms
 		measures.forEach(
 			task -> {
-				Object measureResult = computedMeasureMap.get( task.identifier );
+				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
 				// Ignore uncomputed histograms
 				if ( measureResult == null )
@@ -355,8 +357,6 @@ public class MeasureManager
 	{
 		computeThread.clearPendingTasks();
 		computeThread.setHierarchy( newHierarchy );
-
-		computedMeasureMap.clear();
 	}
 
 	private void onTaskPosted( MeasureTask task )
@@ -376,9 +376,7 @@ public class MeasureManager
 
 	private void onMeasureComputed( Pair<String, Object> result )
 	{
-		synchronized ( computedMeasureMap ) {
-			computedMeasureMap.put( result.getKey(), result.getValue() );
-		}
+		context.getHierarchy().putMeasureResult( result.getKey(), result.getValue() );
 
 		measureComputed.broadcast( result );
 	}

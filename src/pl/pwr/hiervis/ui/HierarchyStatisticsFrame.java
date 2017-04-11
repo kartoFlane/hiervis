@@ -500,10 +500,15 @@ public class HierarchyStatisticsFrame extends JFrame
 		SwingUtilities.invokeLater(
 			() -> {
 				if ( measurePanelMap.containsKey( measureName ) ) {
-					JPanel panel = measurePanelMap.get( measureName );
-					JButton button = (JButton)panel.getComponent( 0 );
-					button.setEnabled( false );
-					button.setText( "Calculating..." );
+					// This code is deferred and executed on the main thread, so there's no guarantee that
+					// it will actually get to run before the measure is computed.
+					// If the measure was computed before we got here, then there's nothing for us to do.
+					if ( !context.getHierarchy().isMeasureComputed( measureName ) ) {
+						JPanel panel = measurePanelMap.get( measureName );
+						JButton button = (JButton)panel.getComponent( 0 );
+						button.setEnabled( false );
+						button.setText( "Calculating..." );
+					}
 				}
 				else {
 					throw new IllegalArgumentException(
@@ -540,5 +545,14 @@ public class HierarchyStatisticsFrame extends JFrame
 	{
 		mntmDump.setEnabled( newHierarchy != null );
 		createMeasurePanels();
+
+		if ( newHierarchy != null ) {
+			// Update the UI, since the new hierarchy might have measures already computed.
+			newHierarchy.forComputedMeasures(
+				set -> {
+					set.stream().forEach( this::updateMeasurePanel );
+				}
+			);
+		}
 	}
 }

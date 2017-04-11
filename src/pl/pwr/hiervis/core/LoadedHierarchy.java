@@ -1,5 +1,11 @@
 package pl.pwr.hiervis.core;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
 
@@ -16,6 +22,8 @@ public class LoadedHierarchy
 	public final Hierarchy data;
 	public final LoadedHierarchy.Options options;
 
+	private final Map<String, Object> computedMeasureMap;
+
 
 	public LoadedHierarchy( Hierarchy h, LoadedHierarchy.Options o )
 	{
@@ -26,6 +34,75 @@ public class LoadedHierarchy
 
 		this.data = h;
 		this.options = o;
+
+		this.computedMeasureMap = new HashMap<>();
+	}
+
+	/**
+	 * Returns a set of measures that have been computed thus far for the currently loaded hierarchy.
+	 * <p>
+	 * This method is not particularly thread-safe, as the map of measures might be updated with new entries
+	 * while you are processing the set, resulting in missed entries.
+	 * </p>
+	 * <p>
+	 * For a thread-safe alternative, see {@link #forComputedMeasures(Consumer)}
+	 * </p>
+	 * 
+	 * @see #forComputedMeasures(Consumer)
+	 */
+	public Set<Map.Entry<String, Object>> getComputedMeasures()
+	{
+		synchronized ( computedMeasureMap ) {
+			return Collections.unmodifiableMap( computedMeasureMap ).entrySet();
+		}
+	}
+
+	/**
+	 * @param identifier
+	 *            identifier of the task to look for
+	 * @return true if the task is already computed, false otherwise
+	 */
+	public boolean isMeasureComputed( String identifier )
+	{
+		synchronized ( computedMeasureMap ) {
+			return computedMeasureMap.containsKey( identifier );
+		}
+	}
+
+	/**
+	 * Performs the specified function on the set of measures that have been computed thus far for
+	 * the currently loaded hierarchy.
+	 * <p>
+	 * This method executes the function inside of a synchronized block, preventing the set from
+	 * being updated while this method is executing.
+	 * </p>
+	 */
+	public void forComputedMeasures( Consumer<Set<Map.Entry<String, Object>>> function )
+	{
+		synchronized ( computedMeasureMap ) {
+			function.accept( Collections.unmodifiableMap( computedMeasureMap ).entrySet() );
+		}
+	}
+
+	public Object getMeasureResultOrDefault( String identifier, Object defaultValue )
+	{
+		synchronized ( computedMeasureMap ) {
+			return computedMeasureMap.getOrDefault( identifier, defaultValue );
+		}
+	}
+
+	public Object getMeasureResult( String identifier )
+	{
+		synchronized ( computedMeasureMap ) {
+			return computedMeasureMap.get( identifier );
+		}
+	}
+
+	protected void putMeasureResult( String identifier, Object value )
+	{
+		synchronized ( computedMeasureMap ) {
+			computedMeasureMap.put( identifier, value );
+		}
 	}
 
 

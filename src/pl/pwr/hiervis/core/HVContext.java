@@ -397,7 +397,8 @@ public class HVContext
 	{
 		// Schedule auto-compute tasks
 		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
-			if ( task.autoCompute && task.applicabilityFunction.apply( h.data ) ) {
+			if ( task.autoCompute && task.applicabilityFunction.apply( h.data )
+				&& !h.isMeasureComputed( task.identifier ) ) {
 				measureManager.postTask( task );
 			}
 		}
