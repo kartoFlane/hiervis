@@ -1,23 +1,32 @@
 package pl.pwr.hiervis.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.function.Consumer;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,7 +56,7 @@ import prefuse.visual.NodeItem;
 
 
 @SuppressWarnings("serial")
-public class VisualizerFrame extends JFrame
+public class VisualizerFrame extends JFrame implements ActionListener
 {
 	private static final Logger log = LogManager.getLogger( VisualizerFrame.class );
 
@@ -126,7 +135,22 @@ public class VisualizerFrame extends JFrame
 
 	public void createHierarchyTab( String tabName )
 	{
-		tabPane.add( tabName, createHierarchyDisplay() );
+		JPanel cTab = new JPanel();
+		cTab.setOpaque( false );
+		cTab.add( new JLabel( tabName ) );
+
+		JButton btnClose = new JButton( " x " );
+		btnClose.setBorder( BorderFactory.createLineBorder( Color.BLACK ) );
+		btnClose.setUI( new BasicButtonUI() );
+		btnClose.setFocusable( false );
+		btnClose.setToolTipText( "Click to close this tab." );
+		btnClose.addActionListener( this );
+		cTab.add( btnClose );
+
+		Component component = createHierarchyDisplay();
+		tabPane.addTab( tabName, component );
+		int index = tabPane.indexOfComponent( component );
+		tabPane.setTabComponentAt( index, cTab );
 	}
 
 	public void selectTab( int index )
@@ -138,13 +162,15 @@ public class VisualizerFrame extends JFrame
 	{
 		log.trace( "Closing tab '" + tabPane.getTitleAt( index ) + "'" );
 		hierarchyTabClosed.broadcast( index );
-		tabPane.remove( index );
+		tabPane.removeTabAt( index );
 	}
 
 	public void closeCurrentTab()
 	{
 		closeTab( tabPane.getSelectedIndex() );
 	}
+
+	// -----------------------------------------------------------------------------------------
 
 	private void createGUI()
 	{
@@ -481,6 +507,25 @@ public class VisualizerFrame extends JFrame
 		context.getStatisticsFrame().dispose();
 		context.getInstanceFrame().dispose();
 		context.getMeasureManager().dispose();
+	}
+
+	@Override
+	public void actionPerformed( ActionEvent e )
+	{
+		Object source = e.getSource();
+
+		if ( source instanceof JComponent ) {
+			JComponent c = (JComponent)source;
+
+			if ( tabPane.isAncestorOf( c ) ) {
+				int index = tabPane.indexOfTabComponent( c.getParent() );
+				if ( index >= 0 ) {
+					JButton btnClose = (JButton)source;
+					btnClose.removeActionListener( this );
+					closeTab( index );
+				}
+			}
+		}
 	}
 
 	/**
