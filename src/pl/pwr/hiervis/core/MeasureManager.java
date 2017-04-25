@@ -309,7 +309,7 @@ public class MeasureManager
 			task -> {
 				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
-				// Ignore uncomputed measures or histograms for now
+				// Ignore uncomputed measures or histograms in this pass
 				if ( !( measureResult == null || measureResult instanceof double[] ) )
 					buf.append( task.identifier ).append( ";stdev;" );
 			}
@@ -323,7 +323,7 @@ public class MeasureManager
 			task -> {
 				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
-				// Ignore uncomputed measures or histograms for now
+				// Ignore uncomputed measures or histograms in this pass
 				if ( !( measureResult == null || measureResult instanceof double[] ) )
 					buf.append( resultToCSV.apply( measureResult ) );
 			}
@@ -337,8 +337,7 @@ public class MeasureManager
 			task -> {
 				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
-				// Ignore uncomputed histograms
-				if ( measureResult == null )
+				if ( measureResult instanceof double[] )
 					buf.append( dumpHistogram.apply( task ) );
 			}
 		);
