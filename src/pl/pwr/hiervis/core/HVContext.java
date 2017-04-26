@@ -392,7 +392,10 @@ public class HVContext
 
 	private void onHierarchyTabClosed( int index )
 	{
-		hierarchyList.remove( index );
-		setHierarchy( null );
+		LoadedHierarchy h = hierarchyList.remove( index );
+
+		if ( currentHierarchy == h ) {
+			setHierarchy( null );
+		}
 	}
 }
