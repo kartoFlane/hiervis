@@ -155,6 +155,11 @@ public class HVContext
 		return currentHierarchy;
 	}
 
+	public int getHierarchyIndex( LoadedHierarchy h )
+	{
+		return hierarchyList.indexOf( h );
+	}
+
 	public LoadedHierarchy.Options getHierarchyOptions()
 	{
 		return currentHierarchy == null
@@ -336,9 +341,7 @@ public class HVContext
 		hierarchyList.add( hierarchy );
 		hierarchyFrame.createHierarchyTab( tabName );
 
-		if ( currentHierarchy == null ) {
-			setHierarchy( hierarchy );
-		}
+		setHierarchy( hierarchy );
 	}
 
 	// -------------------------------------------------------------------------------------------

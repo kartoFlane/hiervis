@@ -158,6 +158,11 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		tabPane.setSelectedIndex( index );
 	}
 
+	public int getSelectedTabIndex()
+	{
+		return tabPane.getSelectedIndex();
+	}
+
 	public void closeTab( int index )
 	{
 		log.trace( "Closing tab '" + tabPane.getTitleAt( index ) + "'" );
@@ -467,19 +472,21 @@ public class VisualizerFrame extends JFrame implements ActionListener
 	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
 	{
 		if ( context.isHierarchyDataLoaded() ) {
+			int index = context.getHierarchyIndex( newHierarchy );
+			if ( index != getSelectedTabIndex() ) {
+				tabPane.setSelectedIndex( index );
+			}
+
 			Display currentDisplay = getCurrentHierarchyDisplay();
 			// Only recreate the visualization if it's the first time we're visiting that tab.
 			if ( currentDisplay.getVisualization() == HVConstants.EMPTY_VISUALIZATION ) {
 				recreateHierarchyVisualizationAsync( currentDisplay );
 			}
+
+			mntmCloseFile.setEnabled( true );
+			mntmSaveFile.setEnabled( true );
+			mntmFlatten.setEnabled( true );
 		}
-
-		mntmCloseFile.setEnabled( true );
-		mntmSaveFile.setEnabled( true );
-		mntmFlatten.setEnabled( true );
-
-		// Try to coax the VM into reclaiming some of that freed memory.
-		System.gc();
 	}
 
 	private void onNodeSelectionChanged( int row )
