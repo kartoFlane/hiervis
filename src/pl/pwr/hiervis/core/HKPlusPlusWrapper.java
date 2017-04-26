@@ -180,7 +180,7 @@ public class HKPlusPlusWrapper
 			withInstanceNames, withTrueClass, false, false, useSubtree
 		);
 
-		Hierarchy output = new GeneratedCSVReader( false ).load(
+		Hierarchy output = new GeneratedCSVReader().load(
 			hkOutputFile.getAbsolutePath(),
 			options.hasTnstanceNameAttribute,
 			options.hasTrueClassAttribute,
