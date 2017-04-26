@@ -261,8 +261,9 @@ public class MeasureManager
 	public void dumpMeasures( Path destinationFile, LoadedHierarchy hierarchy )
 	{
 		final Function<Object, String> resultToCSV = data -> {
-			if ( data instanceof Double || data instanceof Integer )
+			if ( data instanceof Number ) {
 				return Objects.toString( data ) + ";0.0;";
+			}
 			else if ( data instanceof AvgWithStdev ) {
 				AvgWithStdev avg = (AvgWithStdev)data;
 				return avg.getAvg() + ";" + avg.getStdev() + ";";
@@ -309,8 +310,7 @@ public class MeasureManager
 			task -> {
 				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
-				// Ignore uncomputed measures or histograms in this pass
-				if ( !( measureResult == null || measureResult instanceof double[] ) )
+				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( task.identifier ).append( ";stdev;" );
 			}
 		);
@@ -323,8 +323,7 @@ public class MeasureManager
 			task -> {
 				Object measureResult = hierarchy.getMeasureResult( task.identifier );
 
-				// Ignore uncomputed measures or histograms in this pass
-				if ( !( measureResult == null || measureResult instanceof double[] ) )
+				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( resultToCSV.apply( measureResult ) );
 			}
 		);
@@ -339,6 +338,19 @@ public class MeasureManager
 
 				if ( measureResult instanceof double[] )
 					buf.append( dumpHistogram.apply( task ) );
+			}
+		);
+
+		// -------------------------------------------------------------------------------------------------------
+		// String measures
+		measures.forEach(
+			task -> {
+				Object measureResult = hierarchy.getMeasureResult( task.identifier );
+
+				if ( measureResult instanceof String ) {
+					buf.append( task.identifier ).append( '\n' )
+						.append( measureResult ).append( "\n\n" );
+				}
 			}
 		);
 
