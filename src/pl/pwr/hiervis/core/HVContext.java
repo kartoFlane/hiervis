@@ -346,11 +346,10 @@ public class HVContext
 
 	private void onFileLoaded( Pair<File, LoadedHierarchy> args )
 	{
-		File file = args.getLeft();
-		LoadedHierarchy loadedHierarchy = args.getRight();
-
 		SwingUtilities.invokeLater(
 			() -> {
+				File file = args.getLeft();
+				LoadedHierarchy loadedHierarchy = args.getRight();
 				loadHierarchy( file.getName(), loadedHierarchy );
 			}
 		);
@@ -393,9 +392,12 @@ public class HVContext
 	private void onHierarchyTabClosed( int index )
 	{
 		LoadedHierarchy h = hierarchyList.remove( index );
+		h.dispose();
 
 		if ( currentHierarchy == h ) {
 			setHierarchy( null );
 		}
+
+		System.gc();
 	}
 }

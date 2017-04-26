@@ -111,6 +111,7 @@ public class MeasureComputeThread extends Thread
 		}
 
 		log.trace( "Compute thread terminated." );
+		cleanup();
 	}
 
 	/**
@@ -214,16 +215,24 @@ public class MeasureComputeThread extends Thread
 	}
 
 	/**
-	 * Shuts down the thread and cleans up.
+	 * Shuts down the thread.
 	 */
 	public void shutdown()
 	{
 		log.trace( "Shutting down..." );
 		interrupt();
+	}
+
+	private void cleanup()
+	{
 		clearPendingTasks();
 
 		taskPosted.clearListeners();
 		measureComputing.clearListeners();
 		measureComputed.clearListeners();
+
+		hierarchy = null;
+		currentTask = null;
+		tasks = null;
 	}
 }

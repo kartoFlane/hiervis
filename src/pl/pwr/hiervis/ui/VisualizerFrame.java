@@ -162,6 +162,11 @@ public class VisualizerFrame extends JFrame implements ActionListener
 	{
 		log.trace( "Closing tab '" + tabPane.getTitleAt( index ) + "'" );
 		hierarchyTabClosed.broadcast( index );
+
+		Display d = (Display)tabPane.getComponentAt( index );
+		d.getVisualization().reset();
+		d.setVisualization( HVConstants.EMPTY_VISUALIZATION );
+
 		tabPane.removeTabAt( index );
 	}
 

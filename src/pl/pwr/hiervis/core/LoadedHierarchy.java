@@ -171,6 +171,20 @@ public class LoadedHierarchy
 		}
 	}
 
+	public void dispose()
+	{
+		computedMeasureMap.clear();
+
+		hierarchyTree = null;
+		hierarchyTreeLayout = null;
+
+		if ( instanceTable != null ) {
+			instanceTable.removeAllTableListeners();
+			instanceTable.clear();
+			instanceTable = null;
+		}
+	}
+
 
 	/**
 	 * Container class for load options for each {@link Hierarchy} object loaded in the program.
