@@ -13,7 +13,11 @@ function() {
 		return hierarchy.getNumberOfClasses() > 0;
 	}
 	measureData.callback = function ( hierarchy ) {
-		return measure.calculate( hierarchy );
+		measure.calculate( hierarchy );
+		return "TP: " + measure.getTP() + "\n" +
+			"FP: " + measure.getFP() + "\n" +
+			"TN: " + measure.getTN() + "\n" +
+			"FN: " + measure.getFN();
 	}
 
 	return measureData;
