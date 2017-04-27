@@ -146,7 +146,7 @@ public class HKOptionsPanel extends JPanel
 
 		cboxTrueClass.setSelected( context.getHierarchy().options.hasTrueClassAttribute );
 		cboxInstanceNames.setSelected( false );
-		cboxDiagonalMatrix.setSelected( false );
+		cboxDiagonalMatrix.setSelected( true );
 		cboxNoStaticCenter.setSelected( false );
 		cboxGenerateImages.setSelected( false );
 
