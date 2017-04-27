@@ -64,6 +64,33 @@ public class HVConfig
 	@SerializableField
 	private boolean stopXfceLafChange;
 
+	// ---------------------------------------
+	// HK++ properties
+	@SerializableField
+	private int hkClusters;
+	@SerializableField
+	private int hkIterations;
+	@SerializableField
+	private int hkRepetitions;
+	@SerializableField
+	private int hkDendrogramHeight;
+	@SerializableField
+	private int hkMaxNodes;
+	@SerializableField
+	private int hkEpsilon;
+	@SerializableField
+	private int hkLittleValue;
+	@SerializableField
+	private boolean hkWithTrueClass;
+	@SerializableField
+	private boolean hkWithInstanceNames;
+	@SerializableField
+	private boolean hkWithDiagonalMatrix;
+	@SerializableField
+	private boolean hkNoStaticCenter;
+	@SerializableField
+	private boolean hkGenerateImages;
+
 
 	/**
 	 * Create a new config with default values.
@@ -83,6 +110,19 @@ public class HVConfig
 
 		preferredLookAndFeel = "";
 		stopXfceLafChange = false;
+
+		hkClusters = 2;
+		hkIterations = 10;
+		hkRepetitions = 10;
+		hkDendrogramHeight = 2;
+		hkMaxNodes = -1;
+		hkEpsilon = 10;
+		hkLittleValue = 5;
+		hkWithTrueClass = false;
+		hkWithInstanceNames = false;
+		hkWithDiagonalMatrix = true;
+		hkNoStaticCenter = false;
+		hkGenerateImages = false;
 	}
 
 	/**
@@ -454,6 +494,131 @@ public class HVConfig
 	public boolean isStopXfceLafChange()
 	{
 		return this.stopXfceLafChange;
+	}
+
+	/*
+	 * -----------------------------------
+	 * HK++ config's getters and setters.
+	 */
+
+	public int getHkClusters()
+	{
+		return hkClusters;
+	}
+
+	public void setHkClusters( int hkClusters )
+	{
+		this.hkClusters = hkClusters;
+	}
+
+	public int getHkIterations()
+	{
+		return hkIterations;
+	}
+
+	public void setHkIterations( int hkIterations )
+	{
+		this.hkIterations = hkIterations;
+	}
+
+	public int getHkRepetitions()
+	{
+		return hkRepetitions;
+	}
+
+	public void setHkRepetitions( int hkRepetitions )
+	{
+		this.hkRepetitions = hkRepetitions;
+	}
+
+	public int getHkDendrogramHeight()
+	{
+		return hkDendrogramHeight;
+	}
+
+	public void setHkDendrogramHeight( int hkDendrogramHeight )
+	{
+		this.hkDendrogramHeight = hkDendrogramHeight;
+	}
+
+	public int getHkMaxNodes()
+	{
+		return hkMaxNodes;
+	}
+
+	public void setHkMaxNodes( int hkMaxNodes )
+	{
+		this.hkMaxNodes = hkMaxNodes;
+	}
+
+	public int getHkEpsilon()
+	{
+		return hkEpsilon;
+	}
+
+	public void setHkEpsilon( int hkEpsilon )
+	{
+		this.hkEpsilon = hkEpsilon;
+	}
+
+	public int getHkLittleValue()
+	{
+		return hkLittleValue;
+	}
+
+	public void setHkLittleValue( int hkLittleValue )
+	{
+		this.hkLittleValue = hkLittleValue;
+	}
+
+	public boolean isHkWithTrueClass()
+	{
+		return hkWithTrueClass;
+	}
+
+	public void setHkWithTrueClass( boolean hkWithTrueClass )
+	{
+		this.hkWithTrueClass = hkWithTrueClass;
+	}
+
+	public boolean isHkWithInstanceNames()
+	{
+		return hkWithInstanceNames;
+	}
+
+	public void setHkWithInstanceNames( boolean hkWithInstanceNames )
+	{
+		this.hkWithInstanceNames = hkWithInstanceNames;
+	}
+
+	public boolean isHkWithDiagonalMatrix()
+	{
+		return hkWithDiagonalMatrix;
+	}
+
+	public void setHkWithDiagonalMatrix( boolean hkWithDiagonalMatrix )
+	{
+		this.hkWithDiagonalMatrix = hkWithDiagonalMatrix;
+	}
+
+	public boolean isHkNoStaticCenter()
+	{
+		return hkNoStaticCenter;
+	}
+
+	public void setHkNoStaticCenter( boolean hkNoStaticCenter )
+	{
+		this.hkNoStaticCenter = hkNoStaticCenter;
+	}
+
+	public boolean isHkGenerateImages()
+	{
+		return hkGenerateImages;
+	}
+
+	public void setHkGenerateImages( boolean hkGenerateImages )
+	{
+		this.hkGenerateImages = hkGenerateImages;
 	}
 
 	/*

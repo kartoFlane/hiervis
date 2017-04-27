@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.HierarchyVisualizer;
 import pl.pwr.hiervis.core.HKPlusPlusWrapper;
+import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
@@ -134,24 +135,24 @@ public class HKOptionsPanel extends JPanel
 		add( cboxGenerateImages, builder.insets( 5 ).anchorCenter().fill().position( 1, 11 ).build() );
 	}
 
-	public void setupDefaultValues()
+	public void setupDefaultValues( HVConfig cfg )
 	{
-		txtClusters.setText( "2" );
-		txtIterations.setText( "10" );
-		txtRepeats.setText( "10" );
-		txtDendrogram.setText( "2" );
-		txtMaxNodes.setText( "-1" );
-		txtEpsilon.setText( "10" );
-		txtLittleVal.setText( "5" );
-
-		cboxTrueClass.setSelected( context.getHierarchy().options.hasTrueClassAttribute );
-		cboxInstanceNames.setSelected( false );
-		cboxDiagonalMatrix.setSelected( true );
-		cboxNoStaticCenter.setSelected( false );
-		cboxGenerateImages.setSelected( false );
-
 		cboxTrueClass.setEnabled( context.getHierarchy().options.hasTrueClassAttribute );
 		cboxInstanceNames.setEnabled( context.getHierarchy().options.hasTnstanceNameAttribute );
+
+		txtClusters.setText( "" + cfg.getHkClusters() );
+		txtIterations.setText( "" + cfg.getHkIterations() );
+		txtRepeats.setText( "" + cfg.getHkRepetitions() );
+		txtDendrogram.setText( "" + cfg.getHkDendrogramHeight() );
+		txtMaxNodes.setText( "" + cfg.getHkMaxNodes() );
+		txtEpsilon.setText( "" + cfg.getHkEpsilon() );
+		txtLittleVal.setText( "" + cfg.getHkLittleValue() );
+
+		cboxTrueClass.setSelected( cfg.isHkWithTrueClass() && cboxTrueClass.isEnabled() );
+		cboxInstanceNames.setSelected( cfg.isHkWithInstanceNames() && cboxInstanceNames.isEnabled() );
+		cboxDiagonalMatrix.setSelected( cfg.isHkWithDiagonalMatrix() );
+		cboxNoStaticCenter.setSelected( cfg.isHkNoStaticCenter() );
+		cboxGenerateImages.setSelected( cfg.isHkGenerateImages() );
 	}
 
 	public void generate()
@@ -163,6 +164,21 @@ public class HKOptionsPanel extends JPanel
 		int maxNodes = Integer.parseInt( getText( txtMaxNodes ) ); // -w
 		int epsilon = Integer.parseInt( getText( txtEpsilon ) ); // -e
 		int littleVal = Integer.parseInt( getText( txtLittleVal ) ); // -l
+
+		// Update HK++ config
+		HVConfig cfg = context.getConfig();
+		cfg.setHkClusters( clusters );
+		cfg.setHkIterations( iterations );
+		cfg.setHkRepetitions( repeats );
+		cfg.setHkDendrogramHeight( dendrogramHeight );
+		cfg.setHkMaxNodes( maxNodes );
+		cfg.setHkEpsilon( epsilon );
+		cfg.setHkLittleValue( littleVal );
+		cfg.setHkWithTrueClass( cboxTrueClass.isSelected() );
+		cfg.setHkWithInstanceNames( cboxInstanceNames.isSelected() );
+		cfg.setHkWithDiagonalMatrix( cboxDiagonalMatrix.isSelected() );
+		cfg.setHkNoStaticCenter( cboxNoStaticCenter.isSelected() );
+		cfg.setHkGenerateImages( cboxGenerateImages.isSelected() );
 
 		if ( maxNodes < 0 ) {
 			maxNodes = Integer.MAX_VALUE;
@@ -232,16 +248,18 @@ public class HKOptionsPanel extends JPanel
 		int maxNodes = Integer.parseInt( getText( txtMaxNodes ) ); // -w
 		int epsilon = Integer.parseInt( getText( txtEpsilon ) ); // -e
 		int littleVal = Integer.parseInt( getText( txtLittleVal ) ); // -l
+		boolean diagonalMatrix = cboxDiagonalMatrix.isSelected();
 
 		String maxNodesStr = maxNodes < 0 ? "MAX_INT" : ( "" + maxNodes );
 
 		return String.format(
-			"%s / -k %s / -n %s / -r %s / -s %s / -e %s / -l %s / -w %s",
+			"%s / -k %s / -n %s / -r %s / -s %s / -e %s / -l %s / -w %s%s",
 			node.getId(),
 			clusters, iterations,
 			repeats, dendrogramHeight,
 			epsilon, littleVal,
-			maxNodesStr
+			maxNodesStr,
+			diagonalMatrix ? " / DM" : ""
 		);
 	}
 

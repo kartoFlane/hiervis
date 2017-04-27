@@ -79,7 +79,7 @@ public class NodeDetailsFrame extends JFrame
 		tabContainer.setLayout( layout );
 
 		HKOptionsPanel content = new HKOptionsPanel( context, node, logHK );
-		content.setupDefaultValues();
+		content.setupDefaultValues( context.getConfig() );
 
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.getVerticalScrollBar().setUnitIncrement( 16 );
