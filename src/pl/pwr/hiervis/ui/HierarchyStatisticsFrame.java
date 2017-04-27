@@ -255,7 +255,7 @@ public class HierarchyStatisticsFrame extends JFrame
 				}
 
 				for ( MeasureTask task : measureTasks ) {
-					addMeasurePanels( createPendingMeasurePanel( task ) );
+					addMeasurePanels( createMeasurePanel( task ) );
 				}
 			}
 		}
@@ -336,19 +336,27 @@ public class HierarchyStatisticsFrame extends JFrame
 		return cSeparator;
 	}
 
-	private JPanel createPendingMeasurePanel( MeasureTask task )
+	private JPanel createMeasurePanel( MeasureTask task )
 	{
 		JPanel cMeasure = new JPanel();
 		cMeasure.setBorder( new TitledBorder( null, task.identifier, TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
 
-		cMeasure.add( createTaskButton( task ), BorderLayout.NORTH );
-		measurePanelMap.put( task.identifier, cMeasure );
+		if ( context.getHierarchy().isMeasureComputed( task.identifier ) ) {
+			cMeasure.add(
+				createMeasureContent( context.getHierarchy().getMeasureResult( task.identifier ) ),
+				BorderLayout.NORTH
+			);
+		}
+		else {
+			cMeasure.add( createTaskButton( task ), BorderLayout.NORTH );
+		}
 
+		measurePanelMap.put( task.identifier, cMeasure );
 		return cMeasure;
 	}
 
-	private JPanel createBulkTaskPanel( String title, Iterable<MeasureTask> tasks )
+	private JPanel createBulkTaskPanel( String title, Collection<MeasureTask> tasks )
 	{
 		JPanel cMeasure = new JPanel();
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
@@ -357,7 +365,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		return cMeasure;
 	}
 
-	private JButton createTaskButton( String title, Iterable<MeasureTask> tasks )
+	private JButton createTaskButton( String title, Collection<MeasureTask> tasks )
 	{
 		JButton button = new JButton();
 		button.addActionListener(
@@ -374,7 +382,12 @@ public class HierarchyStatisticsFrame extends JFrame
 			}
 		);
 
-		button.setEnabled( context.isHierarchyDataLoaded() );
+		LoadedHierarchy lh = context.getHierarchy();
+		boolean allComplete = !tasks.stream()
+			.filter( task -> !lh.isMeasureComputed( task.identifier ) )
+			.findAny().isPresent();
+
+		button.setEnabled( context.isHierarchyDataLoaded() && !allComplete );
 		button.setText( title );
 
 		return button;
@@ -555,8 +568,6 @@ public class HierarchyStatisticsFrame extends JFrame
 		measurePanelMap.clear();
 
 		cMeasures.removeAll();
-		cMeasures.revalidate();
-		cMeasures.repaint();
 	}
 
 	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
@@ -565,13 +576,6 @@ public class HierarchyStatisticsFrame extends JFrame
 		createMeasurePanels();
 
 		if ( newHierarchy != null ) {
-			// Update the UI, since the new hierarchy might have measures already computed.
-			newHierarchy.forComputedMeasures(
-				set -> {
-					set.stream().forEach( this::updateMeasurePanel );
-				}
-			);
-
 			SwingUtilities.invokeLater(
 				() -> {
 					JScrollPane scrollPane = (JScrollPane)getContentPane().getComponent( 0 );
@@ -579,5 +583,8 @@ public class HierarchyStatisticsFrame extends JFrame
 				}
 			);
 		}
+
+		cMeasures.revalidate();
+		cMeasures.repaint();
 	}
 }
