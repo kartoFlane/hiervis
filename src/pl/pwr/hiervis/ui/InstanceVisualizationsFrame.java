@@ -588,10 +588,9 @@ public class InstanceVisualizationsFrame extends JFrame
 	 */
 	private Display createHistogramDisplayFor( Node node, int dim )
 	{
-		int bins = 100;
 		Table table = context.getHierarchy().getInstanceTable();
 
-		HistogramTable histoTable = new HistogramTable( table, bins );
+		HistogramTable histoTable = new HistogramTable( table, context.getConfig().getNumberOfHistogramBins() );
 		HistogramGraph display = new HistogramGraph( histoTable, table.getColumnName( dim ) );
 
 		display.setBackground( context.getConfig().getBackgroundColor() );

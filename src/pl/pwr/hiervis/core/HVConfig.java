@@ -55,8 +55,6 @@ public class HVConfig
 	private Color backgroundColor;
 
 	@SerializableField
-	private double pointScalingFactor;
-	@SerializableField
 	private int pointSize;
 	@SerializableField
 	private int numberOfHistogramBins;
@@ -73,9 +71,8 @@ public class HVConfig
 	public HVConfig()
 	{
 		// Setup default values.
-		numberOfHistogramBins = 5;
+		numberOfHistogramBins = 100;
 		pointSize = 3;
-		pointScalingFactor = 1;
 
 		currentGroupColor = Color.red;
 		childGroupColor = Color.green;
@@ -417,16 +414,6 @@ public class HVConfig
 	public void setAncestorGroupColor( Color ancestorColor )
 	{
 		this.ancestorGroupColor = ancestorColor;
-	}
-
-	public double getPointScallingFactor()
-	{
-		return pointScalingFactor;
-	}
-
-	public void setPointScallingFactor( double pointScallingFactor )
-	{
-		this.pointScalingFactor = pointScallingFactor;
 	}
 
 	public int getPointSize()
