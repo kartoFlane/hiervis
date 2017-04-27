@@ -14,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
-import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
 import pl.pwr.hiervis.ui.HierarchyStatisticsFrame;
@@ -22,7 +21,6 @@ import pl.pwr.hiervis.ui.InstanceVisualizationsFrame;
 import pl.pwr.hiervis.ui.OperationProgressFrame;
 import pl.pwr.hiervis.ui.VisualizerFrame;
 import pl.pwr.hiervis.util.Event;
-import pl.pwr.hiervis.util.HierarchyUtils;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Visualization;

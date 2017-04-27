@@ -62,9 +62,6 @@ public class HVConfig
 	private int numberOfHistogramBins;
 
 	@SerializableField
-	private boolean useTrueClass;
-
-	@SerializableField
 	private String preferredLookAndFeel;
 	@SerializableField
 	private boolean stopXfceLafChange;
@@ -450,16 +447,6 @@ public class HVConfig
 	public int getNumberOfHistogramBins()
 	{
 		return numberOfHistogramBins;
-	}
-
-	public void setUseTrueClass( boolean useTrueClass )
-	{
-		this.useTrueClass = useTrueClass;
-	}
-
-	public boolean isUseTrueClass()
-	{
-		return this.useTrueClass;
 	}
 
 	public void setPreferredLookAndFeel( String lookAndFeel )

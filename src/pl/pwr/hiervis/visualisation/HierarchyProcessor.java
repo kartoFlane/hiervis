@@ -382,8 +382,10 @@ public class HierarchyProcessor
 		}
 
 		table.addColumn( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, prefuse.data.Node.class );
-		// table.addColumn( HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, boolean.class );
-		// table.addColumn( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, int.class );
+		if ( options.hasTrueClassAttribute ) {
+			table.addColumn( HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME, prefuse.data.Node.class );
+		}
+
 		if ( options.hasTnstanceNameAttribute ) {
 			table.addColumn( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, String.class );
 		}
@@ -419,16 +421,14 @@ public class HierarchyProcessor
 				table.set( row, i, data[i] );
 			}
 
-			prefuse.data.Node node = findGroup(
-				hierarchyTree,
-				config.isUseTrueClass()
-					? instance.getTrueClass()
-					: instance.getNodeId()
-			);
-
+			prefuse.data.Node node = findGroup( hierarchyTree, instance.getNodeId() );
 			table.set( row, HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, node );
-			// table.set( row, HVConstants.PREFUSE_INSTANCE_VISIBLE_COLUMN_NAME, true );
-			// table.set( row, HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME, 0 );
+
+			if ( hierarchy.options.hasTrueClassAttribute ) {
+				prefuse.data.Node trueNode = findGroup( hierarchyTree, instance.getTrueClass() );
+				table.set( row, HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME, trueNode );
+			}
+
 			if ( hierarchy.options.hasTnstanceNameAttribute ) {
 				table.set( row, HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, instance.getInstanceName() );
 			}
@@ -459,8 +459,8 @@ public class HierarchyProcessor
 		HVConfig config = context.getConfig();
 		Visualization vis = new Visualization();
 
-		String nameLabelsX = "labelsX";
-		String nameLabelsY = "labelsY";
+		String nameLabelsX = HVConstants.PREFUSE_INSTANCE_AXIS_X_COLUMN_NAME;
+		String nameLabelsY = HVConstants.PREFUSE_INSTANCE_AXIS_Y_COLUMN_NAME;
 
 		if ( withLabels ) {
 			vis.setRendererFactory(

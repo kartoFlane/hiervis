@@ -11,7 +11,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -34,7 +33,6 @@ public class ConfigDialog extends JDialog
 {
 	private JComboBox<String> listLAF;
 	private JSlider sldPointSize;
-	private JCheckBox cboxUseTrueClass;
 
 	private JLabel lblColorSelectedNode;
 	private JLabel lblColorChildGroup;
@@ -113,35 +111,11 @@ public class ConfigDialog extends JDialog
 			SwingUIUtils.toHTML( "Size of an individual data point in instance visualizations, in pixels." )
 		);
 
-		cboxUseTrueClass = new JCheckBox( "Use true class" );
-		cGeneral.add( cboxUseTrueClass, builder.fillHorizontal().insets( 0, 5, 0, 5 ).position( 0, 4 ).build() );
-
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
 
 		listLAF.setSelectedItem( cfg.getPreferredLookAndFeel() );
 		sldPointSize.setValue( cfg.getPointSize() );
-
-		if ( context.getHierarchyOptions().hasTrueClassAttribute ) {
-			cboxUseTrueClass.setEnabled( true );
-			cboxUseTrueClass.setSelected( cfg.isUseTrueClass() );
-
-			cboxUseTrueClass.setToolTipText(
-				SwingUIUtils.toHTML(
-					"If selected, instances will be grouped according to true class instead of assign class."
-				)
-			);
-		}
-		else {
-			cboxUseTrueClass.setEnabled( false );
-			cboxUseTrueClass.setSelected( false );
-
-			cboxUseTrueClass.setToolTipText(
-				SwingUIUtils.toHTML(
-					"Disabled: no hierarchy loaded, or hierarchy has no true class attribute."
-				)
-			);
-		}
 	}
 
 	private void createColorsTab( HVContext context, JTabbedPane cTabs )
@@ -299,7 +273,6 @@ public class ConfigDialog extends JDialog
 
 		newConfig.setPreferredLookAndFeel( listLAF.getSelectedItem().toString() );
 		newConfig.setPointSize( sldPointSize.getValue() );
-		newConfig.setUseTrueClass( cboxUseTrueClass.isSelected() );
 	}
 
 	/**
