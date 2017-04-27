@@ -8,7 +8,7 @@ function() {
 
 	// Create and return the result holder object
 	var measureData = {};
-	measureData.id = 'Adapted F-Measure (No Inheritance)';
+	measureData.id = 'Hierarchical F-Measure (No Inheritance)';
 	measureData.isApplicable = function ( hierarchy ) {
 		// Applicable only to hierarchies with ground truth attribute
 		return hierarchy.getNumberOfClasses() > 0;

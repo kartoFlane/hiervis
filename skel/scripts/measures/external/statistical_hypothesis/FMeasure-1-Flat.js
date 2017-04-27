@@ -1,11 +1,11 @@
 function() {
 	// Load required classes
 	var Fmeasure = Java.type( 'external_measures.statistical_hypothesis.Fmeasure' );
-	var FlatHypotheses = Java.type( 'external_measures.statistical_hypothesis.FlatHypotheses' );
+	var FlatHypothesis = Java.type( 'external_measures.statistical_hypothesis.FlatHypotheses' );
 
 	// Initialize the measure object
 	var beta = 1.0;
-	var measure = new Fmeasure( beta, new FlatHypotheses() );
+	var measure = new Fmeasure( beta, new FlatHypothesis() );
 
 	// Create and return the result holder object
 	var measureData = {};
