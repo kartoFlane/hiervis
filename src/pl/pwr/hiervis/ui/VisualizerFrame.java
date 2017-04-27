@@ -323,7 +323,7 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		mntmFlatten.setMnemonic( 'F' );
 		mntmFlatten.addActionListener(
 			e -> {
-				String tabTitle = tabPane.getTitleAt( tabPane.getSelectedIndex() ) + " (flat)";
+				String tabTitle = "[F] " + tabPane.getTitleAt( tabPane.getSelectedIndex() );
 				context.loadHierarchy( tabTitle, HierarchyUtils.flattenHierarchy( context.getHierarchy() ) );
 			}
 		);
