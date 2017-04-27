@@ -1,5 +1,7 @@
 package pl.pwr.hiervis.util.prefuse.histogram.simple;
 
+import java.awt.Color;
+
 /*
  * Adapted for HocusLocus by Ajish George <ajishg@gmail.com>
  * from code by
@@ -102,15 +104,25 @@ public class HistogramGraph extends Display
 		// --------------------------------------------------------------------
 		// STEP 2: create actions to process the visual data
 
-		ColorAction color = new ColorAction(
-			dataId,
-			VisualItem.FILLCOLOR, ColorLib.rgb( 255, 100, 100 )
+		ActionList colors = new ActionList();
+		Color barColor = new Color( 255, 100, 100 );
+		colors.add(
+			new ColorAction(
+				dataId,
+				VisualItem.FILLCOLOR, barColor.getRGB()
+			)
 		);
-		m_vis.putAction( "color", color );
+		colors.add(
+			new ColorAction(
+				dataId,
+				VisualItem.STROKECOLOR, barColor.darker().getRGB()
+			)
+		);
+		m_vis.putAction( "color", colors );
 
 		ActionList draw = new ActionList();
 		draw.add( initializeAxes( startingField ) );
-		draw.add( color );
+		draw.add( colors );
 		draw.add( new RepaintAction() );
 		m_vis.putAction( "draw", draw );
 
