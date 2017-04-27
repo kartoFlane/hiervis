@@ -232,7 +232,7 @@ public class VisualizerFrame extends JFrame implements ActionListener
 			new MouseAction(
 				TriggerAreaTypes.VISUAL_ITEM, MouseEvent.BUTTON1, 2, ( item, e ) -> {
 					if ( item instanceof NodeItem ) {
-						Node n = context.findGroup( item.getRow() );
+						Node n = HierarchyUtils.findGroup( context.getHierarchy(), item.getRow() );
 
 						NodeDetailsFrame detailsFrame = new NodeDetailsFrame( context, this, n, subtitle );
 

@@ -508,7 +508,7 @@ public final class SwingUIUtils
 	 * <pre>
 	 * {@literal
 	 * Replaces '\n' with '<br/>', '>' and '<' with their HTML equivalents, and wraps
-	 * the message in <head></head> tags.
+	 * the message in <html></html> tags.
 	 * }
 	 * </pre>
 	 */

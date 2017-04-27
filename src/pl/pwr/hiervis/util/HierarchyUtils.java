@@ -456,6 +456,25 @@ public class HierarchyUtils
 		return null;
 	}
 
+	/**
+	 * Searches the specified hierarchy for a group with the specified name.
+	 * 
+	 * @param lh
+	 *            the hierarchy to look in
+	 * @param nodeId
+	 *            name of the hierarchy group
+	 * @return the hierarchy group with the specified name, or null if not found.
+	 */
+	public static Node findGroup( LoadedHierarchy lh, String nodeId )
+	{
+		for ( Node n : lh.data.getGroups() ) {
+			if ( n.getId().equals( nodeId ) )
+				return n;
+		}
+
+		return null;
+	}
+
 	// -----------------------------------------------------------------------------------------------
 
 	/**

@@ -50,6 +50,7 @@ import pl.pwr.hiervis.ui.components.VerticalLabelUI;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
+import pl.pwr.hiervis.util.HierarchyUtils;
 import pl.pwr.hiervis.util.Utils;
 import pl.pwr.hiervis.util.prefuse.histogram.simple.HistogramGraph;
 import pl.pwr.hiervis.util.prefuse.histogram.simple.HistogramTable;
@@ -855,7 +856,7 @@ public class InstanceVisualizationsFrame extends JFrame
 		int dim = args.getLeft();
 		boolean horizontal = args.getRight();
 
-		Node node = context.findGroup( context.getSelectedRow() );
+		Node node = HierarchyUtils.findGroup( context.getHierarchy(), context.getSelectedRow() );
 
 		for ( int i = 0; i < cboxesVertical.length; ++i ) {
 			int x = horizontal ? dim : i;
@@ -955,7 +956,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			return;
 
 		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
-		Node node = context.findGroup( context.getSelectedRow() );
+		Node node = HierarchyUtils.findGroup( context.getHierarchy(), context.getSelectedRow() );
 
 		forEachDisplay(
 			display -> {

@@ -208,30 +208,6 @@ public class HVContext
 	}
 
 	/**
-	 * Finds the hierarchy group at the specified row.
-	 * 
-	 * @param row
-	 *            the row in the data table at which the group is located.
-	 * @return the group at the specified row, or null if not found.
-	 */
-	public Node findGroup( int row )
-	{
-		return HierarchyUtils.findGroup( getHierarchy(), row );
-	}
-
-	/**
-	 * Searches the hierarchy for a group with the specified identifier / name.
-	 * 
-	 * @param name
-	 *            the name to look for.
-	 * @return the node / group with the specified name, or null if not found.
-	 */
-	public prefuse.data.Node findGroup( String name )
-	{
-		return HierarchyProcessor.findGroup( currentHierarchy.getTree(), name );
-	}
-
-	/**
 	 * Loads the specified file as a CSV file describing a {@link Hierarchy} object.
 	 * 
 	 * @param window
