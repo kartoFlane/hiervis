@@ -11,7 +11,7 @@ import basic_hierarchy.interfaces.Hierarchy;
  * @author Tomasz Bachmiński
  *
  */
-public final class MeasureTask
+public final class MeasureTask implements Comparable<MeasureTask>
 {
 	// Both fields are immutable, so it should be safe to expose them.
 	public final String identifier;
@@ -67,5 +67,11 @@ public final class MeasureTask
 	public boolean equals( MeasureTask mt )
 	{
 		return identifier.equals( mt.identifier );
+	}
+
+	@Override
+	public int compareTo( MeasureTask mt )
+	{
+		return identifier.compareTo( mt.identifier );
 	}
 }

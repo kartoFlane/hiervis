@@ -235,6 +235,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		for ( String groupPath : measureManager.listMeasureTaskGroups() ) {
 			Collection<MeasureTask> measureTasks = measureManager.getMeasureTaskGroup( groupPath ).stream()
+				.sorted()
 				.filter( task -> task.applicabilityFunction.apply( context.getHierarchy().data ) )
 				.collect( Collectors.toList() );
 
