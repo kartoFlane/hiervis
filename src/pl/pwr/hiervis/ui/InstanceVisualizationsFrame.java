@@ -47,6 +47,7 @@ import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.ui.components.MouseWheelEventBubbler;
 import pl.pwr.hiervis.ui.components.VerticalLabelUI;
+import pl.pwr.hiervis.ui.control.CustomToolTipControl;
 import pl.pwr.hiervis.ui.control.PanControl;
 import pl.pwr.hiervis.ui.control.ZoomScrollControl;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
@@ -57,7 +58,6 @@ import pl.pwr.hiervis.util.prefuse.histogram.simple.HistogramTable;
 import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Display;
 import prefuse.Visualization;
-import prefuse.controls.ToolTipControl;
 import prefuse.data.Table;
 import prefuse.visual.VisualItem;
 import prefuse.visual.sort.ItemSorter;
@@ -601,6 +601,20 @@ public class InstanceVisualizationsFrame extends JFrame
 		zoomControl.setModifierControl( true );
 		display.addControlListener( zoomControl );
 		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() && !e.isAltDown() ) );
+		display.addControlListener(
+			new CustomToolTipControl(
+				item -> {
+					StringBuilder buf = new StringBuilder();
+
+					buf.append( "<html>" );
+					buf.append( "Count: " ).append( item.get( HVConstants.PREFUSE_VISUAL_TABLE_COLUMN_OFFSET + dim + 1 ) );
+					// TODO: Add bin value range
+					buf.append( "</html>" );
+
+					return buf.toString();
+				}
+			)
+		);
 
 		display.addKeyListener(
 			new KeyAdapter() {
@@ -643,7 +657,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	private Display createInstanceDisplayFor( Node node, int dimX, int dimY )
 	{
 		Visualization vis = createVisualizationFor( node, dimX, dimY );
-		Display display = createInstanceDisplayFor( vis );
+		Display display = createInstanceDisplayFor( vis, dimX, dimY );
 
 		return display;
 	}
@@ -660,9 +674,13 @@ public class InstanceVisualizationsFrame extends JFrame
 	 * 
 	 * @param vis
 	 *            the visualization to create the display for.
+	 * @param dimX
+	 *            index of the X dimension
+	 * @param dimY
+	 *            index of the Y dimension
 	 * @return the display
 	 */
-	private Display createInstanceDisplayFor( Visualization vis )
+	private Display createInstanceDisplayFor( Visualization vis, int dimX, int dimY )
 	{
 		Display display = new Display( vis );
 		display.setHighQuality( context.getHierarchy().data.getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
@@ -689,11 +707,49 @@ public class InstanceVisualizationsFrame extends JFrame
 		);
 
 		display.addControlListener( new PanControl( true ) );
-		display.addControlListener( new ToolTipControl( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) );
 		ZoomScrollControl zoomControl = new ZoomScrollControl();
 		zoomControl.setModifierControl( true );
 		display.addControlListener( zoomControl );
 		display.addMouseWheelListener( new MouseWheelEventBubbler( display, e -> !e.isControlDown() && !e.isAltDown() ) );
+		display.addControlListener(
+			new CustomToolTipControl(
+				item -> {
+					if ( item.isInGroup( HVConstants.INSTANCE_DATA_NAME ) ) {
+						StringBuilder buf = new StringBuilder();
+
+						buf.append( "<html>" );
+						if ( item.canGetString( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) ) {
+							buf.append( "<b>" )
+								.append( item.getString( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME ) )
+								.append( "</b>" ).append( "<br/>" );
+						}
+
+						prefuse.data.Node node = (prefuse.data.Node)item.get( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME );
+						String assignId = node.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME );
+						buf.append( "Assign class: " ).append( assignId ).append( "<br/>" );
+
+						if ( item.canGet( HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME, prefuse.data.Node.class ) ) {
+							prefuse.data.Node trueNode = (prefuse.data.Node)item.get( HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME );
+							String trueId = trueNode.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME );
+							buf.append( "True class: " ).append( trueId ).append( "<br/>" );
+						}
+
+						String x = cboxesHorizontal[dimX].getText();
+						String y = cboxesHorizontal[dimY].getText();
+						buf.append( x ).append( ": " )
+							.append( item.getDouble( HVConstants.PREFUSE_VISUAL_TABLE_COLUMN_OFFSET + dimX ) ).append( "<br/>" );
+						buf.append( y ).append( ": " )
+							.append( item.getDouble( HVConstants.PREFUSE_VISUAL_TABLE_COLUMN_OFFSET + dimY ) );
+
+						buf.append( "</html>" );
+
+						return buf.toString();
+					}
+
+					return null;
+				}
+			)
+		);
 
 		display.addMouseWheelListener(
 			new MouseWheelListener() {

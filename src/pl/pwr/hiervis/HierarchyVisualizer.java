@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -207,6 +208,9 @@ public final class HierarchyVisualizer
 		// Attempt to set the application's Look and Feel
 		boolean successLAF = false;
 		String prefLAF = config.getPreferredLookAndFeel();
+
+		// Make sure tooltips don't disappear on their own.
+		ToolTipManager.sharedInstance().setDismissDelay( Integer.MAX_VALUE );
 
 		if ( SystemUtils.IS_OS_UNIX && SwingUIUtils.isXFCE() && SwingUIUtils.isOpenJDK() ) {
 			// Unix systems running XFCE desktop environment with OpenJDK experience a complete freeze

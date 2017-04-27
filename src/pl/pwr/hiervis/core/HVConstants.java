@@ -29,4 +29,13 @@ public class HVConstants
 	 */
 	public static final int INSTANCE_COUNT_MED = 50000;
 	public static final int INSTANCE_COUNT_HIGH = 100000;
+
+	/**
+	 * Prefuse visualizations use backing tables that contain both original data,
+	 * as well as additional data pertaining to the visualization itself.
+	 * This constant represents the number of additional columns from the visualization table.
+	 * It's useful for when we want to access original data, but can only do that through a
+	 * {@link VisualItem} instance.
+	 */
+	public static final int PREFUSE_VISUAL_TABLE_COLUMN_OFFSET = 34;
 }

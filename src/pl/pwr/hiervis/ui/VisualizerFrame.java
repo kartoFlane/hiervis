@@ -37,6 +37,7 @@ import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.ui.components.FileDrop;
+import pl.pwr.hiervis.ui.control.CustomToolTipControl;
 import pl.pwr.hiervis.ui.control.MouseControl;
 import pl.pwr.hiervis.ui.control.MouseControl.MouseAction;
 import pl.pwr.hiervis.ui.control.MouseControl.TriggerAreaTypes;
@@ -215,6 +216,29 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		display.addControlListener( new SubtreeDragControl( Control.RIGHT_MOUSE_BUTTON ) );
 		display.addControlListener( new PanControl( new Class[] { NodeItem.class } ) );
 		display.addControlListener( new ZoomScrollControl() );
+		display.addControlListener(
+			new CustomToolTipControl(
+				item -> {
+					if ( item instanceof NodeItem ) {
+						StringBuilder buf = new StringBuilder();
+
+						String nodeId = item.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME );
+						Node n = HierarchyUtils.findGroup( context.getHierarchy(), nodeId );
+						buf.append( "<html>" );
+						buf.append( "<b>" ).append( nodeId ).append( "</b><br/>" )
+							.append( "Instances in this node: " ).append( n.getNodeInstances().size() ).append( "<br/>" );
+						if ( n.getChildren().size() > 0 ) {
+							buf.append( "Instances in subtree: " ).append( n.getSubtreeInstances().size() );
+						}
+						buf.append( "</html>" );
+
+						return buf.toString();
+					}
+
+					return null;
+				}
+			)
+		);
 
 		MouseControl mouseControl = new MouseControl();
 
