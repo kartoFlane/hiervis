@@ -211,6 +211,7 @@ public final class HierarchyVisualizer
 
 		// Make sure tooltips don't disappear on their own.
 		ToolTipManager.sharedInstance().setDismissDelay( Integer.MAX_VALUE );
+		ToolTipManager.sharedInstance().setInitialDelay( 300 );
 
 		if ( SystemUtils.IS_OS_UNIX && SwingUIUtils.isXFCE() && SwingUIUtils.isOpenJDK() ) {
 			// Unix systems running XFCE desktop environment with OpenJDK experience a complete freeze
