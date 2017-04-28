@@ -356,7 +356,7 @@ public class HVContext
 		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
 			if ( task.autoCompute && task.applicabilityFunction.apply( h.data )
 				&& !h.isMeasureComputed( task.identifier ) ) {
-				measureManager.postTask( task );
+				measureManager.postTask( currentHierarchy, task );
 			}
 		}
 	}

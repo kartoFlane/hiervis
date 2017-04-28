@@ -40,6 +40,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -140,11 +141,13 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		VisualizerFrame.createFileDrop( this, log, "csv", file -> context.loadFile( this, file ) );
 
-		measureManager.forComputedMeasures(
-			set -> {
-				set.stream().forEach( this::updateMeasurePanel );
-			}
-		);
+		if ( context.isHierarchyDataLoaded() ) {
+			context.getHierarchy().forComputedMeasures(
+				set -> {
+					set.stream().forEach( this::updateMeasurePanel );
+				}
+			);
+		}
 	}
 
 	public void setKeepOnTop( boolean onTop )
@@ -349,7 +352,7 @@ public class HierarchyStatisticsFrame extends JFrame
 			);
 		}
 		else {
-			cMeasure.add( createTaskButton( task ), BorderLayout.NORTH );
+			cMeasure.add( createTaskButton( Pair.of( context.getHierarchy(), task ) ), BorderLayout.NORTH );
 		}
 
 		measurePanelMap.put( task.identifier, cMeasure );
@@ -373,10 +376,11 @@ public class HierarchyStatisticsFrame extends JFrame
 				button.setEnabled( false );
 
 				MeasureManager measureManager = context.getMeasureManager();
+				LoadedHierarchy hierarchy = context.getHierarchy();
 				for ( MeasureTask task : tasks ) {
-					if ( !measureManager.isMeasureComputed( task.identifier )
-						&& !measureManager.isMeasurePending( task.identifier ) ) {
-						measureManager.postTask( task );
+					if ( !hierarchy.isMeasureComputed( task.identifier )
+						&& !measureManager.isMeasurePending( hierarchy, task.identifier ) ) {
+						measureManager.postTask( hierarchy, task );
 					}
 				}
 			}
@@ -393,14 +397,17 @@ public class HierarchyStatisticsFrame extends JFrame
 		return button;
 	}
 
-	private JButton createTaskButton( MeasureTask task )
+	private JButton createTaskButton( Pair<LoadedHierarchy, MeasureTask> task )
 	{
 		JButton button = new JButton();
 		button.addActionListener(
 			( e ) -> {
 				MeasureManager measureManager = context.getMeasureManager();
 
-				boolean pending = measureManager.isMeasurePending( task.identifier );
+				boolean pending = measureManager.isMeasurePending(
+					task.getLeft(),
+					task.getRight().identifier
+				);
 				updateTaskButton( button, !pending );
 
 				if ( pending ) {
@@ -479,7 +486,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		return result;
 	}
 
-	private void updateMeasurePanel( Entry<String, Object> result )
+	private void updateMeasurePanel( String measureName, Object measureResult )
 	{
 		// Inserting components into a JScrollPane tends to trigger its
 		// autoscrolling functionality, even when it has been explicitly disabled.
@@ -488,19 +495,24 @@ public class HierarchyStatisticsFrame extends JFrame
 		JScrollBar vertical = scrollPane.getVerticalScrollBar();
 		int scrollValue = vertical.getValue();
 
-		JPanel panel = measurePanelMap.get( result.getKey() );
+		JPanel panel = measurePanelMap.get( measureName );
 		panel.removeAll();
 
-		panel.add( createMeasureContent( result.getValue() ), BorderLayout.NORTH );
+		panel.add( createMeasureContent( measureResult ), BorderLayout.NORTH );
 		panel.revalidate();
 		panel.repaint();
 
 		SwingUtilities.invokeLater( () -> vertical.setValue( scrollValue ) );
 	}
 
-	private void recreateMeasurePanel( MeasureTask task )
+	private void updateMeasurePanel( Entry<String, Object> result )
 	{
-		JPanel panel = measurePanelMap.get( task.identifier );
+		updateMeasurePanel( result.getKey(), result.getValue() );
+	}
+
+	private void recreateMeasurePanel( Pair<LoadedHierarchy, MeasureTask> task )
+	{
+		JPanel panel = measurePanelMap.get( task.getRight().identifier );
 		panel.removeAll();
 
 		panel.add( createTaskButton( task ), BorderLayout.NORTH );
@@ -521,41 +533,53 @@ public class HierarchyStatisticsFrame extends JFrame
 	// ----------------------------------------------------------------------------------------
 	// Listeners
 
-	private void onMeasureComputing( String measureName )
+	private void onMeasureComputing( Pair<LoadedHierarchy, String> task )
 	{
-		SwingUtilities.invokeLater(
-			() -> {
-				if ( measurePanelMap.containsKey( measureName ) ) {
-					// This code is deferred and executed on the main thread, so there's no guarantee that
-					// it will actually get to run before the measure is computed.
-					// If the measure was computed before we got here, then there's nothing for us to do.
-					if ( !context.getHierarchy().isMeasureComputed( measureName ) ) {
-						JPanel panel = measurePanelMap.get( measureName );
-						JButton button = (JButton)panel.getComponent( 0 );
-						button.setEnabled( false );
-						button.setText( "Calculating..." );
+		if ( task.getLeft().equals( context.getHierarchy() ) ) {
+			SwingUtilities.invokeLater(
+				() -> {
+					// This code is deferred, check hierarchies again.
+					if ( !task.getLeft().equals( context.getHierarchy() ) )
+						return;
+
+					String measureName = task.getRight();
+
+					if ( measurePanelMap.containsKey( measureName ) ) {
+						// This code is deferred and executed on the main thread, so there's no guarantee that
+						// it will actually get to run before the measure is computed.
+						// If the measure was computed before we got here, then there's nothing for us to do.
+						if ( !context.getHierarchy().isMeasureComputed( measureName ) ) {
+							JPanel panel = measurePanelMap.get( measureName );
+							JButton button = (JButton)panel.getComponent( 0 );
+							button.setEnabled( false );
+							button.setText( "Calculating..." );
+						}
+					}
+					else {
+						throw new IllegalArgumentException(
+							String.format(
+								"Implementation error: %s does not have UI component for measure '%s'.",
+								this.getClass().getSimpleName(), measureName
+							)
+						);
 					}
 				}
-				else {
-					throw new IllegalArgumentException(
-						String.format(
-							"Implementation error: %s does not have UI component for measure '%s'.",
-							this.getClass().getSimpleName(), measureName
-						)
-					);
-				}
-			}
-		);
+			);
+		}
 	}
 
-	private void onMeasureComputed( Pair<String, Object> result )
+	private void onMeasureComputed( Triple<LoadedHierarchy, String, Object> result )
 	{
-		SwingUtilities.invokeLater( () -> updateMeasurePanel( result ) );
+		if ( result.getLeft().equals( context.getHierarchy() ) ) {
+			SwingUtilities.invokeLater( () -> updateMeasurePanel( result.getMiddle(), result.getRight() ) );
+		}
 	}
 
-	private void onTaskFailed( MeasureTask task )
+	private void onTaskFailed( Pair<LoadedHierarchy, MeasureTask> task )
 	{
-		SwingUtilities.invokeLater( () -> recreateMeasurePanel( task ) );
+		if ( task.getLeft().equals( context.getHierarchy() ) ) {
+			SwingUtilities.invokeLater( () -> recreateMeasurePanel( task ) );
+		}
 	}
 
 	private void onHierarchyChanging( LoadedHierarchy oldHierarchy )

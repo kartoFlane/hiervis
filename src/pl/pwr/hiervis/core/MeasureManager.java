@@ -18,6 +18,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.measures.JavascriptMeasureTaskFactory;
@@ -35,13 +36,13 @@ import pl.pwr.hiervis.util.Event;
 public class MeasureManager
 {
 	/** Sent when a measure task is posted for processing. */
-	public final Event<MeasureTask> taskPosted = new Event<>();
+	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskPosted = new Event<>();
 	/** Sent when a measure task computation failed due to an exception. */
-	public final Event<MeasureTask> taskFailed = new Event<>();
+	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskFailed = new Event<>();
 	/** Sent when a measure computation is started. */
-	public final Event<String> measureComputing = new Event<>();
+	public final Event<Pair<LoadedHierarchy, String>> measureComputing = new Event<>();
 	/** Sent when a measure computation is finished. */
-	public final Event<Pair<String, Object>> measureComputed = new Event<>();
+	public final Event<Triple<LoadedHierarchy, String, Object>> measureComputed = new Event<>();
 
 	private HVContext context;
 	private MeasureComputeThread computeThread = null;
@@ -61,34 +62,35 @@ public class MeasureManager
 		computeThread.measureComputed.addListener( this::onMeasureComputed );
 
 		computeThread.start();
-
-		context.hierarchyChanged.addListener( this::onHierarchyChanged );
-	}
-
-	/**
-	 * Sets the hierarchy this thread will compute measures for.
-	 * This method may only be called while there are no tasks scheduled for computation.
-	 * 
-	 * @param hierarchy
-	 *            the hierarchy for which measures will be computed.
-	 */
-	public void setHierarchy( LoadedHierarchy hierarchy )
-	{
-		computeThread.setHierarchy( hierarchy );
 	}
 
 	/**
 	 * Checks whether the measure with the specified name is scheduled for processing, or
 	 * currently being processed.
 	 * 
+	 * @param lh
+	 *            the hierarchy to check the measure for
 	 * @param measureName
 	 *            identifier of the measure
 	 * @return true if a measure with the specified identifier is pending calculation, or
 	 *         is currently being calculated. False otherwise.
 	 */
-	public boolean isMeasurePending( String measureName )
+	public boolean isMeasurePending( LoadedHierarchy lh, String measureName )
 	{
-		return computeThread.isMeasurePending( measureName );
+		return computeThread.isMeasurePending( lh, measureName );
+	}
+
+	/**
+	 * Posts a new task for the thread to process.
+	 * 
+	 * @param lh
+	 *            the hierarchy to compute the measure for
+	 * @param measure
+	 *            the measure to post
+	 */
+	public void postTask( LoadedHierarchy lh, MeasureTask measure )
+	{
+		computeThread.postTask( lh, measure );
 	}
 
 	/**
@@ -97,9 +99,23 @@ public class MeasureManager
 	 * @param task
 	 *            the task to post
 	 */
-	public void postTask( MeasureTask task )
+	public void postTask( Pair<LoadedHierarchy, MeasureTask> task )
 	{
-		computeThread.postTask( task );
+		computeThread.postTask( task.getLeft(), task.getRight() );
+	}
+
+	/**
+	 * Removes the task from processing queue, if it is not already being processed.
+	 * 
+	 * @param lh
+	 *            the hierarchy to remove the measure for
+	 * @param measure
+	 *            the measure to remove.
+	 * @return true if the task was found and removed, false otherwise.
+	 */
+	public boolean removeTask( LoadedHierarchy lh, MeasureTask measure )
+	{
+		return computeThread.removeTask( lh, measure );
 	}
 
 	/**
@@ -109,9 +125,9 @@ public class MeasureManager
 	 *            the task to remove.
 	 * @return true if the task was found and removed, false otherwise.
 	 */
-	public boolean removeTask( MeasureTask task )
+	public boolean removeTask( Pair<LoadedHierarchy, MeasureTask> task )
 	{
-		return computeThread.removeTask( task );
+		return computeThread.removeTask( task.getLeft(), task.getRight() );
 	}
 
 	/**
@@ -134,25 +150,12 @@ public class MeasureManager
 	 * 
 	 * @see #forComputedMeasures(Consumer)
 	 */
-	public Set<Map.Entry<String, Object>> getComputedMeasures()
+	public Set<Map.Entry<String, Object>> getComputedMeasuress()
 	{
 		if ( context.isHierarchyDataLoaded() ) {
 			return context.getHierarchy().getComputedMeasures();
 		}
 		return Collections.emptySet();
-	}
-
-	/**
-	 * @param identifier
-	 *            identifier of the task to look for
-	 * @return true if the task is already computed, false otherwise
-	 */
-	public boolean isMeasureComputed( String identifier )
-	{
-		if ( context.isHierarchyDataLoaded() ) {
-			return context.getHierarchy().isMeasureComputed( identifier );
-		}
-		return false;
 	}
 
 	/**
@@ -163,7 +166,7 @@ public class MeasureManager
 	 * being updated while this method is executing.
 	 * </p>
 	 */
-	public void forComputedMeasures( Consumer<Set<Map.Entry<String, Object>>> function )
+	public void forComputedMeasuress( Consumer<Set<Map.Entry<String, Object>>> function )
 	{
 		if ( context.isHierarchyDataLoaded() ) {
 			context.getHierarchy().forComputedMeasures( function );
@@ -364,30 +367,24 @@ public class MeasureManager
 
 	// -------------------------------------------------------------------------------------
 
-	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
-	{
-		computeThread.clearPendingTasks();
-		computeThread.setHierarchy( newHierarchy );
-	}
-
-	private void onTaskPosted( MeasureTask task )
+	private void onTaskPosted( Pair<LoadedHierarchy, MeasureTask> task )
 	{
 		taskPosted.broadcast( task );
 	}
 
-	private void onTaskFailed( MeasureTask task )
+	private void onTaskFailed( Pair<LoadedHierarchy, MeasureTask> task )
 	{
 		taskFailed.broadcast( task );
 	}
 
-	private void onMeasureComputing( String measureName )
+	private void onMeasureComputing( Pair<LoadedHierarchy, String> task )
 	{
-		measureComputing.broadcast( measureName );
+		measureComputing.broadcast( task );
 	}
 
-	private void onMeasureComputed( Pair<String, Object> result )
+	private void onMeasureComputed( Triple<LoadedHierarchy, String, Object> result )
 	{
-		context.getHierarchy().putMeasureResult( result.getKey(), result.getValue() );
+		result.getLeft().putMeasureResult( result.getMiddle(), result.getRight() );
 
 		measureComputed.broadcast( result );
 	}
