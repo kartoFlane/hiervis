@@ -118,7 +118,7 @@ public class HVConfig
 		hkMaxNodes = -1;
 		hkEpsilon = 10;
 		hkLittleValue = 5;
-		hkWithTrueClass = false;
+		hkWithTrueClass = true;
 		hkWithInstanceNames = false;
 		hkWithDiagonalMatrix = true;
 		hkNoStaticCenter = false;
