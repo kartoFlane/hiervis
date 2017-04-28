@@ -568,6 +568,8 @@ public class HierarchyStatisticsFrame extends JFrame
 		measurePanelMap.clear();
 
 		cMeasures.removeAll();
+		cMeasures.revalidate();
+		cMeasures.repaint();
 	}
 
 	private void onHierarchyChanged( LoadedHierarchy newHierarchy )
