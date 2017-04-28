@@ -383,7 +383,9 @@ public class HierarchyProcessor
 
 		table.addColumn( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, prefuse.data.Node.class );
 		if ( options.hasTrueClassAttribute ) {
-			table.addColumn( HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME, prefuse.data.Node.class );
+			// Can't put a reference to the Node, because ground truth nodes might not exist.
+			// (particularly for flattened hierarchies with true class attribute)
+			table.addColumn( HVConstants.PREFUSE_INSTANCE_TRUENODE_ID_COLUMN_NAME, String.class );
 		}
 
 		if ( options.hasTnstanceNameAttribute ) {
@@ -425,8 +427,7 @@ public class HierarchyProcessor
 			table.set( row, HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME, node );
 
 			if ( hierarchy.options.hasTrueClassAttribute ) {
-				prefuse.data.Node trueNode = findGroup( hierarchyTree, instance.getTrueClass() );
-				table.set( row, HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME, trueNode );
+				table.set( row, HVConstants.PREFUSE_INSTANCE_TRUENODE_ID_COLUMN_NAME, instance.getTrueClass() );
 			}
 
 			if ( hierarchy.options.hasTnstanceNameAttribute ) {

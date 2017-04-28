@@ -728,9 +728,8 @@ public class InstanceVisualizationsFrame extends JFrame
 						String assignId = node.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME );
 						buf.append( "Assign class: " ).append( assignId ).append( "<br/>" );
 
-						if ( item.canGet( HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME, prefuse.data.Node.class ) ) {
-							prefuse.data.Node trueNode = (prefuse.data.Node)item.get( HVConstants.PREFUSE_INSTANCE_TRUENODE_COLUMN_NAME );
-							String trueId = trueNode.getString( HVConstants.PREFUSE_NODE_ID_COLUMN_NAME );
+						if ( item.canGetString( HVConstants.PREFUSE_INSTANCE_TRUENODE_ID_COLUMN_NAME ) ) {
+							String trueId = item.getString( HVConstants.PREFUSE_INSTANCE_TRUENODE_ID_COLUMN_NAME );
 							buf.append( "True class: " ).append( trueId ).append( "<br/>" );
 						}
 
