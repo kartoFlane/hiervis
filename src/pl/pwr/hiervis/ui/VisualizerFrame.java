@@ -37,6 +37,7 @@ import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.LoadedHierarchy;
 import pl.pwr.hiervis.ui.components.FileDrop;
+import pl.pwr.hiervis.ui.components.JFileChooserEx;
 import pl.pwr.hiervis.ui.control.CustomToolTipControl;
 import pl.pwr.hiervis.ui.control.MouseControl;
 import pl.pwr.hiervis.ui.control.MouseControl.MouseAction;
@@ -387,7 +388,7 @@ public class VisualizerFrame extends JFrame implements ActionListener
 	 */
 	private void openSaveDialog()
 	{
-		JFileChooser fileDialog = new JFileChooser();
+		JFileChooserEx fileDialog = new JFileChooserEx();
 		fileDialog.setCurrentDirectory( new File( "." ) );
 		fileDialog.setDialogTitle( "Select destination file" );
 		fileDialog.setFileSelectionMode( JFileChooser.FILES_ONLY );
