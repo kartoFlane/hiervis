@@ -227,6 +227,7 @@ public class MeasureComputeThread extends Thread
 		clearPendingTasks();
 
 		taskPosted.clearListeners();
+		taskFailed.clearListeners();
 		measureComputing.clearListeners();
 		measureComputed.clearListeners();
 

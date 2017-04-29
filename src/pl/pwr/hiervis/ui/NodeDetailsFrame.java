@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Node;
+import pl.pwr.hiervis.core.HKPlusPlusWrapper;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.ui.components.HKOptionsPanel;
 import pl.pwr.hiervis.ui.components.NodeCharacteristicsTable;
@@ -88,8 +89,27 @@ public class NodeDetailsFrame extends JFrame
 		tabContainer.add( scrollPane, builder.fill().position( 0, 0 ).build() );
 
 		JButton btnGenerate = new JButton( "Generate" );
-		btnGenerate.addActionListener( e -> content.generate() );
+		btnGenerate.addActionListener(
+			e -> {
+				btnGenerate.setEnabled( false );
+
+				if ( !context.isHKSubprocessActive() ) {
+					HKPlusPlusWrapper wrapper = content.generate( this );
+					context.setCurrentHKWrapper( wrapper );
+
+					wrapper.subprocessAborted.addListener( ev -> btnGenerate.setEnabled( true ) );
+					wrapper.subprocessFinished.addListener( ev -> btnGenerate.setEnabled( true ) );
+				}
+			}
+		);
 		tabContainer.add( btnGenerate, builder.insets( 5 ).fillHorizontal().position( 0, 1 ).build() );
+
+		HKPlusPlusWrapper currentWrapper = context.getCurrentHKWrapper();
+		if ( currentWrapper != null ) {
+			btnGenerate.setEnabled( false );
+			currentWrapper.subprocessAborted.addListener( e -> btnGenerate.setEnabled( true ) );
+			currentWrapper.subprocessFinished.addListener( e -> btnGenerate.setEnabled( true ) );
+		}
 	}
 
 	private void createNodeDetailsTab( JTabbedPane tabPane )
@@ -130,4 +150,3 @@ public class NodeDetailsFrame extends JFrame
 		content.updateTable();
 	}
 }
-

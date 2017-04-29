@@ -1,6 +1,7 @@
 package pl.pwr.hiervis.ui.components;
 
 import java.awt.GridBagLayout;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -33,6 +34,7 @@ public class HKOptionsPanel extends JPanel
 	private Logger logger = null;
 	private HVContext context;
 
+	private LoadedHierarchy hierarchy;
 	private Node node;
 
 	private JTextField txtClusters = null;
@@ -52,6 +54,7 @@ public class HKOptionsPanel extends JPanel
 	public HKOptionsPanel( HVContext context, Node node, Logger logger )
 	{
 		this.context = context;
+		this.hierarchy = context.getHierarchy();
 		this.node = node;
 		this.logger = logger;
 
@@ -137,8 +140,8 @@ public class HKOptionsPanel extends JPanel
 
 	public void setupDefaultValues( HVConfig cfg )
 	{
-		cboxTrueClass.setEnabled( context.getHierarchy().options.hasTrueClassAttribute );
-		cboxInstanceNames.setEnabled( context.getHierarchy().options.hasTnstanceNameAttribute );
+		cboxTrueClass.setEnabled( hierarchy.options.hasTrueClassAttribute );
+		cboxInstanceNames.setEnabled( hierarchy.options.hasTnstanceNameAttribute );
 
 		txtClusters.setText( "" + cfg.getHkClusters() );
 		txtIterations.setText( "" + cfg.getHkIterations() );
@@ -155,7 +158,15 @@ public class HKOptionsPanel extends JPanel
 		cboxGenerateImages.setSelected( cfg.isHkGenerateImages() );
 	}
 
-	public void generate()
+	/**
+	 * Launches the HK generation method.
+	 * 
+	 * @param window
+	 *            the window to attach the modal dialog to. Can null to attach the dialog
+	 *            to the window the HK options panel is placed in.
+	 * @return the {@link HKPlusPlusWrapper} instance associated with this subprocess
+	 */
+	public HKPlusPlusWrapper generate( Window window )
 	{
 		int clusters = Integer.parseInt( getText( txtClusters ) ); // -k
 		int iterations = Integer.parseInt( getText( txtIterations ) ); // -n
@@ -191,13 +202,15 @@ public class HKOptionsPanel extends JPanel
 
 			logger.trace( "Preparing input file..." );
 			wrapper.prepareInputFile(
-				context.getHierarchy(), node,
+				hierarchy, node,
 				cboxTrueClass.isSelected(), cboxInstanceNames.isSelected()
 			);
 
 			logger.trace( "Starting..." );
 			wrapper.start(
-				SwingUtilities.getWindowAncestor( this ),
+				window == null
+					? SwingUtilities.getWindowAncestor( this )
+					: window,
 				cboxTrueClass.isSelected(), cboxInstanceNames.isSelected(),
 				cboxDiagonalMatrix.isSelected(), cboxNoStaticCenter.isSelected(),
 				cboxGenerateImages.isSelected(),
@@ -205,10 +218,14 @@ public class HKOptionsPanel extends JPanel
 				clusters, iterations, repeats,
 				dendrogramHeight, maxNodes
 			);
+
+			return wrapper;
 		}
 		catch ( IOException ex ) {
 			logger.error( ex );
 		}
+
+		return null;
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -283,7 +300,7 @@ public class HKOptionsPanel extends JPanel
 					false
 				);
 
-				LoadedHierarchy finalHierarchy = HierarchyUtils.merge( outputHierarchy, context.getHierarchy(), node.getId() );
+				LoadedHierarchy finalHierarchy = HierarchyUtils.merge( outputHierarchy, hierarchy, node.getId() );
 				context.loadHierarchy( getParameterString( cfg ), finalHierarchy );
 			}
 			catch ( Throwable ex ) {

@@ -114,9 +114,11 @@ public class HKPlusPlusWrapper
 						subprocessAborted.broadcast( this );
 					}
 					else {
-						destroy();
 						subprocessFinished.broadcast( Pair.of( this, exitCode ) );
+						destroy();
 					}
+
+					cleanup();
 				}
 				catch ( InterruptedException e ) {
 					// Ignore.
@@ -135,7 +137,7 @@ public class HKPlusPlusWrapper
 		waitFrame.setStatusUpdateCallback( this::getLatestMessage );
 		waitFrame.setProgressPollInterval( 100 );
 
-		waitFrame.setModal( true );
+		waitFrame.setModal( false );
 		waitFrame.setSize( 300, 150 );
 		waitFrame.setLocationRelativeTo( owner );
 		waitFrame.setVisible( true );
@@ -196,19 +198,32 @@ public class HKPlusPlusWrapper
 		return new LoadedHierarchy( output, options );
 	}
 
+	/**
+	 * @return snapshot of the config instance used to run this HK subprocess
+	 */
 	public HVConfig getConfig()
 	{
 		return cfg;
 	}
 
 	/**
-	 * Attempts to terminate the HK++ subprocess, and clean up.
+	 * Attempts to terminate the HK++ subprocess.
 	 */
 	public void destroy()
 	{
+		if ( process != null ) {
+			process.destroy();
+			process = null;
+		}
+	}
+
+	private void cleanup()
+	{
+		subprocessFinished.clearListeners();
+		subprocessAborted.clearListeners();
+
 		waitFrame.dispose();
 		outObserver.interrupt();
-		process.destroy();
 
 		outObserver = null;
 		waitFrame = null;
