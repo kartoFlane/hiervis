@@ -11,8 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -44,14 +42,12 @@ public class MeasureManager
 	/** Sent when a measure computation is finished. */
 	public final Event<Triple<LoadedHierarchy, String, Object>> measureComputed = new Event<>();
 
-	private HVContext context;
 	private MeasureComputeThread computeThread = null;
 	private Map<String, Collection<MeasureTask>> measureGroupMap = null;
 
 
-	public MeasureManager( HVContext context )
+	public MeasureManager()
 	{
-		this.context = context;
 		measureGroupMap = new HashMap<>();
 
 		computeThread = new MeasureComputeThread();
@@ -136,41 +132,6 @@ public class MeasureManager
 	public void clearPendingTasks()
 	{
 		computeThread.clearPendingTasks();
-	}
-
-	/**
-	 * Returns a set of measures that have been computed thus far for the currently loaded hierarchy.
-	 * <p>
-	 * This method is not particularly thread-safe, as the map of measures might be updated with new entries
-	 * while you are processing the set, resulting in missed entries.
-	 * </p>
-	 * <p>
-	 * For a thread-safe alternative, see {@link #forComputedMeasures(Consumer)}
-	 * </p>
-	 * 
-	 * @see #forComputedMeasures(Consumer)
-	 */
-	public Set<Map.Entry<String, Object>> getComputedMeasuress()
-	{
-		if ( context.isHierarchyDataLoaded() ) {
-			return context.getHierarchy().getComputedMeasures();
-		}
-		return Collections.emptySet();
-	}
-
-	/**
-	 * Performs the specified function on the set of measures that have been computed thus far for
-	 * the currently loaded hierarchy.
-	 * <p>
-	 * This method executes the function inside of a synchronized block, preventing the set from
-	 * being updated while this method is executing.
-	 * </p>
-	 */
-	public void forComputedMeasuress( Consumer<Set<Map.Entry<String, Object>>> function )
-	{
-		if ( context.isHierarchyDataLoaded() ) {
-			context.getHierarchy().forComputedMeasures( function );
-		}
 	}
 
 	/**

@@ -75,7 +75,7 @@ public class HVContext
 	{
 		setConfig( new HVConfig() );
 
-		measureManager = new MeasureManager( this );
+		measureManager = new MeasureManager();
 
 		hierarchyChanging.addListener( this::onHierarchyChanging );
 		hierarchyChanged.addListener( this::onHierarchyChanged );
