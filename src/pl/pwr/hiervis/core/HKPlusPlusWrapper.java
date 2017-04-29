@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.reader.GeneratedCSVReader;
@@ -29,17 +31,19 @@ public class HKPlusPlusWrapper
 	 * @param first
 	 *            the exit code of the subprocess
 	 */
-	public final Event<Integer> subprocessFinished = new Event<>();
+	public final Event<Pair<HKPlusPlusWrapper, Integer>> subprocessFinished = new Event<>();
 	/** Sent when the subprocess is terminated by the main process. */
-	public final Event<Void> subprocessAborted = new Event<>();
+	public final Event<HKPlusPlusWrapper> subprocessAborted = new Event<>();
 
 	private volatile Process process;
 	private InputStreamObserverThread outObserver;
 	private OperationProgressFrame waitFrame;
+	private HVConfig cfg;
 
 
-	public HKPlusPlusWrapper()
+	public HKPlusPlusWrapper( HVConfig srcCfg )
 	{
+		cfg = srcCfg.copy();
 	}
 
 	/**
@@ -107,11 +111,11 @@ public class HKPlusPlusWrapper
 					int exitCode = process.waitFor();
 
 					if ( process == null ) {
-						subprocessAborted.broadcast( null );
+						subprocessAborted.broadcast( this );
 					}
 					else {
 						destroy();
-						subprocessFinished.broadcast( exitCode );
+						subprocessFinished.broadcast( Pair.of( this, exitCode ) );
 					}
 				}
 				catch ( InterruptedException e ) {
@@ -190,6 +194,11 @@ public class HKPlusPlusWrapper
 		);
 
 		return new LoadedHierarchy( output, options );
+	}
+
+	public HVConfig getConfig()
+	{
+		return cfg;
 	}
 
 	/**

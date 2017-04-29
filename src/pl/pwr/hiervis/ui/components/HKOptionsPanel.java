@@ -14,6 +14,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.text.NumberFormatter;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Node;
@@ -32,7 +33,6 @@ public class HKOptionsPanel extends JPanel
 	private Logger logger = null;
 	private HVContext context;
 
-	private HKPlusPlusWrapper wrapper;
 	private Node node;
 
 	private JTextField txtClusters = null;
@@ -185,7 +185,7 @@ public class HKOptionsPanel extends JPanel
 		}
 
 		try {
-			wrapper = new HKPlusPlusWrapper();
+			HKPlusPlusWrapper wrapper = new HKPlusPlusWrapper( cfg );
 			wrapper.subprocessFinished.addListener( this::onSubprocessFinished );
 			wrapper.subprocessAborted.addListener( this::onSubprocessAborted );
 
@@ -239,53 +239,52 @@ public class HKOptionsPanel extends JPanel
 		return t == null || t.equals( "" ) ? "0" : t;
 	}
 
-	private String getParameterString()
+	private String getParameterString( HVConfig cfg )
 	{
-		int clusters = Integer.parseInt( getText( txtClusters ) ); // -k
-		int iterations = Integer.parseInt( getText( txtIterations ) ); // -n
-		int repeats = Integer.parseInt( getText( txtRepeats ) ); // -r
-		int dendrogramHeight = Integer.parseInt( getText( txtDendrogram ) ); // -s
-		int maxNodes = Integer.parseInt( getText( txtMaxNodes ) ); // -w
-		int epsilon = Integer.parseInt( getText( txtEpsilon ) ); // -e
-		int littleVal = Integer.parseInt( getText( txtLittleVal ) ); // -l
-		boolean diagonalMatrix = cboxDiagonalMatrix.isSelected();
-
+		int maxNodes = cfg.getHkMaxNodes();
 		String maxNodesStr = maxNodes < 0 ? "MAX_INT" : ( "" + maxNodes );
 
 		return String.format(
 			"%s / -k %s / -n %s / -r %s / -s %s / -e %s / -l %s / -w %s%s",
 			node.getId(),
-			clusters, iterations,
-			repeats, dendrogramHeight,
-			epsilon, littleVal,
+			cfg.getHkClusters(),
+			cfg.getHkIterations(),
+			cfg.getHkRepetitions(),
+			cfg.getHkDendrogramHeight(),
+			cfg.getHkEpsilon(),
+			cfg.getHkLittleValue(),
 			maxNodesStr,
-			diagonalMatrix ? " / DM" : ""
+			cfg.isHkWithDiagonalMatrix() ? " / DM" : ""
 		);
 	}
 
 	// ---------------------------------------------------------------------------------------------
 	// Listeners
 
-	private void onSubprocessAborted( Void v )
+	private void onSubprocessAborted( HKPlusPlusWrapper wrapper )
 	{
 		logger.trace( "Aborted." );
-		wrapper = null;
 	}
 
-	private void onSubprocessFinished( int exitCode )
+	private void onSubprocessFinished( Pair<HKPlusPlusWrapper, Integer> args )
 	{
+		HKPlusPlusWrapper wrapper = args.getKey();
+		int exitCode = args.getValue();
+
 		if ( exitCode == 0 ) {
 			logger.trace( "Finished successfully." );
 
 			try {
+				HVConfig cfg = wrapper.getConfig();
+
 				LoadedHierarchy outputHierarchy = wrapper.getOutputHierarchy(
-					cboxTrueClass.isSelected(),
-					cboxInstanceNames.isSelected(),
+					cfg.isHkWithTrueClass(),
+					cfg.isHkWithInstanceNames(),
 					false
 				);
 
 				LoadedHierarchy finalHierarchy = HierarchyUtils.merge( outputHierarchy, context.getHierarchy(), node.getId() );
-				context.loadHierarchy( getParameterString(), finalHierarchy );
+				context.loadHierarchy( getParameterString( cfg ), finalHierarchy );
 			}
 			catch ( Throwable ex ) {
 				logger.error( "Subprocess finished successfully, but failed during processing: ", ex );
@@ -299,18 +298,18 @@ public class HKOptionsPanel extends JPanel
 		wrapper = null;
 	}
 
-	private void openInNewInstance( LoadedHierarchy hierarchy ) throws IOException
+	private void openInNewInstance( HVConfig cfg, LoadedHierarchy hierarchy ) throws IOException
 	{
 		File tmp = File.createTempFile( "hv-h-", ".tmp.csv" );
 		logger.trace( "Saving merged hierarchy to: " + tmp.getAbsolutePath() );
 		HierarchyUtils.save(
 			tmp.getAbsolutePath(), hierarchy.data,
-			true, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected(), true
+			true, cfg.isHkWithTrueClass(), cfg.isHkWithInstanceNames(), true
 		);
 
 		// TODO: Check if the selection was an internal node or leaf node, and decide where to load the new hierarchy based on that
 		HierarchyVisualizer.spawnNewInstance(
-			getParameterString(),
+			getParameterString( cfg ),
 			tmp, cboxTrueClass.isSelected(), cboxInstanceNames.isSelected()
 		);
 	}
