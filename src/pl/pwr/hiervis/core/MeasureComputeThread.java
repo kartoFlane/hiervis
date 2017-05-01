@@ -40,6 +40,7 @@ public class MeasureComputeThread extends Thread
 
 	public MeasureComputeThread()
 	{
+		setName( "MeasureComputeThread" );
 		setDaemon( true );
 	}
 

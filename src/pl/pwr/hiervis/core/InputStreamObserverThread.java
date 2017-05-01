@@ -52,6 +52,7 @@ public class InputStreamObserverThread extends Thread
 	 */
 	public InputStreamObserverThread( InputStream is, boolean close )
 	{
+		setName( "InputStreamObserverThread" );
 		setDaemon( true );
 
 		in = new BufferedReader( new InputStreamReader( is ) );

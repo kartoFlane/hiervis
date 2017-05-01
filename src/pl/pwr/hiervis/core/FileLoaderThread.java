@@ -34,6 +34,7 @@ public class FileLoaderThread extends Thread
 	 */
 	public FileLoaderThread( File file, LoadedHierarchy.Options options )
 	{
+		setName( "FileLoaderThread" );
 		setDaemon( true );
 
 		this.file = file;
