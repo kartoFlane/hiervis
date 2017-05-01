@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.util.prefuse.histogram.simple;
+package pl.pwr.hiervis.prefuse.histogram;
 
 /* 
  * Adapted for HocusLocus by Ajish George <ajishg@gmail.com>
@@ -69,7 +69,6 @@ public class HistogramTable extends Table implements ColumnListener
 
 	public HistogramTable( Table aTable )
 	{
-
 		this( aTable, DEFAULT_BIN_COUNT );
 	}
 
@@ -319,7 +318,6 @@ public class HistogramTable extends Table implements ColumnListener
 			binSlot = (int)( ( cellValue - dataColumnMin ) / m_binWidth );
 			currentCount = getInt( binSlot, countField );
 			setInt( binSlot, countField, currentCount + 1 );
-
 		}
 	}
 

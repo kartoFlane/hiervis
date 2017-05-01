@@ -18,11 +18,11 @@ import org.apache.logging.log4j.Logger;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HKPlusPlusWrapper;
 import pl.pwr.hiervis.core.HVContext;
+import pl.pwr.hiervis.core.HierarchyProcessor;
 import pl.pwr.hiervis.ui.components.HKOptionsPanel;
 import pl.pwr.hiervis.ui.components.NodeCharacteristicsTable;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.SwingUIUtils;
-import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 
 
 @SuppressWarnings("serial")

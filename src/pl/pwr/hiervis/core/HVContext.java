@@ -22,7 +22,6 @@ import pl.pwr.hiervis.ui.OperationProgressFrame;
 import pl.pwr.hiervis.ui.VisualizerFrame;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.SwingUIUtils;
-import pl.pwr.hiervis.visualisation.HierarchyProcessor;
 import prefuse.Visualization;
 
 

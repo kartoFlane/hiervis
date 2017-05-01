@@ -1,11 +1,10 @@
-package pl.pwr.hiervis.visualisation;
+package pl.pwr.hiervis.prefuse.visualization;
 
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RectangularShape;
@@ -39,7 +38,7 @@ public class StringRenderer extends AbstractShapeRenderer
 	protected int m_maxTextWidth = -1;
 
 	/** Transform used to scale and position images */
-	AffineTransform m_transform = new AffineTransform();
+	// AffineTransform m_transform = new AffineTransform();
 
 	/** The holder for the currently computed bounding box */
 	protected RectangularShape m_bbox = new Rectangle2D.Double();
@@ -125,11 +124,10 @@ public class StringRenderer extends AbstractShapeRenderer
 	 */
 	protected String getText( VisualItem item )
 	{
-		String s = null;
 		if ( item.canGetString( m_labelName ) ) {
 			return item.getString( m_labelName );
 		}
-		return s;
+		return null;
 	}
 
 	// ------------------------------------------------------------------------

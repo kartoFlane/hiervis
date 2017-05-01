@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.visualisation;
+package pl.pwr.hiervis.prefuse.visualization;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;

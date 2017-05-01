@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.util.prefuse.histogram.simple;
+package pl.pwr.hiervis.prefuse.histogram;
 
 import java.awt.Color;
 
@@ -19,6 +19,7 @@ import java.text.DecimalFormat;
 
 import javax.swing.BorderFactory;
 
+import pl.pwr.hiervis.prefuse.DisplayEx;
 import prefuse.Constants;
 import prefuse.Display;
 import prefuse.Visualization;
@@ -62,7 +63,7 @@ import prefuse.visual.sort.ItemSorter;
  * @author <a href="http://jheer.org">jeffrey heer</a>
  * @author <a href="http://webfoot.com/ducky.home.html">Kaitlin Duck Sherwood</a>
  */
-public class HistogramGraph extends Display
+public class HistogramGraph extends DisplayEx
 {
 	protected static final String dataId = "data";
 	protected static final String xlabelsId = "xlabels";

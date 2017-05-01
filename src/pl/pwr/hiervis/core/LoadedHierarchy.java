@@ -10,8 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
-import pl.pwr.hiervis.visualisation.HierarchyProcessor;
-import pl.pwr.hiervis.visualisation.TreeLayoutData;
+import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
 import prefuse.data.Table;
 import prefuse.data.Tree;
 

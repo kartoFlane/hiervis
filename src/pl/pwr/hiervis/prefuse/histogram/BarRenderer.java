@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.util.prefuse.histogram.simple;
+package pl.pwr.hiervis.prefuse.histogram;
 
 /*
  * Adapted for HocusLocus by Ajish George <ajishg@gmail.com>

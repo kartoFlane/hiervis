@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.visualisation;
+package pl.pwr.hiervis.prefuse.visualization;
 
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;

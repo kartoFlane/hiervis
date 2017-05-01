@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui.control;
+package pl.pwr.hiervis.prefuse.control;
 
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;

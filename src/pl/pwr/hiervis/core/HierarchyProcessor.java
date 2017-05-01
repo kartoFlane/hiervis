@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.visualisation;
+package pl.pwr.hiervis.core;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
@@ -17,11 +17,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
-import pl.pwr.hiervis.core.ElementRole;
-import pl.pwr.hiervis.core.HVConfig;
-import pl.pwr.hiervis.core.HVConstants;
-import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.core.LoadedHierarchy;
+import pl.pwr.hiervis.prefuse.visualization.NodeRenderer;
+import pl.pwr.hiervis.prefuse.visualization.PointRenderer;
+import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
 import pl.pwr.hiervis.util.Utils;
 import prefuse.Constants;
 import prefuse.Visualization;
