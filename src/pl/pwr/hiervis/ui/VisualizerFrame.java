@@ -1,32 +1,29 @@
 package pl.pwr.hiervis.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.function.Consumer;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
+import javax.swing.AbstractButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.plaf.basic.BasicButtonUI;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,6 +33,7 @@ import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.LoadedHierarchy;
+import pl.pwr.hiervis.ui.components.CloseableTabComponent;
 import pl.pwr.hiervis.ui.components.FileDrop;
 import pl.pwr.hiervis.ui.components.JFileChooserEx;
 import pl.pwr.hiervis.ui.control.CustomToolTipControl;
@@ -137,22 +135,13 @@ public class VisualizerFrame extends JFrame implements ActionListener
 
 	public void createHierarchyTab( String tabName )
 	{
-		JPanel cTab = new JPanel();
-		cTab.setOpaque( false );
-		cTab.add( new JLabel( tabName ) );
+		Component tabContent = createHierarchyDisplay();
+		tabPane.addTab( tabName, null, tabContent, null );
+		int index = tabPane.indexOfComponent( tabContent );
 
-		JButton btnClose = new JButton( " x " );
-		btnClose.setBorder( BorderFactory.createLineBorder( Color.BLACK ) );
-		btnClose.setUI( new BasicButtonUI() );
-		btnClose.setFocusable( false );
-		btnClose.setToolTipText( "Click to close this tab." );
-		btnClose.addActionListener( this );
-		cTab.add( btnClose );
-
-		Component component = createHierarchyDisplay();
-		tabPane.addTab( tabName, component );
-		int index = tabPane.indexOfComponent( component );
-		tabPane.setTabComponentAt( index, cTab );
+		CloseableTabComponent c = new CloseableTabComponent( tabPane );
+		c.addCloseListener( this );
+		tabPane.setTabComponentAt( index, c );
 	}
 
 	public void selectTab( int index )
@@ -189,6 +178,24 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		tabPane = new JTabbedPane();
 
 		getContentPane().add( tabPane, BorderLayout.CENTER );
+
+		// Reinsert the original mouse listener, so that ours is first in the
+		// notification order.
+		MouseListener l = tabPane.getMouseListeners()[0];
+		tabPane.removeMouseListener( l );
+		tabPane.addMouseListener(
+			new MouseAdapter() {
+				@Override
+				public void mousePressed( MouseEvent e )
+				{
+					if ( SwingUtilities.isMiddleMouseButton( e ) ) {
+						int index = tabPane.getUI().tabForCoordinate( tabPane, e.getX(), e.getY() );
+						closeTab( index );
+					}
+				}
+			}
+		);
+		tabPane.addMouseListener( l );
 
 		tabPane.addChangeListener(
 			e -> {
@@ -551,19 +558,19 @@ public class VisualizerFrame extends JFrame implements ActionListener
 	{
 		Object source = e.getSource();
 
-		if ( source instanceof JComponent ) {
-			JComponent c = (JComponent)source;
+		if ( source instanceof AbstractButton ) {
+			AbstractButton btn = (AbstractButton)source;
 
-			if ( tabPane.isAncestorOf( c ) ) {
-				int index = tabPane.indexOfTabComponent( c.getParent() );
+			if ( tabPane.isAncestorOf( btn ) ) {
+				int index = tabPane.indexOfTabComponent( btn.getParent() );
 				if ( index >= 0 ) {
-					JButton btnClose = (JButton)source;
-					btnClose.removeActionListener( this );
+					btn.removeActionListener( this );
 					closeTab( index );
 				}
 			}
 		}
 	}
+
 
 	/**
 	 * Creates a handler for file drag'n'drop.
