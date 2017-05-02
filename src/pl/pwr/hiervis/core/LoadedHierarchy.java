@@ -174,7 +174,11 @@ public class LoadedHierarchy
 	{
 		computedMeasureMap.clear();
 
+		hierarchyTree.dispose();
+		hierarchyTree.removeAllSets();
+		hierarchyTree.clear();
 		hierarchyTree = null;
+
 		hierarchyTreeLayout = null;
 
 		if ( instanceTable != null ) {
