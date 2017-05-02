@@ -5,8 +5,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-import pl.pwr.hiervis.core.HVConfig;
-
 
 public class ImageUtils
 {
@@ -47,7 +45,7 @@ public class ImageUtils
 		return bimg;
 	}
 
-	public static BufferedImage trimImg( BufferedImage img, HVConfig config )
+	public static BufferedImage trimImg( BufferedImage img, Color backgroundColor )
 	{
 		// TODO instead of iterating through the columns of image, we can use BINARY SEARCH through columns
 		// and check if column doesn't contain at least 1 non-background colour pixel
@@ -59,7 +57,7 @@ public class ImageUtils
 		for ( int x = 0; x < imgWidth; x++ ) {
 			if ( startWidth == 0 ) {
 				for ( int y = 0; y < imgHeight; y++ ) {
-					if ( img.getRGB( x, y ) != config.getBackgroundColor().getRGB() ) {
+					if ( img.getRGB( x, y ) != backgroundColor.getRGB() ) {
 						startWidth = x;
 						break;
 					}
@@ -74,7 +72,7 @@ public class ImageUtils
 		for ( int x = imgWidth - 1; x >= 0; x-- ) {
 			if ( endWidth == 0 ) {
 				for ( int y = 0; y < imgHeight; y++ ) {
-					if ( img.getRGB( x, y ) != config.getBackgroundColor().getRGB() ) {
+					if ( img.getRGB( x, y ) != backgroundColor.getRGB() ) {
 						endWidth = x;
 						break;
 					}

@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui;
+package pl.pwr.hiervis.util.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -22,10 +22,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import pl.pwr.hiervis.ui.components.HuePicker;
-import pl.pwr.hiervis.ui.components.NumberDocument;
-import pl.pwr.hiervis.ui.components.ShadePicker;
-import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.HSV;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;

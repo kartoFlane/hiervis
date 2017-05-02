@@ -33,7 +33,7 @@ import javax.swing.SwingWorker;
 
 import org.apache.logging.log4j.Logger;
 
-import pl.pwr.hiervis.ui.OperationProgressFrame;
+import pl.pwr.hiervis.util.ui.OperationProgressFrame;
 
 
 /**

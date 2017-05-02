@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui.components;
+package pl.pwr.hiervis.util.ui;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

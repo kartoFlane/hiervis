@@ -12,9 +12,9 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.core.LoadedHierarchy;
-import pl.pwr.hiervis.ui.components.JMultilineLabel;
+import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.util.SwingUIUtils;
+import pl.pwr.hiervis.util.ui.JMultilineLabel;
 
 
 @SuppressWarnings("serial")

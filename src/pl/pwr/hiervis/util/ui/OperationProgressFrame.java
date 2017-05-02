@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui;
+package pl.pwr.hiervis.util.ui;
 
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
@@ -14,8 +14,8 @@ import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
-import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.SwingUIUtils;
+
 import javax.swing.SwingConstants;
 
 

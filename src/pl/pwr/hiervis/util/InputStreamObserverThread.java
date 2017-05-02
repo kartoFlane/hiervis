@@ -1,11 +1,9 @@
-package pl.pwr.hiervis.core;
+package pl.pwr.hiervis.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import pl.pwr.hiervis.util.Event;
 
 
 /**

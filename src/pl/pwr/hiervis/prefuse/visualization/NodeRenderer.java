@@ -3,9 +3,9 @@ package pl.pwr.hiervis.prefuse.visualization;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 
-import pl.pwr.hiervis.core.ElementRole;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
+import pl.pwr.hiervis.hierarchy.ElementRole;
 import prefuse.render.AbstractShapeRenderer;
 import prefuse.visual.VisualItem;
 

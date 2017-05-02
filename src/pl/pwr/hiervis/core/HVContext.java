@@ -14,15 +14,19 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.hiervis.hierarchy.HierarchyLoaderThread;
+import pl.pwr.hiervis.hierarchy.HierarchyProcessor;
+import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
+import pl.pwr.hiervis.hk.HKPlusPlusWrapper;
 import pl.pwr.hiervis.measures.MeasureManager;
 import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
 import pl.pwr.hiervis.ui.HierarchyStatisticsFrame;
 import pl.pwr.hiervis.ui.InstanceVisualizationsFrame;
-import pl.pwr.hiervis.ui.OperationProgressFrame;
 import pl.pwr.hiervis.ui.VisualizerFrame;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.SwingUIUtils;
+import pl.pwr.hiervis.util.ui.OperationProgressFrame;
 import prefuse.Visualization;
 
 
@@ -309,7 +313,7 @@ public class HVContext
 	 */
 	public void loadFile( Window window, File file, LoadedHierarchy.Options options )
 	{
-		FileLoaderThread thread = new FileLoaderThread( file, options );
+		HierarchyLoaderThread thread = new HierarchyLoaderThread( file, options );
 
 		OperationProgressFrame progressFrame = new OperationProgressFrame( window, "Loading..." );
 		progressFrame.setProgressUpdateCallback( thread::getProgress );

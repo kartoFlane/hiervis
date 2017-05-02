@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui.components;
+package pl.pwr.hiervis.util.ui;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.BufferedReader;

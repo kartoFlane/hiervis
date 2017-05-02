@@ -1,9 +1,10 @@
-package pl.pwr.hiervis.core;
+package pl.pwr.hiervis.hierarchy;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.measures.MeasureResultHolder;
 import pl.pwr.hiervis.prefuse.TableEx;
 import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
@@ -50,7 +51,7 @@ public class LoadedHierarchy
 	 * @param hierarchy
 	 *            the hierarchy to process
 	 */
-	protected void processHierarchy( HVConfig config )
+	public void processHierarchy( HVConfig config )
 	{
 		// TODO:
 		// Might want to use some kind of algorithm to figure out optimal tree layout area?

@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.core;
+package pl.pwr.hiervis.hierarchy;
 
 import java.io.File;
 
@@ -12,9 +12,9 @@ import basic_hierarchy.reader.GeneratedCSVReader;
 import pl.pwr.hiervis.util.Event;
 
 
-public class FileLoaderThread extends Thread
+public class HierarchyLoaderThread extends Thread
 {
-	private static final Logger log = LogManager.getLogger( FileLoaderThread.class );
+	private static final Logger log = LogManager.getLogger( HierarchyLoaderThread.class );
 
 	public final Event<Pair<File, LoadedHierarchy>> fileLoaded = new Event<>();
 	public final Event<Exception> errorOcurred = new Event<>();
@@ -32,9 +32,9 @@ public class FileLoaderThread extends Thread
 	 * @param file
 	 *            the file to load (CSV format)
 	 */
-	public FileLoaderThread( File file, LoadedHierarchy.Options options )
+	public HierarchyLoaderThread( File file, LoadedHierarchy.Options options )
 	{
-		setName( "FileLoaderThread" );
+		setName( "HierarchyLoaderThread" );
 		setDaemon( true );
 
 		this.file = file;

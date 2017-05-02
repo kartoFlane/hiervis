@@ -19,8 +19,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
 import internal_measures.statistics.AvgWithStdev;
-import pl.pwr.hiervis.core.LoadedHierarchy;
-import pl.pwr.hiervis.core.MeasureComputeThread;
+import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.util.Event;
 
 

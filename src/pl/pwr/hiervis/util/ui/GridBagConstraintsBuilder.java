@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.util;
+package pl.pwr.hiervis.util.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.Insets;

@@ -26,7 +26,7 @@ import basic_hierarchy.implementation.BasicNode;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
-import pl.pwr.hiervis.core.LoadedHierarchy;
+import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 
 
 public class HierarchyUtils

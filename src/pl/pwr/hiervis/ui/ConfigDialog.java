@@ -24,8 +24,9 @@ import javax.swing.border.LineBorder;
 
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
 import pl.pwr.hiervis.util.SwingUIUtils;
+import pl.pwr.hiervis.util.ui.GridBagConstraintsBuilder;
+import pl.pwr.hiervis.util.ui.SquareColorPickerDialog;
 
 
 @SuppressWarnings("serial")

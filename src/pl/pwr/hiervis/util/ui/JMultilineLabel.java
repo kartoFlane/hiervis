@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui.components;
+package pl.pwr.hiervis.util.ui;
 
 import javax.swing.JTextArea;
 import javax.swing.UIManager;

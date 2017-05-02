@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui.components;
+package pl.pwr.hiervis.ui;
 
 import java.util.LinkedList;
 

@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.ui.components;
+package pl.pwr.hiervis.hk.ui;
 
 import java.awt.GridBagLayout;
 import java.awt.Window;
@@ -20,12 +20,12 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.HierarchyVisualizer;
-import pl.pwr.hiervis.core.HKPlusPlusWrapper;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.core.LoadedHierarchy;
-import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
+import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
+import pl.pwr.hiervis.hk.HKPlusPlusWrapper;
 import pl.pwr.hiervis.util.HierarchyUtils;
+import pl.pwr.hiervis.util.ui.GridBagConstraintsBuilder;
 
 
 @SuppressWarnings("serial")

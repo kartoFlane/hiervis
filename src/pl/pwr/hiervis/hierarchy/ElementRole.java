@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.core;
+package pl.pwr.hiervis.hierarchy;
 
 public enum ElementRole
 {

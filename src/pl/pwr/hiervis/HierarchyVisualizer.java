@@ -38,7 +38,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
-import pl.pwr.hiervis.core.LoadedHierarchy;
+import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.ui.VisualizerFrame;
 import pl.pwr.hiervis.util.SwingUIUtils;
 import pl.pwr.hiervis.util.Utils;

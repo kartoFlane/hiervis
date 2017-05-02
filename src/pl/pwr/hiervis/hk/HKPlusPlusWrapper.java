@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.core;
+package pl.pwr.hiervis.hk;
 
 import java.awt.Window;
 import java.io.File;
@@ -12,9 +12,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.reader.GeneratedCSVReader;
-import pl.pwr.hiervis.ui.OperationProgressFrame;
+import pl.pwr.hiervis.core.HVConfig;
+import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.HierarchyUtils;
+import pl.pwr.hiervis.util.InputStreamObserverThread;
+import pl.pwr.hiervis.util.ui.OperationProgressFrame;
 
 
 public class HKPlusPlusWrapper
