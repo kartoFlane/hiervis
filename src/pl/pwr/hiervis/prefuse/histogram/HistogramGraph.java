@@ -21,7 +21,6 @@ import javax.swing.BorderFactory;
 
 import pl.pwr.hiervis.prefuse.DisplayEx;
 import prefuse.Constants;
-import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.action.Action;
 import prefuse.action.ActionList;
@@ -33,7 +32,6 @@ import prefuse.data.query.NumberRangeModel;
 import prefuse.render.AxisRenderer;
 import prefuse.render.Renderer;
 import prefuse.render.RendererFactory;
-import prefuse.util.ColorLib;
 import prefuse.util.GraphicsLib;
 import prefuse.util.display.DisplayLib;
 import prefuse.visual.VisualItem;
@@ -373,5 +371,20 @@ public class HistogramGraph extends DisplayEx
 	protected HistogramTable getHistoTable()
 	{
 		return m_histoTable;
+	}
+
+	@Override
+	public void dispose()
+	{	
+		super.dispose();
+		
+		m_dataB = null;
+		m_xlabB = null;
+		m_ylabB = null;
+		m_shapeR = null;
+
+		m_histoTable.clear();
+		m_histoTable.dispose();
+		m_histoTable = null;
 	}
 }

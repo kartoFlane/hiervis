@@ -48,6 +48,11 @@ public class HVContext
 	/** Sent when the loaded hierarchy has changed. */
 	public final Event<LoadedHierarchy> hierarchyChanged = new Event<>();
 
+	/** Sent when the loaded hierarchy is about to be closed. */
+	public final Event<LoadedHierarchy> hierarchyClosing = new Event<>();
+	/** Sent when the loaded hierarchy has been closed. */
+	public final Event<LoadedHierarchy> hierarchyClosed = new Event<>();
+
 	/** Send when the app configuration is about to change. */
 	public final Event<HVConfig> configChanging = new Event<>();
 	/** Send when the app configuration has changed. */
@@ -392,12 +397,18 @@ public class HVContext
 
 	private void onHierarchyTabClosed( int index )
 	{
-		LoadedHierarchy h = hierarchyList.remove( index );
+		LoadedHierarchy h = hierarchyList.get( index );
+
+		hierarchyClosing.broadcast( h );
+
+		hierarchyList.remove( h );
 		h.dispose();
 
 		if ( currentHierarchy == h ) {
 			setHierarchy( null );
 		}
+
+		hierarchyClosed.broadcast( h );
 
 		System.gc();
 	}

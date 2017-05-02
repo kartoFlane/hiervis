@@ -22,6 +22,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+import pl.pwr.hiervis.prefuse.TableEx;
 import prefuse.data.Table;
 import prefuse.data.column.Column;
 import prefuse.data.event.ColumnListener;
@@ -53,8 +54,10 @@ import prefuse.util.collections.CopyOnWriteArrayList;
  * @author <a href="http://webfoot.com/ducky.home.html">Kaitlin Duck Sherwood</a>
  * @author <a href="http://jheer.org">jeffrey heer</a>
  */
-public class HistogramTable extends Table implements ColumnListener
+public class HistogramTable extends TableEx implements ColumnListener
 {
+	static final int DEFAULT_BIN_COUNT = 15;
+
 	// m_bin{Min, Max} are the min and max of the data column BUT for Strings, min is 1
 	// and max is the number of unique strings.
 	protected Hashtable<String, Double> m_binMin = new Hashtable<String, Double>();
@@ -64,7 +67,6 @@ public class HistogramTable extends Table implements ColumnListener
 	protected Hashtable<String, Integer> m_countMaxes = new Hashtable<String, Integer>();
 	protected double m_binWidth;
 	protected int m_binCount;
-	static final int DEFAULT_BIN_COUNT = 15;
 
 
 	public HistogramTable( Table aTable )
@@ -415,5 +417,21 @@ public class HistogramTable extends Table implements ColumnListener
 	public static String getCountField( String field )
 	{
 		return field + " count";
+	}
+
+	@Override
+	public void dispose()
+	{
+		super.dispose();
+
+		m_binMin.clear();
+		m_binMax.clear();
+		m_countMins.clear();
+		m_countMaxes.clear();
+
+		m_binMin = null;
+		m_binMax = null;
+		m_countMins = null;
+		m_countMaxes = null;
 	}
 }

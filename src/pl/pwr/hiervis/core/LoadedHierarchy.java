@@ -10,8 +10,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.hiervis.prefuse.TableEx;
 import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
-import prefuse.data.Table;
 import prefuse.data.Tree;
 
 
@@ -32,7 +32,7 @@ public class LoadedHierarchy
 
 	private Tree hierarchyTree;
 	private TreeLayoutData hierarchyTreeLayout;
-	private Table instanceTable;
+	private TableEx instanceTable;
 
 
 	public LoadedHierarchy( Hierarchy h, LoadedHierarchy.Options o )
@@ -98,7 +98,7 @@ public class LoadedHierarchy
 	/**
 	 * @return table containing processed instance data
 	 */
-	public Table getInstanceTable()
+	public TableEx getInstanceTable()
 	{
 		return instanceTable;
 	}
@@ -180,6 +180,7 @@ public class LoadedHierarchy
 		if ( instanceTable != null ) {
 			instanceTable.removeAllTableListeners();
 			instanceTable.clear();
+			instanceTable.dispose();
 			instanceTable = null;
 		}
 	}

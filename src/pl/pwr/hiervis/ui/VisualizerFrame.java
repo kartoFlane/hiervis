@@ -34,14 +34,15 @@ import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.HierarchyProcessor;
 import pl.pwr.hiervis.core.LoadedHierarchy;
+import pl.pwr.hiervis.prefuse.DisplayEx;
 import pl.pwr.hiervis.prefuse.control.CustomToolTipControl;
 import pl.pwr.hiervis.prefuse.control.MouseControl;
+import pl.pwr.hiervis.prefuse.control.MouseControl.MouseAction;
+import pl.pwr.hiervis.prefuse.control.MouseControl.TriggerAreaTypes;
 import pl.pwr.hiervis.prefuse.control.NodeSelectionControl;
 import pl.pwr.hiervis.prefuse.control.PanControl;
 import pl.pwr.hiervis.prefuse.control.SubtreeDragControl;
 import pl.pwr.hiervis.prefuse.control.ZoomScrollControl;
-import pl.pwr.hiervis.prefuse.control.MouseControl.MouseAction;
-import pl.pwr.hiervis.prefuse.control.MouseControl.TriggerAreaTypes;
 import pl.pwr.hiervis.ui.components.CloseableTabComponent;
 import pl.pwr.hiervis.ui.components.FileDrop;
 import pl.pwr.hiervis.ui.components.JFileChooserEx;
@@ -159,9 +160,11 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		log.trace( "Closing tab '" + tabPane.getTitleAt( index ) + "'" );
 		hierarchyTabClosed.broadcast( index );
 
-		Display d = (Display)tabPane.getComponentAt( index );
-		d.getVisualization().reset();
-		d.setVisualization( HVConstants.EMPTY_VISUALIZATION );
+		DisplayEx d = (DisplayEx)tabPane.getComponentAt( index );
+		HierarchyProcessor.disposeHierarchyVis( d.getVisualization() );
+		d.setVisualization( null );
+		d.reset();
+		d.dispose();
 
 		tabPane.removeTabAt( index );
 	}
@@ -207,9 +210,9 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		);
 	}
 
-	private Display createHierarchyDisplay()
+	private DisplayEx createHierarchyDisplay()
 	{
-		Display display = new Display( HVConstants.EMPTY_VISUALIZATION );
+		DisplayEx display = new DisplayEx( HVConstants.EMPTY_VISUALIZATION );
 
 		display.setEnabled( false );
 		display.setHighQuality( true );
@@ -496,6 +499,10 @@ public class VisualizerFrame extends JFrame implements ActionListener
 
 	private void onHierarchyChanging( LoadedHierarchy oldHierarchy )
 	{
+		Display d = getCurrentHierarchyDisplay();
+		if ( d != null )
+			d.reset();
+
 		mntmCloseFile.setEnabled( false );
 		mntmSaveFile.setEnabled( false );
 		mntmFlatten.setEnabled( false );

@@ -40,12 +40,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.HierarchyProcessor;
 import pl.pwr.hiervis.core.LoadedHierarchy;
+import pl.pwr.hiervis.prefuse.DisplayEx;
 import pl.pwr.hiervis.prefuse.control.CustomToolTipControl;
 import pl.pwr.hiervis.prefuse.control.PanControl;
 import pl.pwr.hiervis.prefuse.control.ZoomScrollControl;
@@ -54,7 +54,6 @@ import pl.pwr.hiervis.prefuse.histogram.HistogramTable;
 import pl.pwr.hiervis.ui.components.MouseWheelEventBubbler;
 import pl.pwr.hiervis.ui.components.VerticalLabelUI;
 import pl.pwr.hiervis.util.GridBagConstraintsBuilder;
-import pl.pwr.hiervis.util.HierarchyUtils;
 import pl.pwr.hiervis.util.Utils;
 import prefuse.Display;
 import prefuse.Visualization;
@@ -549,23 +548,21 @@ public class InstanceVisualizationsFrame extends JFrame
 	/**
 	 * Creates a display for the specified dimensions and the specified node
 	 * 
-	 * @param node
-	 *            node that is currently selected in the hierarchy view
 	 * @param dimX
 	 *            index of the X dimension
 	 * @param dimY
 	 *            index of the Y dimension
 	 * @return the display
 	 */
-	private Display createDisplayFor( Node node, int dimX, int dimY )
+	private DisplayEx createDisplayFor( int dimX, int dimY )
 	{
-		Display display = null;
+		DisplayEx display = null;
 
 		if ( dimX == dimY ) {
-			display = createHistogramDisplayFor( node, dimX );
+			display = createHistogramDisplayFor( dimX );
 		}
 		else {
-			display = createInstanceDisplayFor( node, dimX, dimY );
+			display = createInstanceDisplayFor( dimX, dimY );
 		}
 
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
@@ -580,13 +577,11 @@ public class InstanceVisualizationsFrame extends JFrame
 	/**
 	 * Creates a histogram display for the specified dimension and the specified node
 	 * 
-	 * @param node
-	 *            node that is currently selected in the hierarchy view
 	 * @param dim
 	 *            dimension index
 	 * @return the display
 	 */
-	private Display createHistogramDisplayFor( Node node, int dim )
+	private DisplayEx createHistogramDisplayFor( int dim )
 	{
 		Table table = context.getHierarchy().getInstanceTable();
 
@@ -635,7 +630,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			new ComponentAdapter() {
 				public void componentResized( ComponentEvent e )
 				{
-					redrawDisplayIfVisible( (Display)e.getComponent() );
+					redrawDisplayIfVisible( (DisplayEx)e.getComponent() );
 				}
 			}
 		);
@@ -646,26 +641,24 @@ public class InstanceVisualizationsFrame extends JFrame
 	/**
 	 * Creates an instance display for the specified dimensions and the specified node
 	 * 
-	 * @param node
-	 *            node that is currently selected in the hierarchy view
 	 * @param dimX
 	 *            index of the X dimension
 	 * @param dimY
 	 *            index of the Y dimension
 	 * @return the display
 	 */
-	private Display createInstanceDisplayFor( Node node, int dimX, int dimY )
+	private DisplayEx createInstanceDisplayFor( int dimX, int dimY )
 	{
-		Visualization vis = createVisualizationFor( node, dimX, dimY );
-		Display display = createInstanceDisplayFor( vis, dimX, dimY );
+		Visualization vis = createVisualizationFor( dimX, dimY );
+		DisplayEx display = createInstanceDisplayFor( vis, dimX, dimY );
 
 		return display;
 	}
 
-	private Visualization createVisualizationFor( Node node, int dimX, int dimY )
+	private Visualization createVisualizationFor( int dimX, int dimY )
 	{
 		return HierarchyProcessor.createInstanceVisualization(
-			context, node, context.getConfig().getPointSize(), dimX, dimY, true
+			context, context.getConfig().getPointSize(), dimX, dimY, true
 		);
 	}
 
@@ -680,9 +673,9 @@ public class InstanceVisualizationsFrame extends JFrame
 	 *            index of the Y dimension
 	 * @return the display
 	 */
-	private Display createInstanceDisplayFor( Visualization vis, int dimX, int dimY )
+	private DisplayEx createInstanceDisplayFor( Visualization vis, int dimX, int dimY )
 	{
-		Display display = new Display( vis );
+		DisplayEx display = new DisplayEx( vis );
 		display.setHighQuality( context.getHierarchy().data.getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
 		display.setBackground( context.getConfig().getBackgroundColor() );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
@@ -756,7 +749,7 @@ public class InstanceVisualizationsFrame extends JFrame
 				public void mouseWheelMoved( MouseWheelEvent e )
 				{
 					if ( e.isAltDown() ) {
-						Display d = (Display)e.getComponent();
+						DisplayEx d = (DisplayEx)e.getComponent();
 
 						Rectangle2D layoutBounds = HierarchyProcessor.getLayoutBounds( d.getVisualization() );
 
@@ -805,7 +798,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			new ComponentAdapter() {
 				public void componentResized( ComponentEvent e )
 				{
-					redrawDisplayIfVisible( (Display)e.getComponent() );
+					redrawDisplayIfVisible( (DisplayEx)e.getComponent() );
 				}
 			}
 		);
@@ -835,7 +828,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	 *            dimension number on the Y axis (0 based)
 	 * @return the display associated with the specified dimensions, or null if it wasn't created yet.
 	 */
-	private Display getDisplay( int dimX, int dimY )
+	private DisplayEx getDisplay( int dimX, int dimY )
 	{
 		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
 		Component result = null;
@@ -848,17 +841,17 @@ public class InstanceVisualizationsFrame extends JFrame
 			}
 		}
 
-		return (Display)result;
+		return (DisplayEx)result;
 	}
 
 	/**
 	 * @return the first visible instance display, or null if none are visible
 	 */
-	private Display getFirstVisibleDisplay()
+	private DisplayEx getFirstVisibleDisplay()
 	{
 		for ( Component c : cViewport.getComponents() ) {
 			if ( c.isVisible() ) {
-				return (Display)c;
+				return (DisplayEx)c;
 			}
 		}
 
@@ -876,19 +869,22 @@ public class InstanceVisualizationsFrame extends JFrame
 	/**
 	 * Executes the specified function for each existing display in the grid.
 	 */
-	private void forEachDisplay( Consumer<Display> func )
+	private void forEachDisplay( Consumer<DisplayEx> func )
 	{
 		for ( Component c : cViewport.getComponents() ) {
-			func.accept( (Display)c );
+			func.accept( (DisplayEx)c );
 		}
 	}
 
-	private void redrawDisplayIfVisible( Display d )
+	private void redrawDisplayIfVisible( DisplayEx d )
 	{
 		if ( d.isVisible() ) {
 			// Unzoom the display so that drawing is not botched.
 			// Utils.unzoom( d, 0 );
 			d.getVisualization().run( "draw" );
+		}
+		else {
+			d.reset();
 		}
 	}
 
@@ -910,14 +906,12 @@ public class InstanceVisualizationsFrame extends JFrame
 		int dim = args.getLeft();
 		boolean horizontal = args.getRight();
 
-		Node node = HierarchyUtils.findGroup( context.getHierarchy(), context.getSelectedRow() );
-
 		for ( int i = 0; i < cboxesVertical.length; ++i ) {
 			int x = horizontal ? dim : i;
 			int y = horizontal ? i : dim;
 
 			boolean vis = shouldDisplayBeVisible( x, y );
-			Display display = getDisplay( x, y );
+			DisplayEx display = getDisplay( x, y );
 
 			if ( display != null ) {
 				display.setVisible( vis );
@@ -926,7 +920,7 @@ public class InstanceVisualizationsFrame extends JFrame
 			else if ( vis ) {
 				if ( includeFlippedDims || ( !includeFlippedDims && x >= y ) ) {
 					// Lazily create the requested display.
-					display = createDisplayFor( node, x, y );
+					display = createDisplayFor( x, y );
 				}
 			}
 		}
@@ -965,6 +959,28 @@ public class InstanceVisualizationsFrame extends JFrame
 		repaint();
 	}
 
+	/**
+	 * Disposes all {@link Display}s currently in the frame.
+	 * 
+	 * Calling this method while the displays / visualizations are still being
+	 * laid out will cause a plethora of errors to be printed out in the console,
+	 * but it should be possible to safely ignore them (the displays those errors
+	 * complain about have been disposed, and are no longer used)
+	 */
+	public void disposeDisplays()
+	{
+		forEachDisplay(
+			display -> {
+				if ( display instanceof HistogramGraph )
+					HierarchyProcessor.disposeHistogramVis( display.getVisualization() );
+				else
+					HierarchyProcessor.disposeInstanceVis( display.getVisualization() );
+				display.reset();
+				display.dispose();
+			}
+		);
+	}
+
 	private void onHierarchyChanging( LoadedHierarchy h )
 	{
 		cboxAllH.setEnabled( false );
@@ -974,6 +990,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		cDimsV.removeAll();
 		cCols.removeAll();
 		cRows.removeAll();
+
+		disposeDisplays();
 		cViewport.removeAll();
 
 		cDimsH.revalidate();
@@ -1009,16 +1027,14 @@ public class InstanceVisualizationsFrame extends JFrame
 		if ( !context.isHierarchyDataLoaded() )
 			return;
 
-		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
-		Node node = HierarchyUtils.findGroup( context.getHierarchy(), context.getSelectedRow() );
-
 		forEachDisplay(
 			display -> {
+				GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
 				GridBagConstraints gbc = layout.getConstraints( display );
 				int dimX = gbc.gridx;
 				int dimY = gbc.gridy;
 
-				display.setVisualization( createVisualizationFor( node, dimX, dimY ) );
+				display.setVisualization( createVisualizationFor( dimX, dimY ) );
 				display.setBackground( cfg.getBackgroundColor() );
 
 				redrawDisplayIfVisible( display );

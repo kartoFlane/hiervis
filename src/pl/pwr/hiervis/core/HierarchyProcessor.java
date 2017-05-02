@@ -17,13 +17,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Instance;
 import basic_hierarchy.interfaces.Node;
+import pl.pwr.hiervis.prefuse.TableEx;
 import pl.pwr.hiervis.prefuse.visualization.NodeRenderer;
 import pl.pwr.hiervis.prefuse.visualization.PointRenderer;
 import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
 import pl.pwr.hiervis.util.Utils;
 import prefuse.Constants;
 import prefuse.Visualization;
+import prefuse.action.Action;
 import prefuse.action.ActionList;
+import prefuse.action.CompositeAction;
 import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
 import prefuse.action.assignment.StrokeAction;
@@ -301,8 +304,8 @@ public class HierarchyProcessor
 			layout.add( treeLayout );
 			layout.add( new RepaintAction() );
 
-			vis.putAction( HVConstants.HIERARCHY_DATA_NAME + ".design", designList );
-			vis.putAction( HVConstants.HIERARCHY_DATA_NAME + ".layout", layout );
+			vis.putAction( "design", designList );
+			vis.putAction( "layout", layout );
 			// TODO we can here implement a heuristic that will check if after enlarging
 			// the border lines (rows and columns) of pixels do not contain other values
 			// than background colour. If so, then we are expanding one again, otherwise
@@ -312,21 +315,27 @@ public class HierarchyProcessor
 		return vis;
 	}
 
+	/**
+	 * Lays out the specified hierarchy visualization.
+	 * 
+	 * @param vis
+	 *            the hierarchy visualization to lay out.
+	 */
 	public static void layoutVisualization( Visualization vis )
 	{
 		Utils.waitUntilActivitiesAreFinished();
 
-		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".design" );
-		vis.run( HVConstants.HIERARCHY_DATA_NAME + ".layout" );
+		vis.run( "design" );
+		vis.run( "layout" );
 
 		Utils.waitUntilActivitiesAreFinished();
 	}
 
-	public static Table createInstanceTable( HVConfig config, LoadedHierarchy hierarchy, Tree hierarchyTree )
+	public static TableEx createInstanceTable( HVConfig config, LoadedHierarchy hierarchy, Tree hierarchyTree )
 	{
 		String[] dataNames = getFeatureNames( hierarchy );
 
-		Table table = createEmptyInstanceTable( hierarchy.options, dataNames );
+		TableEx table = createEmptyInstanceTable( hierarchy.options, dataNames );
 		processInstanceData( config, hierarchy, hierarchyTree, table );
 
 		return table;
@@ -371,9 +380,9 @@ public class HierarchyProcessor
 	 *            array of names for instance features
 	 * @return the created table
 	 */
-	private static Table createEmptyInstanceTable( LoadedHierarchy.Options options, String[] dataNames )
+	private static TableEx createEmptyInstanceTable( LoadedHierarchy.Options options, String[] dataNames )
 	{
-		Table table = new Table();
+		TableEx table = new TableEx();
 
 		for ( int i = 0; i < dataNames.length; ++i ) {
 			table.addColumn( dataNames[i], double.class );
@@ -451,7 +460,7 @@ public class HierarchyProcessor
 	}
 
 	public static Visualization createInstanceVisualization(
-		HVContext context, Node group, int pointSize,
+		HVContext context, int pointSize,
 		int dimX, int dimY,
 		boolean withLabels )
 	{
@@ -549,6 +558,15 @@ public class HierarchyProcessor
 		return vis;
 	}
 
+	/**
+	 * Updates the layout bounds of the specified instance visualization to the specified bounds,
+	 * allowing the visualization to be rendered at a higher/lower resolution.
+	 * 
+	 * @param instanceVis
+	 *            the instance visualization that will have its layout bounds changed
+	 * @param newLayoutBounds
+	 *            the new layout bounds
+	 */
 	public static void updateLayoutBounds( Visualization instanceVis, Rectangle2D newLayoutBounds )
 	{
 		ActionList axisList = (ActionList)instanceVis.getAction( "axis" );
@@ -569,11 +587,85 @@ public class HierarchyProcessor
 		}
 	}
 
+	/**
+	 * Layout bounds is the area in which the visualization is drawn, or in other words,
+	 * the resolution at which it is rendered.
+	 * 
+	 * @param instanceVis
+	 *            the instance visualization whose layout bounds are to be returned
+	 * @return current layout bounds of the specified instance visualization
+	 */
 	public static Rectangle2D getLayoutBounds( Visualization instanceVis )
 	{
 		ActionList axisList = (ActionList)instanceVis.getAction( "axis" );
 		AxisLayout axisX = (AxisLayout)axisList.get( 0 );
 		return axisX.getLayoutBounds();
+	}
+
+	/**
+	 * Disposes the specified visualization assuming it is a hierarchy visualization.
+	 * A disposed visualization can no longer be utilized.
+	 * 
+	 * @param vis
+	 *            hierarchy visualization to dispose
+	 */
+	public static void disposeHierarchyVis( Visualization vis )
+	{
+		disposeAction( vis.removeAction( "design" ) );
+		disposeAction( vis.removeAction( "layout" ) );
+		vis.reset();
+	}
+
+	/**
+	 * Disposes the specified visualization assuming it is an instance visualization.
+	 * A disposed visualization can no longer be utilized.
+	 * 
+	 * @param vis
+	 *            instance visualization to dispose
+	 */
+	public static void disposeInstanceVis( Visualization vis )
+	{
+		disposeAction( vis.removeAction( "draw" ) );
+		disposeAction( vis.removeAction( "axis" ) );
+		disposeAction( vis.removeAction( "repaint" ) );
+		vis.reset();
+	}
+
+	/**
+	 * Disposes the specified visualization assuming it is a histogram visualization.
+	 * A disposed visualization can no longer be utilized.
+	 * 
+	 * @param vis
+	 *            histogram visualization to dispose
+	 */
+	public static void disposeHistogramVis( Visualization vis )
+	{
+		disposeAction( vis.removeAction( "color" ) );
+		disposeAction( vis.removeAction( "draw" ) );
+		vis.reset();
+	}
+
+	/**
+	 * Disposes the specified action and its member actions recursively (if it is a {@link CompositeAction}).
+	 * 
+	 * @param action
+	 *            the action to dispose
+	 */
+	public static void disposeAction( Action action )
+	{
+		if ( action == null )
+			return;
+		action.cancel();
+		action.setEnabled( false );
+		action.setVisualization( null );
+
+		if ( action instanceof CompositeAction ) {
+			CompositeAction ca = (CompositeAction)action;
+
+			for ( int i = ca.size() - 1; i >= 0; --i ) {
+				disposeAction( ca.remove( i ) );
+			}
+		}
 	}
 
 	/**
