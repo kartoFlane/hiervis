@@ -607,7 +607,7 @@ public class InstanceVisualizationsFrame extends JFrame
 					StringBuilder buf = new StringBuilder();
 
 					buf.append( "<html>" );
-					buf.append( "Count: " ).append( item.get( HVConstants.PREFUSE_VISUAL_TABLE_COLUMN_OFFSET + dim + 1 ) );
+					buf.append( "Count: " ).append( item.get( HVConstants.PREFUSE_VISUAL_TABLE_COLUMN_OFFSET + dim * 2 + 1 ) );
 					// TODO: Add bin value range
 					buf.append( "</html>" );
 
