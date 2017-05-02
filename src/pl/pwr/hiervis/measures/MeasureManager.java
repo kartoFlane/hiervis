@@ -1,4 +1,4 @@
-package pl.pwr.hiervis.core;
+package pl.pwr.hiervis.measures;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,9 +19,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
 import internal_measures.statistics.AvgWithStdev;
-import pl.pwr.hiervis.measures.JavascriptMeasureTaskFactory;
-import pl.pwr.hiervis.measures.MeasureTask;
-import pl.pwr.hiervis.measures.MeasureTaskFactory;
+import pl.pwr.hiervis.core.LoadedHierarchy;
+import pl.pwr.hiervis.core.MeasureComputeThread;
 import pl.pwr.hiervis.util.Event;
 
 
@@ -239,7 +238,7 @@ public class MeasureManager
 
 		final Function<MeasureTask, String> dumpHistogram = task -> {
 			StringBuilder buf2 = new StringBuilder();
-			Object measureResult = hierarchy.getMeasureResultOrDefault( task.identifier, new double[0] );
+			Object measureResult = hierarchy.measureHolder.getMeasureResultOrDefault( task.identifier, new double[0] );
 
 			if ( measureResult instanceof double[] == false )
 				throw new IllegalArgumentException( "Not a histogram measure: " + task.identifier );
@@ -272,7 +271,7 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
 
 				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( task.identifier ).append( ";stdev;" );
@@ -285,7 +284,7 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
 
 				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( resultToCSV.apply( measureResult ) );
@@ -298,7 +297,7 @@ public class MeasureManager
 		// Histograms
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
 
 				if ( measureResult instanceof double[] )
 					buf.append( dumpHistogram.apply( task ) );
@@ -309,7 +308,7 @@ public class MeasureManager
 		// String measures
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
 
 				if ( measureResult instanceof String ) {
 					buf.append( task.identifier ).append( '\n' )
@@ -345,7 +344,7 @@ public class MeasureManager
 
 	private void onMeasureComputed( Triple<LoadedHierarchy, String, Object> result )
 	{
-		result.getLeft().putMeasureResult( result.getMiddle(), result.getRight() );
+		result.getLeft().measureHolder.putMeasureResult( result.getMiddle(), result.getRight() );
 
 		measureComputed.broadcast( result );
 	}

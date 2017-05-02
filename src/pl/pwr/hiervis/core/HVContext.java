@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
+import pl.pwr.hiervis.measures.MeasureManager;
 import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
 import pl.pwr.hiervis.ui.HierarchyStatisticsFrame;
@@ -382,7 +383,7 @@ public class HVContext
 		// Schedule auto-compute tasks
 		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
 			if ( task.autoCompute && task.applicabilityFunction.apply( h.data )
-				&& !h.isMeasureComputed( task.identifier ) ) {
+				&& !h.measureHolder.isMeasureComputed( task.identifier ) ) {
 				measureManager.postTask( currentHierarchy, task );
 			}
 		}

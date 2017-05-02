@@ -47,7 +47,7 @@ import org.apache.logging.log4j.Logger;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.core.LoadedHierarchy;
-import pl.pwr.hiervis.core.MeasureManager;
+import pl.pwr.hiervis.measures.MeasureManager;
 import pl.pwr.hiervis.measures.MeasureTask;
 
 
@@ -124,8 +124,10 @@ public class HierarchyStatisticsFrame extends JFrame
 			}
 		);
 
-		createGUI();
 		createMenu();
+		createGUI();
+
+		VisualizerFrame.createFileDrop( this, log, "csv", file -> context.loadFile( this, file ) );
 
 		if ( context.isHierarchyDataLoaded() ) {
 			createMeasurePanels();
@@ -139,10 +141,8 @@ public class HierarchyStatisticsFrame extends JFrame
 		context.hierarchyChanging.addListener( this::onHierarchyChanging );
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 
-		VisualizerFrame.createFileDrop( this, log, "csv", file -> context.loadFile( this, file ) );
-
 		if ( context.isHierarchyDataLoaded() ) {
-			context.getHierarchy().forComputedMeasures(
+			context.getHierarchy().measureHolder.forComputedMeasures(
 				set -> {
 					set.stream().forEach( this::updateMeasurePanel );
 				}
@@ -345,9 +345,9 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasure.setBorder( new TitledBorder( null, task.identifier, TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
 
-		if ( context.getHierarchy().isMeasureComputed( task.identifier ) ) {
+		if ( context.getHierarchy().measureHolder.isMeasureComputed( task.identifier ) ) {
 			cMeasure.add(
-				createMeasureContent( context.getHierarchy().getMeasureResult( task.identifier ) ),
+				createMeasureContent( context.getHierarchy().measureHolder.getMeasureResult( task.identifier ) ),
 				BorderLayout.NORTH
 			);
 		}
@@ -378,7 +378,7 @@ public class HierarchyStatisticsFrame extends JFrame
 				MeasureManager measureManager = context.getMeasureManager();
 				LoadedHierarchy hierarchy = context.getHierarchy();
 				for ( MeasureTask task : tasks ) {
-					if ( !hierarchy.isMeasureComputed( task.identifier )
+					if ( !hierarchy.measureHolder.isMeasureComputed( task.identifier )
 						&& !measureManager.isMeasurePending( hierarchy, task.identifier ) ) {
 						measureManager.postTask( hierarchy, task );
 					}
@@ -388,7 +388,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		LoadedHierarchy lh = context.getHierarchy();
 		boolean allComplete = !tasks.stream()
-			.filter( task -> !lh.isMeasureComputed( task.identifier ) )
+			.filter( task -> !lh.measureHolder.isMeasureComputed( task.identifier ) )
 			.findAny().isPresent();
 
 		button.setEnabled( context.isHierarchyDataLoaded() && !allComplete );
@@ -548,7 +548,7 @@ public class HierarchyStatisticsFrame extends JFrame
 						// This code is deferred and executed on the main thread, so there's no guarantee that
 						// it will actually get to run before the measure is computed.
 						// If the measure was computed before we got here, then there's nothing for us to do.
-						if ( !context.getHierarchy().isMeasureComputed( measureName ) ) {
+						if ( !context.getHierarchy().measureHolder.isMeasureComputed( measureName ) ) {
 							JPanel panel = measurePanelMap.get( measureName );
 							JButton button = (JButton)panel.getComponent( 0 );
 							button.setEnabled( false );
