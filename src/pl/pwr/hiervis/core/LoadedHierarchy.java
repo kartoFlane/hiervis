@@ -34,6 +34,8 @@ public class LoadedHierarchy
 	private TreeLayoutData hierarchyTreeLayout;
 	private TableEx instanceTable;
 
+	private transient int selectedRow = 0;
+
 
 	public LoadedHierarchy( Hierarchy h, LoadedHierarchy.Options o )
 	{
@@ -80,7 +82,8 @@ public class LoadedHierarchy
 	}
 
 	/**
-	 * @return tree structure representing relationships between groups (nodes) in the hierarchy
+	 * @return tree structure representing relationships between groups (nodes) in the hierarchy.
+	 *         Used to create the main hierarchy visualization.
 	 */
 	public Tree getTree()
 	{
@@ -101,6 +104,25 @@ public class LoadedHierarchy
 	public TableEx getInstanceTable()
 	{
 		return instanceTable;
+	}
+
+	/**
+	 * Sets the row of the currently selected node in the {@link #getTree() hierarchy tree}
+	 * 
+	 * @param row
+	 *            the selected row
+	 */
+	public void setSelectedRow( int row )
+	{
+		selectedRow = row;
+	}
+
+	/**
+	 * @return row of the currently selected node in the {@link #getTree() hierarchy tree}
+	 */
+	public int getSelectedRow()
+	{
+		return selectedRow;
 	}
 
 	/**

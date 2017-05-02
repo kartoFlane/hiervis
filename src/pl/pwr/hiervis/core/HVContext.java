@@ -67,7 +67,6 @@ public class HVContext
 	/** The raw hierarchy data, as it was loaded from the file. */
 	private LoadedHierarchy currentHierarchy = null;
 	private HKPlusPlusWrapper currentHKWrapper = null;
-	private int selectedRow = 0;
 
 	private List<LoadedHierarchy> hierarchyList = new ArrayList<>();
 
@@ -82,7 +81,6 @@ public class HVContext
 
 		measureManager = new MeasureManager();
 
-		hierarchyChanging.addListener( this::onHierarchyChanging );
 		hierarchyChanged.addListener( this::onHierarchyChanged );
 	}
 
@@ -199,14 +197,19 @@ public class HVContext
 	 */
 	public int getSelectedRow()
 	{
-		return selectedRow;
+		return currentHierarchy == null
+			? -1
+			: currentHierarchy.getSelectedRow();
 	}
 
 	public void setSelectedRow( int row )
 	{
-		if ( selectedRow != row ) {
+		if ( currentHierarchy == null )
+			return;
+
+		if ( currentHierarchy.getSelectedRow() != row ) {
 			nodeSelectionChanging.broadcast( row );
-			selectedRow = row;
+			currentHierarchy.setSelectedRow( row );
 			nodeSelectionChanged.broadcast( row );
 		}
 	}
@@ -372,11 +375,6 @@ public class HVContext
 				);
 			}
 		);
-	}
-
-	private void onHierarchyChanging( LoadedHierarchy h )
-	{
-		selectedRow = 0;
 	}
 
 	private void onHierarchyChanged( LoadedHierarchy h )
