@@ -23,7 +23,7 @@ import prefuse.visual.VisualItem;
  */
 public class MouseControl extends ControlAdapter
 {
-	private static final int _clickIntervalMs = (Integer)Toolkit.getDefaultToolkit().getDesktopProperty( "awt.multiClickInterval" );
+	private static final int _clickIntervalMs = getClickInterval();
 
 	private Set<MouseAction> actions = new HashSet<MouseAction>();
 	private Queue<Runnable> actionQueue = new LinkedList<Runnable>();
@@ -34,6 +34,17 @@ public class MouseControl extends ControlAdapter
 	{
 		timer = new Timer( _clickIntervalMs, e -> processQueue() );
 		timer.setRepeats( false );
+	}
+
+	private static int getClickInterval()
+	{
+		// Execute in try-catch, because the property may be missing (eg. on Macs, apparently)
+		try {
+			return (Integer)Toolkit.getDefaultToolkit().getDesktopProperty( "awt.multiClickInterval" );
+		}
+		catch ( Exception e ) {
+			return 340; // Windows default.
+		}
 	}
 
 	/**
