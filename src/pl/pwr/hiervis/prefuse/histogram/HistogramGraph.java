@@ -63,9 +63,9 @@ import prefuse.visual.sort.ItemSorter;
  */
 public class HistogramGraph extends DisplayEx
 {
-	protected static final String dataId = "data";
-	protected static final String xlabelsId = "xlabels";
-	protected static final String ylabelsId = "ylabels";
+	public static final String DATA_ID = "data";
+	public static final String XLABELS_ID = "xlabels";
+	public static final String YLABELS_ID = "ylabels";
 
 	// KDS -- I tend to make things protected instead of private so
 	// that people can subclass them. I'm not sure that's the right
@@ -96,7 +96,7 @@ public class HistogramGraph extends DisplayEx
 		// --------------------------------------------------------------------
 		// STEP 1: setup the visualized data
 
-		m_vis.addTable( dataId, m_histoTable );
+		m_vis.addTable( DATA_ID, m_histoTable );
 
 		initializeRenderer();
 
@@ -107,13 +107,13 @@ public class HistogramGraph extends DisplayEx
 		Color barColor = new Color( 255, 100, 100 );
 		colors.add(
 			new ColorAction(
-				dataId,
+				DATA_ID,
 				VisualItem.FILLCOLOR, barColor.getRGB()
 			)
 		);
 		colors.add(
 			new ColorAction(
-				dataId,
+				DATA_ID,
 				VisualItem.STROKECOLOR, barColor.darker().getRGB()
 			)
 		);
@@ -201,7 +201,7 @@ public class HistogramGraph extends DisplayEx
 	private ActionList initializeAxes( String fieldName )
 	{
 		AxisLayout xAxis = new AxisLayout(
-			dataId, fieldName,
+			DATA_ID, fieldName,
 			Constants.X_AXIS, VisiblePredicate.TRUE
 		);
 		xAxis.setLayoutBounds( m_dataB );
@@ -209,7 +209,7 @@ public class HistogramGraph extends DisplayEx
 
 		String countField = HistogramTable.getCountField( fieldName );
 		AxisLayout yAxis = new AxisLayout(
-			dataId, countField,
+			DATA_ID, countField,
 			Constants.Y_AXIS, VisiblePredicate.TRUE
 		);
 
@@ -224,13 +224,13 @@ public class HistogramGraph extends DisplayEx
 		countNumberFormat.setMaximumFractionDigits( 0 );
 		countNumberFormat.setMinimumFractionDigits( 0 );
 
-		AxisLabelLayout xLabels = new AxisLabelLayout( xlabelsId, xAxis, m_xlabB );
+		AxisLabelLayout xLabels = new AxisLabelLayout( XLABELS_ID, xAxis, m_xlabB );
 		xLabels.setNumberFormat( valueNumberFormat );
-		m_vis.putAction( xlabelsId, xLabels );
+		m_vis.putAction( XLABELS_ID, xLabels );
 
-		AxisLabelLayout yLabels = new AxisLabelLayout( ylabelsId, yAxis, m_ylabB );
+		AxisLabelLayout yLabels = new AxisLabelLayout( YLABELS_ID, yAxis, m_ylabB );
 		yLabels.setNumberFormat( countNumberFormat );
-		m_vis.putAction( ylabelsId, yLabels );
+		m_vis.putAction( YLABELS_ID, yLabels );
 
 		updateAxes( fieldName, xAxis, yAxis, xLabels, yLabels );
 
@@ -253,9 +253,9 @@ public class HistogramGraph extends DisplayEx
 
 				public Renderer getRenderer( VisualItem item )
 				{
-					if ( item.isInGroup( xlabelsId ) )
+					if ( item.isInGroup( XLABELS_ID ) )
 						return xAxisRenderer;
-					if ( item.isInGroup( ylabelsId ) )
+					if ( item.isInGroup( YLABELS_ID ) )
 						return yAxisRenderer;
 					return m_shapeR;
 				}
@@ -268,7 +268,7 @@ public class HistogramGraph extends DisplayEx
 			new ItemSorter() {
 				public int score( VisualItem item )
 				{
-					if ( item.isInGroup( dataId ) ) {
+					if ( item.isInGroup( DATA_ID ) ) {
 						return Integer.MAX_VALUE;
 					}
 
@@ -375,16 +375,10 @@ public class HistogramGraph extends DisplayEx
 
 	@Override
 	public void dispose()
-	{	
+	{
 		super.dispose();
-		
-		m_dataB = null;
-		m_xlabB = null;
-		m_ylabB = null;
-		m_shapeR = null;
 
 		m_histoTable.clear();
 		m_histoTable.dispose();
-		m_histoTable = null;
 	}
 }

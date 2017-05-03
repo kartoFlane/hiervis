@@ -391,6 +391,8 @@ public class HVContext
 				measureManager.postTask( currentHierarchy, task );
 			}
 		}
+
+		System.gc();
 	}
 
 	private void onHierarchyTabSelected( int index )

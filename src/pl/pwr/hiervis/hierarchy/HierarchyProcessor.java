@@ -53,6 +53,7 @@ import prefuse.util.ColorLib;
 import prefuse.util.StrokeLib;
 import prefuse.util.ui.ValuedRangeModel;
 import prefuse.visual.VisualItem;
+import prefuse.visual.VisualTable;
 
 
 public class HierarchyProcessor
@@ -631,6 +632,11 @@ public class HierarchyProcessor
 		disposeAction( vis.removeAction( "draw" ) );
 		disposeAction( vis.removeAction( "axis" ) );
 		disposeAction( vis.removeAction( "repaint" ) );
+
+		TableEx.disposeCascadedTable(
+			(VisualTable)vis.getVisualGroup( HVConstants.INSTANCE_DATA_NAME )
+		);
+
 		vis.reset();
 	}
 
@@ -645,6 +651,10 @@ public class HierarchyProcessor
 	{
 		disposeAction( vis.removeAction( "color" ) );
 		disposeAction( vis.removeAction( "draw" ) );
+		disposeAction( vis.removeAction( "x" ) );
+		disposeAction( vis.removeAction( "xlabels" ) );
+		disposeAction( vis.removeAction( "y" ) );
+		disposeAction( vis.removeAction( "ylabels" ) );
 		vis.reset();
 	}
 

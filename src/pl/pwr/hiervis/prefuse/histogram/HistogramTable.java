@@ -25,7 +25,6 @@ import java.util.Hashtable;
 import pl.pwr.hiervis.prefuse.TableEx;
 import prefuse.data.Table;
 import prefuse.data.column.Column;
-import prefuse.data.event.ColumnListener;
 import prefuse.data.parser.DoubleParser;
 import prefuse.data.parser.IntParser;
 import prefuse.data.parser.StringParser;
@@ -54,7 +53,7 @@ import prefuse.util.collections.CopyOnWriteArrayList;
  * @author <a href="http://webfoot.com/ducky.home.html">Kaitlin Duck Sherwood</a>
  * @author <a href="http://jheer.org">jeffrey heer</a>
  */
-public class HistogramTable extends TableEx implements ColumnListener
+public class HistogramTable extends TableEx
 {
 	static final int DEFAULT_BIN_COUNT = 15;
 
@@ -428,10 +427,5 @@ public class HistogramTable extends TableEx implements ColumnListener
 		m_binMax.clear();
 		m_countMins.clear();
 		m_countMaxes.clear();
-
-		m_binMin = null;
-		m_binMax = null;
-		m_countMins = null;
-		m_countMaxes = null;
 	}
 }
