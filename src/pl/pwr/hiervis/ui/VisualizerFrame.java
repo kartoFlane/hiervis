@@ -193,7 +193,9 @@ public class VisualizerFrame extends JFrame implements ActionListener
 				{
 					if ( SwingUtilities.isMiddleMouseButton( e ) ) {
 						int index = tabPane.getUI().tabForCoordinate( tabPane, e.getX(), e.getY() );
-						closeTab( index );
+						if ( index >= 0 ) {
+							closeTab( index );
+						}
 					}
 				}
 			}
