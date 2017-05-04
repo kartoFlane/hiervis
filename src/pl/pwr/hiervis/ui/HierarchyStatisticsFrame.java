@@ -1,6 +1,7 @@
 package pl.pwr.hiervis.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -12,7 +13,6 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -31,10 +31,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
@@ -71,13 +73,12 @@ public class HierarchyStatisticsFrame extends JFrame
 	private HVContext context;
 	private Window owner;
 
+	private JTabbedPane tabPane;
 	private JPanel cMeasures;
 	private JMenuItem mntmDump;
 
 	private WindowListener ownerListener;
 	private int verticalScrollValue = 0;
-
-	private HashMap<String, JPanel> measurePanelMap = new HashMap<>();
 
 
 	public HierarchyStatisticsFrame( HVContext context, Window frame, String subtitle )
@@ -207,23 +208,41 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private void createGUI()
 	{
+		tabPane = new JTabbedPane();
+
+		JScrollPane pane = createScrollableMeasurePanel();
+		cMeasures = (JPanel)pane.getViewport().getView();
+		tabPane.addTab( "Hierarchy Statistics", pane );
+		tabPane.addTab( "Node Statistics", createScrollableMeasurePanel() );
+		tabPane.setEnabledAt( 1, false );
+
+		getContentPane().add( tabPane, BorderLayout.CENTER );
+	}
+
+	private JScrollPane createScrollableMeasurePanel()
+	{
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		scrollPane.getVerticalScrollBar().setUnitIncrement( 8 );
 		scrollPane.setBorder( BorderFactory.createEmptyBorder() );
 		scrollPane.setAutoscrolls( false );
-		getContentPane().add( scrollPane, BorderLayout.CENTER );
 
-		cMeasures = new JPanel();
+		scrollPane.setViewportView( createRootMeasurePanel() );
 
+		return scrollPane;
+	}
+
+	private JPanel createRootMeasurePanel()
+	{
+		JPanel p = new JPanel();
 		GridBagLayout layout = new GridBagLayout();
 		layout.columnWidths = new int[] { 0 };
 		layout.rowHeights = new int[] { 0 };
 		layout.columnWeights = new double[] { 1.0 };
 		layout.rowWeights = new double[] { Double.MIN_VALUE };
-		cMeasures.setLayout( layout );
+		p.setLayout( layout );
 
-		scrollPane.setViewportView( cMeasures );
+		return p;
 	}
 
 	private void createMeasurePanels()
@@ -355,7 +374,6 @@ public class HierarchyStatisticsFrame extends JFrame
 			cMeasure.add( createTaskButton( Pair.of( context.getHierarchy(), task ) ), BorderLayout.NORTH );
 		}
 
-		measurePanelMap.put( task.identifier, cMeasure );
 		return cMeasure;
 	}
 
@@ -486,16 +504,52 @@ public class HierarchyStatisticsFrame extends JFrame
 		return result;
 	}
 
+	private JPanel findMeasurePanelHierarchy( String title )
+	{
+		return findMeasurePanel( 0, title );
+	}
+
+	private JPanel findMeasurePanelNode( String title )
+	{
+		return findMeasurePanel( 1, title );
+	}
+
+	private JPanel findMeasurePanel( int tabIndex, String title )
+	{
+		JScrollPane hierarchyPane = (JScrollPane)tabPane.getComponentAt( tabIndex );
+		JPanel panel = (JPanel)hierarchyPane.getViewport().getView();
+		return findMeasurePanel( panel, title );
+	}
+
+	private JPanel findMeasurePanel( JPanel panel, String title )
+	{
+		for ( Component c : panel.getComponents() ) {
+			if ( c instanceof JPanel ) {
+				JPanel p = (JPanel)c;
+				Border b = p.getBorder();
+
+				if ( b instanceof TitledBorder ) {
+					TitledBorder tb = (TitledBorder)b;
+					if ( tb.getTitle().equals( title ) ) {
+						return p;
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
 	private void updateMeasurePanel( String measureName, Object measureResult )
 	{
 		// Inserting components into a JScrollPane tends to trigger its
 		// autoscrolling functionality, even when it has been explicitly disabled.
 		// Bandaid fix is to re-set the scrollbar ourselves when we're done.
-		JScrollPane scrollPane = (JScrollPane)getContentPane().getComponent( 0 );
+		JScrollPane scrollPane = (JScrollPane)tabPane.getComponentAt( 0 );
 		JScrollBar vertical = scrollPane.getVerticalScrollBar();
 		int scrollValue = vertical.getValue();
 
-		JPanel panel = measurePanelMap.get( measureName );
+		JPanel panel = findMeasurePanelHierarchy( measureName );
 		panel.removeAll();
 
 		panel.add( createMeasureContent( measureResult ), BorderLayout.NORTH );
@@ -512,7 +566,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private void recreateMeasurePanel( Pair<LoadedHierarchy, MeasureTask> task )
 	{
-		JPanel panel = measurePanelMap.get( task.getRight().identifier );
+		JPanel panel = findMeasurePanelHierarchy( task.getRight().identifier );
 		panel.removeAll();
 
 		panel.add( createTaskButton( task ), BorderLayout.NORTH );
@@ -544,24 +598,14 @@ public class HierarchyStatisticsFrame extends JFrame
 
 					String measureName = task.getRight();
 
-					if ( measurePanelMap.containsKey( measureName ) ) {
-						// This code is deferred and executed on the main thread, so there's no guarantee that
-						// it will actually get to run before the measure is computed.
-						// If the measure was computed before we got here, then there's nothing for us to do.
-						if ( !context.getHierarchy().measureHolder.isMeasureComputed( measureName ) ) {
-							JPanel panel = measurePanelMap.get( measureName );
-							JButton button = (JButton)panel.getComponent( 0 );
-							button.setEnabled( false );
-							button.setText( "Calculating..." );
-						}
-					}
-					else {
-						throw new IllegalArgumentException(
-							String.format(
-								"Implementation error: %s does not have UI component for measure '%s'.",
-								this.getClass().getSimpleName(), measureName
-							)
-						);
+					// This code is deferred and executed on the main thread, so there's no guarantee that
+					// it will actually get to run before the measure is computed.
+					// If the measure was computed before we got here, then there's nothing for us to do.
+					if ( !context.getHierarchy().measureHolder.isMeasureComputed( measureName ) ) {
+						JPanel panel = findMeasurePanelHierarchy( measureName );
+						JButton button = (JButton)panel.getComponent( 0 );
+						button.setEnabled( false );
+						button.setText( "Calculating..." );
 					}
 				}
 			);
@@ -586,10 +630,8 @@ public class HierarchyStatisticsFrame extends JFrame
 	{
 		// Store the current scroll before the hierarchy is changed, so that we can
 		// restore it when the new hierarchy is loaded.
-		JScrollPane scrollPane = (JScrollPane)getContentPane().getComponent( 0 );
+		JScrollPane scrollPane = (JScrollPane)tabPane.getComponentAt( 0 );
 		verticalScrollValue = scrollPane.getVerticalScrollBar().getValue();
-
-		measurePanelMap.clear();
 
 		cMeasures.removeAll();
 		cMeasures.revalidate();
@@ -604,7 +646,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		if ( newHierarchy != null ) {
 			SwingUtilities.invokeLater(
 				() -> {
-					JScrollPane scrollPane = (JScrollPane)getContentPane().getComponent( 0 );
+					JScrollPane scrollPane = (JScrollPane)tabPane.getComponentAt( 0 );
 					scrollPane.getVerticalScrollBar().setValue( verticalScrollValue );
 				}
 			);
