@@ -150,21 +150,22 @@ public class MeasureManager
 		Files.walk( dirPath ).forEach(
 			filePath -> {
 				if ( Files.isRegularFile( filePath, LinkOption.NOFOLLOW_LINKS ) ) {
-					// MeasureTask task = factory.getMeasureTask( filePath );
-					// System.out.println( filePath );
+					MeasureTask measure = factory.getMeasureTask( filePath );
 
-					String groupPath = filePath.getParent().toString()
-						.replace( dirPath.toString(), "" )
-						.substring( 1 )
-						.replace( "\\", "/" );
+					if ( measure != null ) {
+						String groupPath = filePath.getParent().toString()
+							.replace( dirPath.toString(), "" )
+							.substring( 1 )
+							.replace( "\\", "/" );
 
-					Collection<MeasureTask> group = measureGroupMap.get( groupPath );
-					if ( group == null ) {
-						group = new ArrayList<MeasureTask>();
-						measureGroupMap.put( groupPath, group );
+						Collection<MeasureTask> group = measureGroupMap.get( groupPath );
+						if ( group == null ) {
+							group = new ArrayList<MeasureTask>();
+							measureGroupMap.put( groupPath, group );
+						}
+
+						group.add( measure );
 					}
-
-					group.add( factory.getMeasureTask( filePath ) );
 				}
 			}
 		);
