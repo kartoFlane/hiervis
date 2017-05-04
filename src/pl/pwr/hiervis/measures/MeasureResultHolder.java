@@ -21,8 +21,8 @@ import basic_hierarchy.interfaces.Node;
  */
 public class MeasureResultHolder
 {
-	private final Map<String, Object> computedMeasureMap;
-	private final Map<Pair<Node, String>, Object> computedNodeMeasureMap;
+	private final Map<MeasureTask, Object> computedMeasureMap;
+	private final Map<Pair<Node, MeasureTask>, Object> computedNodeMeasureMap;
 
 
 	public MeasureResultHolder()
@@ -46,7 +46,7 @@ public class MeasureResultHolder
 	 * 
 	 * @see #forComputedMeasures(Consumer)
 	 */
-	public Set<Map.Entry<String, Object>> getComputedMeasures()
+	public Set<Map.Entry<MeasureTask, Object>> getComputedMeasures()
 	{
 		synchronized ( computedMeasureMap ) {
 			return Collections.unmodifiableMap( computedMeasureMap ).entrySet();
@@ -54,14 +54,14 @@ public class MeasureResultHolder
 	}
 
 	/**
-	 * @param identifier
-	 *            identifier of the task to look for
+	 * @param measure
+	 *            the task to look for
 	 * @return true if the task is already computed, false otherwise
 	 */
-	public boolean isMeasureComputed( String identifier )
+	public boolean isMeasureComputed( MeasureTask measure )
 	{
 		synchronized ( computedMeasureMap ) {
-			return computedMeasureMap.containsKey( identifier );
+			return computedMeasureMap.containsKey( measure );
 		}
 	}
 
@@ -73,31 +73,31 @@ public class MeasureResultHolder
 	 * being updated while this method is executing.
 	 * </p>
 	 */
-	public void forComputedMeasures( Consumer<Set<Map.Entry<String, Object>>> function )
+	public void forComputedMeasures( Consumer<Set<Map.Entry<MeasureTask, Object>>> function )
 	{
 		synchronized ( computedMeasureMap ) {
 			function.accept( Collections.unmodifiableMap( computedMeasureMap ).entrySet() );
 		}
 	}
 
-	public Object getMeasureResultOrDefault( String identifier, Object defaultValue )
+	public Object getMeasureResultOrDefault( MeasureTask measure, Object defaultValue )
 	{
 		synchronized ( computedMeasureMap ) {
-			return computedMeasureMap.getOrDefault( identifier, defaultValue );
+			return computedMeasureMap.getOrDefault( measure, defaultValue );
 		}
 	}
 
-	public Object getMeasureResult( String identifier )
+	public Object getMeasureResult( MeasureTask measure )
 	{
 		synchronized ( computedMeasureMap ) {
-			return computedMeasureMap.get( identifier );
+			return computedMeasureMap.get( measure );
 		}
 	}
 
-	protected void putMeasureResult( String identifier, Object value )
+	protected void putMeasureResult( MeasureTask measure, Object value )
 	{
 		synchronized ( computedMeasureMap ) {
-			computedMeasureMap.put( identifier, value );
+			computedMeasureMap.put( measure, value );
 		}
 	}
 
@@ -116,7 +116,7 @@ public class MeasureResultHolder
 	 * 
 	 * @see #forComputedMeasures(Consumer)
 	 */
-	public Set<Map.Entry<Pair<Node, String>, Object>> getNodeComputedMeasures()
+	public Set<Map.Entry<Pair<Node, MeasureTask>, Object>> getNodeComputedMeasures()
 	{
 		synchronized ( computedNodeMeasureMap ) {
 			return Collections.unmodifiableMap( computedNodeMeasureMap ).entrySet();
@@ -126,16 +126,16 @@ public class MeasureResultHolder
 	/**
 	 * @param node
 	 *            the node we want to look up the measure result for
-	 * @param identifier
-	 *            identifier of the task to look for
+	 * @param measure
+	 *            task to look for
 	 * @return true if the task is already computed, false otherwise
 	 */
-	public boolean isNodeMeasureComputed( Node node, String identifier )
+	public boolean isNodeMeasureComputed( Node node, MeasureTask measure )
 	{
-		return isNodeMeasureComputed( Pair.of( node, identifier ) );
+		return isNodeMeasureComputed( Pair.of( node, measure ) );
 	}
 
-	public boolean isNodeMeasureComputed( Pair<Node, String> pair )
+	public boolean isNodeMeasureComputed( Pair<Node, MeasureTask> pair )
 	{
 		synchronized ( computedNodeMeasureMap ) {
 			return computedNodeMeasureMap.containsKey( pair );
@@ -150,43 +150,43 @@ public class MeasureResultHolder
 	 * being updated while this method is executing.
 	 * </p>
 	 */
-	public void forNodeComputedMeasures( Consumer<Set<Map.Entry<Pair<Node, String>, Object>>> function )
+	public void forNodeComputedMeasures( Consumer<Set<Map.Entry<Pair<Node, MeasureTask>, Object>>> function )
 	{
 		synchronized ( computedNodeMeasureMap ) {
 			function.accept( Collections.unmodifiableMap( computedNodeMeasureMap ).entrySet() );
 		}
 	}
 
-	public Object getNodeMeasureResultOrDefault( Node node, String identifier, Object defaultValue )
+	public Object getNodeMeasureResultOrDefault( Node node, MeasureTask measure, Object defaultValue )
 	{
-		return getNodeMeasureResultOrDefault( Pair.of( node, identifier ), defaultValue );
+		return getNodeMeasureResultOrDefault( Pair.of( node, measure ), defaultValue );
 	}
 
-	public Object getNodeMeasureResultOrDefault( Pair<Node, String> pair, Object defaultValue )
+	public Object getNodeMeasureResultOrDefault( Pair<Node, MeasureTask> pair, Object defaultValue )
 	{
 		synchronized ( computedNodeMeasureMap ) {
 			return computedNodeMeasureMap.getOrDefault( pair, defaultValue );
 		}
 	}
 
-	public Object getNodeMeasureResult( Node node, String identifier )
+	public Object getNodeMeasureResult( Node node, MeasureTask measure )
 	{
-		return getNodeMeasureResult( Pair.of( node, identifier ) );
+		return getNodeMeasureResult( Pair.of( node, measure ) );
 	}
 
-	public Object getNodeMeasureResult( Pair<Node, String> pair )
+	public Object getNodeMeasureResult( Pair<Node, MeasureTask> pair )
 	{
 		synchronized ( computedNodeMeasureMap ) {
 			return computedNodeMeasureMap.get( pair );
 		}
 	}
 
-	protected void putNodeMeasureResult( Node node, String identifier, Object value )
+	protected void putNodeMeasureResult( Node node, MeasureTask measure, Object value )
 	{
-		putNodeMeasureResult( Pair.of( node, identifier ), value );
+		putNodeMeasureResult( Pair.of( node, measure ), value );
 	}
 
-	protected void putNodeMeasureResult( Pair<Node, String> pair, Object value )
+	protected void putNodeMeasureResult( Pair<Node, MeasureTask> pair, Object value )
 	{
 		synchronized ( computedNodeMeasureMap ) {
 			computedNodeMeasureMap.put( pair, value );

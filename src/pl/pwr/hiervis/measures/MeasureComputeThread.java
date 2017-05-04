@@ -29,9 +29,9 @@ public class MeasureComputeThread extends Thread
 	/** Sent when a measure task computation failed due to an exception. */
 	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskFailed = new Event<>();
 	/** Sent when a measure computation is started. */
-	public final Event<Pair<LoadedHierarchy, String>> measureComputing = new Event<>();
+	public final Event<Pair<LoadedHierarchy, MeasureTask>> measureComputing = new Event<>();
 	/** Sent when a measure computation is finished. */
-	public final Event<Triple<LoadedHierarchy, String, Object>> measureComputed = new Event<>();
+	public final Event<Triple<LoadedHierarchy, MeasureTask, Object>> measureComputed = new Event<>();
 
 	private final ReentrantLock lock = new ReentrantLock();
 	private Queue<Pair<LoadedHierarchy, MeasureTask>> tasks = new LinkedList<>();
@@ -79,12 +79,12 @@ public class MeasureComputeThread extends Thread
 
 				try {
 					log.trace( String.format( "Computing measure '%s'...", measure.identifier ) );
-					measureComputing.broadcast( Pair.of( hierarchy, measure.identifier ) );
+					measureComputing.broadcast( Pair.of( hierarchy, measure ) );
 
 					Object result = measure.computeFunction.apply( hierarchy.data );
 
 					log.trace( String.format( "Finished computing measure '%s'", measure.identifier ) );
-					measureComputed.broadcast( Triple.of( hierarchy, measure.identifier, result ) );
+					measureComputed.broadcast( Triple.of( hierarchy, measure, result ) );
 				}
 				catch ( Throwable e ) {
 					Pair<LoadedHierarchy, MeasureTask> t = currentTask;
@@ -110,12 +110,12 @@ public class MeasureComputeThread extends Thread
 	 * Checks whether the measure with the specified name is scheduled for processing, or
 	 * currently being processed.
 	 * 
-	 * @param measureName
-	 *            identifier of the measure
+	 * @param measure
+	 *            the task to look for
 	 * @return true if a measure with the specified identifier is pending calculation, or
 	 *         is currently being calculated. False otherwise.
 	 */
-	public boolean isMeasurePending( LoadedHierarchy hierarchy, String measureName )
+	public boolean isMeasurePending( LoadedHierarchy hierarchy, MeasureTask measure )
 	{
 		boolean result = false;
 
@@ -123,12 +123,12 @@ public class MeasureComputeThread extends Thread
 		try {
 			if ( currentTask != null ) {
 				result = currentTask.getLeft().equals( hierarchy )
-					&& currentTask.getRight().identifier.equals( measureName );
+					&& currentTask.getRight().equals( measure );
 			}
 			else {
 				for ( Pair<LoadedHierarchy, MeasureTask> task : tasks ) {
 					if ( task.getLeft().equals( hierarchy )
-						&& task.getRight().identifier.equals( measureName ) ) {
+						&& task.getRight().equals( measure ) ) {
 						result = true;
 						break;
 					}

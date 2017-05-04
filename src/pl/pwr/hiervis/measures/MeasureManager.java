@@ -36,9 +36,9 @@ public class MeasureManager
 	/** Sent when a measure task computation failed due to an exception. */
 	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskFailed = new Event<>();
 	/** Sent when a measure computation is started. */
-	public final Event<Pair<LoadedHierarchy, String>> measureComputing = new Event<>();
+	public final Event<Pair<LoadedHierarchy, MeasureTask>> measureComputing = new Event<>();
 	/** Sent when a measure computation is finished. */
-	public final Event<Triple<LoadedHierarchy, String, Object>> measureComputed = new Event<>();
+	public final Event<Triple<LoadedHierarchy, MeasureTask, Object>> measureComputed = new Event<>();
 
 	private MeasureComputeThread computeThread = null;
 	private Map<String, Collection<MeasureTask>> measureGroupMap = null;
@@ -64,14 +64,14 @@ public class MeasureManager
 	 * 
 	 * @param lh
 	 *            the hierarchy to check the measure for
-	 * @param measureName
-	 *            identifier of the measure
+	 * @param measure
+	 *            the measure to look for
 	 * @return true if a measure with the specified identifier is pending calculation, or
 	 *         is currently being calculated. False otherwise.
 	 */
-	public boolean isMeasurePending( LoadedHierarchy lh, String measureName )
+	public boolean isMeasurePending( LoadedHierarchy lh, MeasureTask measure )
 	{
-		return computeThread.isMeasurePending( lh, measureName );
+		return computeThread.isMeasurePending( lh, measure );
 	}
 
 	/**
@@ -238,7 +238,7 @@ public class MeasureManager
 
 		final Function<MeasureTask, String> dumpHistogram = task -> {
 			StringBuilder buf2 = new StringBuilder();
-			Object measureResult = hierarchy.measureHolder.getMeasureResultOrDefault( task.identifier, new double[0] );
+			Object measureResult = hierarchy.measureHolder.getMeasureResultOrDefault( task, new double[0] );
 
 			if ( measureResult instanceof double[] == false )
 				throw new IllegalArgumentException( "Not a histogram measure: " + task.identifier );
@@ -271,7 +271,7 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
 
 				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( task.identifier ).append( ";stdev;" );
@@ -284,7 +284,7 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
 
 				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( resultToCSV.apply( measureResult ) );
@@ -297,7 +297,7 @@ public class MeasureManager
 		// Histograms
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
 
 				if ( measureResult instanceof double[] )
 					buf.append( dumpHistogram.apply( task ) );
@@ -308,7 +308,7 @@ public class MeasureManager
 		// String measures
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task.identifier );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
 
 				if ( measureResult instanceof String ) {
 					buf.append( task.identifier ).append( '\n' )
@@ -337,12 +337,12 @@ public class MeasureManager
 		taskFailed.broadcast( task );
 	}
 
-	private void onMeasureComputing( Pair<LoadedHierarchy, String> task )
+	private void onMeasureComputing( Pair<LoadedHierarchy, MeasureTask> task )
 	{
 		measureComputing.broadcast( task );
 	}
 
-	private void onMeasureComputed( Triple<LoadedHierarchy, String, Object> result )
+	private void onMeasureComputed( Triple<LoadedHierarchy, MeasureTask, Object> result )
 	{
 		result.getLeft().measureHolder.putMeasureResult( result.getMiddle(), result.getRight() );
 

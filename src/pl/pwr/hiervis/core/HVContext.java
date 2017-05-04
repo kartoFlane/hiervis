@@ -387,7 +387,7 @@ public class HVContext
 		// Schedule auto-compute tasks
 		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
 			if ( task.autoCompute && task.applicabilityFunction.apply( h.data )
-				&& !h.measureHolder.isMeasureComputed( task.identifier ) ) {
+				&& !h.measureHolder.isMeasureComputed( task ) ) {
 				measureManager.postTask( currentHierarchy, task );
 			}
 		}

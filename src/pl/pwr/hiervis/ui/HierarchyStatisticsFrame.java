@@ -364,9 +364,9 @@ public class HierarchyStatisticsFrame extends JFrame
 		cMeasure.setBorder( new TitledBorder( null, task.identifier, TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
 		cMeasure.setLayout( new BorderLayout( 0, 0 ) );
 
-		if ( context.getHierarchy().measureHolder.isMeasureComputed( task.identifier ) ) {
+		if ( context.getHierarchy().measureHolder.isMeasureComputed( task ) ) {
 			cMeasure.add(
-				createMeasureContent( context.getHierarchy().measureHolder.getMeasureResult( task.identifier ) ),
+				createMeasureContent( context.getHierarchy().measureHolder.getMeasureResult( task ) ),
 				BorderLayout.NORTH
 			);
 		}
@@ -396,8 +396,8 @@ public class HierarchyStatisticsFrame extends JFrame
 				MeasureManager measureManager = context.getMeasureManager();
 				LoadedHierarchy hierarchy = context.getHierarchy();
 				for ( MeasureTask task : tasks ) {
-					if ( !hierarchy.measureHolder.isMeasureComputed( task.identifier )
-						&& !measureManager.isMeasurePending( hierarchy, task.identifier ) ) {
+					if ( !hierarchy.measureHolder.isMeasureComputed( task )
+						&& !measureManager.isMeasurePending( hierarchy, task ) ) {
 						measureManager.postTask( hierarchy, task );
 					}
 				}
@@ -406,7 +406,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		LoadedHierarchy lh = context.getHierarchy();
 		boolean allComplete = !tasks.stream()
-			.filter( task -> !lh.measureHolder.isMeasureComputed( task.identifier ) )
+			.filter( task -> !lh.measureHolder.isMeasureComputed( task ) )
 			.findAny().isPresent();
 
 		button.setEnabled( context.isHierarchyDataLoaded() && !allComplete );
@@ -423,8 +423,7 @@ public class HierarchyStatisticsFrame extends JFrame
 				MeasureManager measureManager = context.getMeasureManager();
 
 				boolean pending = measureManager.isMeasurePending(
-					task.getLeft(),
-					task.getRight().identifier
+					task.getLeft(), task.getRight()
 				);
 				updateTaskButton( button, !pending );
 
@@ -540,7 +539,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		return null;
 	}
 
-	private void updateMeasurePanel( String measureName, Object measureResult )
+	private void updateMeasurePanel( MeasureTask measure, Object measureResult )
 	{
 		// Inserting components into a JScrollPane tends to trigger its
 		// autoscrolling functionality, even when it has been explicitly disabled.
@@ -549,7 +548,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		JScrollBar vertical = scrollPane.getVerticalScrollBar();
 		int scrollValue = vertical.getValue();
 
-		JPanel panel = findMeasurePanelHierarchy( measureName );
+		JPanel panel = findMeasurePanelHierarchy( measure.identifier );
 		panel.removeAll();
 
 		panel.add( createMeasureContent( measureResult ), BorderLayout.NORTH );
@@ -559,7 +558,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		SwingUtilities.invokeLater( () -> vertical.setValue( scrollValue ) );
 	}
 
-	private void updateMeasurePanel( Entry<String, Object> result )
+	private void updateMeasurePanel( Entry<MeasureTask, Object> result )
 	{
 		updateMeasurePanel( result.getKey(), result.getValue() );
 	}
@@ -587,7 +586,7 @@ public class HierarchyStatisticsFrame extends JFrame
 	// ----------------------------------------------------------------------------------------
 	// Listeners
 
-	private void onMeasureComputing( Pair<LoadedHierarchy, String> task )
+	private void onMeasureComputing( Pair<LoadedHierarchy, MeasureTask> task )
 	{
 		if ( task.getLeft().equals( context.getHierarchy() ) ) {
 			SwingUtilities.invokeLater(
@@ -596,13 +595,13 @@ public class HierarchyStatisticsFrame extends JFrame
 					if ( !task.getLeft().equals( context.getHierarchy() ) )
 						return;
 
-					String measureName = task.getRight();
+					MeasureTask measure = task.getRight();
 
 					// This code is deferred and executed on the main thread, so there's no guarantee that
 					// it will actually get to run before the measure is computed.
 					// If the measure was computed before we got here, then there's nothing for us to do.
-					if ( !context.getHierarchy().measureHolder.isMeasureComputed( measureName ) ) {
-						JPanel panel = findMeasurePanelHierarchy( measureName );
+					if ( !context.getHierarchy().measureHolder.isMeasureComputed( measure ) ) {
+						JPanel panel = findMeasurePanelHierarchy( measure.identifier );
 						JButton button = (JButton)panel.getComponent( 0 );
 						button.setEnabled( false );
 						button.setText( "Calculating..." );
@@ -612,7 +611,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		}
 	}
 
-	private void onMeasureComputed( Triple<LoadedHierarchy, String, Object> result )
+	private void onMeasureComputed( Triple<LoadedHierarchy, MeasureTask, Object> result )
 	{
 		if ( result.getLeft().equals( context.getHierarchy() ) ) {
 			SwingUtilities.invokeLater( () -> updateMeasurePanel( result.getMiddle(), result.getRight() ) );
