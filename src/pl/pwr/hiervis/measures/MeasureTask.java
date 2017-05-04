@@ -3,6 +3,7 @@ package pl.pwr.hiervis.measures;
 import java.util.function.Function;
 
 import basic_hierarchy.interfaces.Hierarchy;
+import interfaces.QualityMeasure;
 
 
 /**
@@ -13,7 +14,8 @@ import basic_hierarchy.interfaces.Hierarchy;
  */
 public final class MeasureTask implements Comparable<MeasureTask>
 {
-	// Both fields are immutable, so it should be safe to expose them.
+	// All fields are immutable, so it should be safe to expose them.
+	public final Object measureObject;
 	public final String identifier;
 	public final boolean autoCompute;
 	public final Function<Hierarchy, Boolean> applicabilityFunction;
@@ -22,6 +24,8 @@ public final class MeasureTask implements Comparable<MeasureTask>
 
 	/**
 	 * 
+	 * @param measure
+	 *            instance of the measure object itself
 	 * @param identifier
 	 *            Name of the computed measure. This will be displayed in the interface for the user to see.
 	 * @param autoCompute
@@ -34,19 +38,52 @@ public final class MeasureTask implements Comparable<MeasureTask>
 	 *            The function that will compute the measure
 	 */
 	public MeasureTask(
+		Object measure,
 		String identifier, boolean autoCompute,
 		Function<Hierarchy, Boolean> applicabilityFunction, Function<Hierarchy, Object> computeFunction )
 	{
+		if ( measure == null ) {
+			throw new IllegalArgumentException( "Measure must not be null!" );
+		}
 		if ( identifier == null || identifier.isEmpty() ) {
 			throw new IllegalArgumentException( "Identifier is null or an empty string!" );
 		}
 		if ( computeFunction == null ) {
-			throw new IllegalArgumentException( "Function is null!" );
+			throw new IllegalArgumentException( "Compute function must not be null!" );
 		}
+
+		this.measureObject = measure;
 		this.identifier = identifier;
 		this.autoCompute = autoCompute;
 		this.applicabilityFunction = applicabilityFunction;
 		this.computeFunction = computeFunction;
+	}
+
+	public boolean isQualityMeasure()
+	{
+		return measureObject instanceof QualityMeasure;
+	}
+
+	/**
+	 * Calling this method when {@link #isQualityMeasure()} returns false will result in
+	 * a {@link ClassCastException}
+	 * 
+	 * @return the desired value for this measure
+	 */
+	public double getDesiredValue()
+	{
+		return ( (QualityMeasure)measureObject ).getDesiredValue();
+	}
+
+	/**
+	 * Calling this method when {@link #isQualityMeasure()} returns false will result in
+	 * a {@link ClassCastException}
+	 * 
+	 * @return the undesired value for this measure
+	 */
+	public double getNotDesiredValue()
+	{
+		return ( (QualityMeasure)measureObject ).getNotDesiredValue();
 	}
 
 	@Override

@@ -136,6 +136,7 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 			}
 
 			JSObject measureData = (JSObject)scriptCallback.call( null );
+			Object measure = getMember( measureData, "measure" );
 			String id = getMember( measureData, "id" );
 			JSObject computeCallback = getMember( measureData, "callback" );
 
@@ -176,7 +177,7 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 				return null;
 			};
 
-			return new MeasureTask( id, autoCompute, applicabilityFunction, computeFunction );
+			return new MeasureTask( measure, id, autoCompute, applicabilityFunction, computeFunction );
 		}
 		catch ( IllegalArgumentException e ) {
 			log.error(

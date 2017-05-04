@@ -6,13 +6,13 @@ function() {
 
 	// Initialize the measure object
 	var qualityMeasure = new FlatDaviesBouldin( new Euclidean() );
-	var measure = new HierarchicalInternalMeasure( qualityMeasure );
 
 	// Create and return the result holder object
 	var measureData = {};
+	measureData.measure = new HierarchicalInternalMeasure( qualityMeasure );
 	measureData.id = 'Hierarchical Internal Measure (Flat Davies-Bouldin, Euclidean)';
 	measureData.callback = function ( hierarchy ) {
-		return measure.getMeasure( hierarchy );
+		return this.measure.getMeasure( hierarchy );
 	}
 
 	return measureData;
