@@ -366,7 +366,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 		if ( context.getHierarchy().measureHolder.isMeasureComputed( task ) ) {
 			cMeasure.add(
-				createMeasureContent( context.getHierarchy().measureHolder.getMeasureResult( task ) ),
+				createMeasureContent( task, context.getHierarchy().measureHolder.getMeasureResult( task ) ),
 				BorderLayout.NORTH
 			);
 		}
@@ -452,17 +452,18 @@ public class HierarchyStatisticsFrame extends JFrame
 	 *            the measure computation result to create the component for
 	 * @return the GUI component
 	 */
-	private JComponent createMeasureContent( Object result )
+	private JComponent createMeasureContent( MeasureTask measure, Object result )
 	{
 		if ( result == null ) {
 			throw new IllegalArgumentException( "Result must not be null!" );
 		}
 
+		StringBuilder buf = new StringBuilder();
+
 		if ( result instanceof double[] ) {
 			// Histogram data // TODO
 			double[] data = (double[])result;
 
-			StringBuilder buf = new StringBuilder();
 			for ( int i = 0; i < data.length; ++i ) {
 				buf.append( Integer.toString( i ) )
 					.append( ": " )
@@ -476,13 +477,29 @@ public class HierarchyStatisticsFrame extends JFrame
 		}
 		else if ( result instanceof AvgWithStdev ) {
 			AvgWithStdev avg = (AvgWithStdev)result;
-			return createFixedTextComponent( String.format( "%s ± %s", avg.getAvg(), avg.getStdev() ) );
+			buf.append( avg.getAvg() ).append( "±" ).append( avg.getStdev() );
+
+			if ( measure.isQualityMeasure() ) {
+				buf.insert( 0, "Value: " ).append( '\n' )
+					.append( "Desired:\t" ).append( formatDesiredValue( measure.getDesiredValue() ) ).append( '\n' )
+					.append( "Undesired:\t" ).append( formatDesiredValue( measure.getNotDesiredValue() ) );
+			}
+
+			return createFixedTextComponent( buf.toString() );
 		}
 		else if ( result instanceof Double ) {
-			return createFixedTextComponent( result.toString() );
+			buf.append( result.toString() );
+
+			if ( measure.isQualityMeasure() ) {
+				buf.insert( 0, "Value:\t" ).append( '\n' )
+					.append( "Desired:\t" ).append( formatDesiredValue( measure.getDesiredValue() ) ).append( '\n' )
+					.append( "Undesired:\t" ).append( formatDesiredValue( measure.getNotDesiredValue() ) );
+			}
+
+			return createFixedTextComponent( buf.toString() );
 		}
 		else if ( result instanceof String ) {
-			return createFixedTextComponent( result.toString() );
+			return createFixedTextComponent( (String)result );
 		}
 		else {
 			throw new IllegalArgumentException(
@@ -492,6 +509,18 @@ public class HierarchyStatisticsFrame extends JFrame
 				)
 			);
 		}
+	}
+
+	private static String formatDesiredValue( double value )
+	{
+		if ( value == Double.MAX_VALUE )
+			return Double.toString( Double.POSITIVE_INFINITY );
+		if ( value == Double.MIN_VALUE )
+			return Double.toString( Double.NEGATIVE_INFINITY );
+		if ( value == 0 )
+			return "0";
+
+		return Double.toString( value );
 	}
 
 	private JTextComponent createFixedTextComponent( String msg )
@@ -551,7 +580,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		JPanel panel = findMeasurePanelHierarchy( measure.identifier );
 		panel.removeAll();
 
-		panel.add( createMeasureContent( measureResult ), BorderLayout.NORTH );
+		panel.add( createMeasureContent( measure, measureResult ), BorderLayout.NORTH );
 		panel.revalidate();
 		panel.repaint();
 
