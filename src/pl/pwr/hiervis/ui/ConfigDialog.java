@@ -36,7 +36,7 @@ public class ConfigDialog extends JDialog
 	private JComboBox<String> listLAF;
 	private JSlider sldPointSize;
 
-	private JLabel lblColorSelectedNode;
+	private JLabel lblColorCurrentGroup;
 	private JLabel lblColorChildGroup;
 	private JLabel lblColorParentGroup;
 	private JLabel lblColorAncestorGroup;
@@ -131,21 +131,24 @@ public class ConfigDialog extends JDialog
 		gbl_cColors.columnWidths = new int[] { 0, colorLabelDim.width, 0 };
 		gbl_cColors.rowHeights = new int[] {
 			colorLabelDim.height, colorLabelDim.height, colorLabelDim.height,
-			colorLabelDim.height, colorLabelDim.height, colorLabelDim.height, 0 };
+			colorLabelDim.height, colorLabelDim.height, colorLabelDim.height,
+			colorLabelDim.height, 0
+		};
 		gbl_cColors.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gbl_cColors.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_cColors.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		cColors.setLayout( gbl_cColors );
 
 		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
 
-		JLabel lblSelectedNodeColor = new JLabel( "Selected node color:" );
-		cColors.add( lblSelectedNodeColor, builder.anchorWest().insets( 5 ).position( 0, 0 ).build() );
+		JLabel lblCurrentGroupColor = new JLabel( "Current group color:" );
+		cColors.add( lblCurrentGroupColor, builder.anchorWest().insets( 5 ).position( 0, 0 ).build() );
 
-		lblColorSelectedNode = new JLabel();
-		lblColorSelectedNode.setOpaque( true );
-		lblColorSelectedNode.setBorder( new LineBorder( Color.lightGray ) );
-		lblColorSelectedNode.setPreferredSize( colorLabelDim );
-		cColors.add( lblColorSelectedNode, builder.anchorEast().fillVertical().insets( 5, 0, 5, 5 ).position( 1, 0 ).build() );
+		lblColorCurrentGroup = new JLabel();
+		lblColorCurrentGroup.setOpaque( true );
+		lblColorCurrentGroup.setBorder( new LineBorder( Color.lightGray ) );
+		lblColorCurrentGroup.setPreferredSize( colorLabelDim );
+		lblColorCurrentGroup.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
+		cColors.add( lblColorCurrentGroup, builder.anchorEast().fillVertical().insets( 5, 0, 5, 5 ).position( 1, 0 ).build() );
 
 		JLabel lblChildGroupColor = new JLabel( "Child group color:" );
 		cColors.add( lblChildGroupColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 1 ).build() );
@@ -154,6 +157,7 @@ public class ConfigDialog extends JDialog
 		lblColorChildGroup.setOpaque( true );
 		lblColorChildGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorChildGroup.setPreferredSize( colorLabelDim );
+		lblColorChildGroup.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
 		cColors.add( lblColorChildGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 1 ).build() );
 
 		JLabel lblParentGroupColor = new JLabel( "Parent group color:" );
@@ -163,6 +167,7 @@ public class ConfigDialog extends JDialog
 		lblColorParentGroup.setOpaque( true );
 		lblColorParentGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorParentGroup.setPreferredSize( colorLabelDim );
+		lblColorParentGroup.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
 		cColors.add( lblColorParentGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 2 ).build() );
 
 		JLabel lblAncestorGroupColor = new JLabel( "Ancestor group color:" );
@@ -172,6 +177,7 @@ public class ConfigDialog extends JDialog
 		lblColorAncestorGroup.setOpaque( true );
 		lblColorAncestorGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorAncestorGroup.setPreferredSize( colorLabelDim );
+		lblColorAncestorGroup.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
 		cColors.add( lblColorAncestorGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 3 ).build() );
 
 		JLabel lblOtherGroupColor = new JLabel( "Other group color:" );
@@ -181,6 +187,7 @@ public class ConfigDialog extends JDialog
 		lblColorOtherGroup.setOpaque( true );
 		lblColorOtherGroup.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorOtherGroup.setPreferredSize( colorLabelDim );
+		lblColorOtherGroup.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
 		cColors.add( lblColorOtherGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 4 ).build() );
 
 		JLabel lblHistogramColor = new JLabel( "Histogram bar color:" );
@@ -190,16 +197,18 @@ public class ConfigDialog extends JDialog
 		lblColorHistogram.setOpaque( true );
 		lblColorHistogram.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorHistogram.setPreferredSize( colorLabelDim );
+		lblColorHistogram.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
 		cColors.add( lblColorHistogram, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 5 ).build() );
 
 		JLabel lblBackgroundColor = new JLabel( "Background color:" );
 		cColors.add( lblBackgroundColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 6 ).build() );
 
 		lblColorBackground = new JLabel();
-		cColors.add( lblColorBackground, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 6 ).build() );
 		lblColorBackground.setOpaque( true );
 		lblColorBackground.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorBackground.setPreferredSize( colorLabelDim );
+		lblColorBackground.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
+		cColors.add( lblColorBackground, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 6 ).build() );
 
 		MouseListener ml = new MouseAdapter() {
 			@Override
@@ -218,7 +227,7 @@ public class ConfigDialog extends JDialog
 			}
 		};
 
-		lblColorSelectedNode.addMouseListener( ml );
+		lblColorCurrentGroup.addMouseListener( ml );
 		lblColorChildGroup.addMouseListener( ml );
 		lblColorParentGroup.addMouseListener( ml );
 		lblColorAncestorGroup.addMouseListener( ml );
@@ -228,7 +237,7 @@ public class ConfigDialog extends JDialog
 
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
-		lblColorSelectedNode.setBackground( cfg.getCurrentGroupColor() );
+		lblColorCurrentGroup.setBackground( cfg.getCurrentGroupColor() );
 		lblColorChildGroup.setBackground( cfg.getChildGroupColor() );
 		lblColorParentGroup.setBackground( cfg.getParentGroupColor() );
 		lblColorAncestorGroup.setBackground( cfg.getAncestorGroupColor() );
@@ -278,7 +287,7 @@ public class ConfigDialog extends JDialog
 	{
 		newConfig = context.getConfig().copy();
 
-		newConfig.setCurrentLevelColor( lblColorSelectedNode.getBackground() );
+		newConfig.setCurrentLevelColor( lblColorCurrentGroup.getBackground() );
 		newConfig.setChildGroupColor( lblColorChildGroup.getBackground() );
 		newConfig.setParentGroupColor( lblColorParentGroup.getBackground() );
 		newConfig.setAncestorGroupColor( lblColorAncestorGroup.getBackground() );
