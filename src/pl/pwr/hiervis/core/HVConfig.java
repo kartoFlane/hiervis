@@ -52,6 +52,8 @@ public class HVConfig
 	@SerializableField
 	private Color otherGroupColor;
 	@SerializableField
+	private Color histogramColor;
+	@SerializableField
 	private Color backgroundColor;
 
 	@SerializableField
@@ -106,6 +108,7 @@ public class HVConfig
 		parentGroupColor = Color.black;
 		ancestorGroupColor = Color.blue.brighter();
 		otherGroupColor = Color.lightGray;
+		histogramColor = Color.magenta;
 		backgroundColor = new Color( -1 );
 
 		preferredLookAndFeel = "";
@@ -436,6 +439,16 @@ public class HVConfig
 		this.otherGroupColor = otherGroupsColor;
 	}
 
+	public Color getAncestorGroupColor()
+	{
+		return ancestorGroupColor;
+	}
+
+	public void setAncestorGroupColor( Color ancestorColor )
+	{
+		this.ancestorGroupColor = ancestorColor;
+	}
+
 	public Color getBackgroundColor()
 	{
 		return backgroundColor;
@@ -446,14 +459,14 @@ public class HVConfig
 		this.backgroundColor = backgroudColor;
 	}
 
-	public Color getAncestorGroupColor()
+	public Color getHistogramColor()
 	{
-		return ancestorGroupColor;
+		return histogramColor;
 	}
 
-	public void setAncestorGroupColor( Color ancestorColor )
+	public void setHistogramColor( Color histogramColor )
 	{
-		this.ancestorGroupColor = ancestorColor;
+		this.histogramColor = histogramColor;
 	}
 
 	public int getPointSize()

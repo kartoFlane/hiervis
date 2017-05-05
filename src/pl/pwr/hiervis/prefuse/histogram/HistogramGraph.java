@@ -22,7 +22,6 @@ import javax.swing.BorderFactory;
 import pl.pwr.hiervis.prefuse.DisplayEx;
 import prefuse.Constants;
 import prefuse.Visualization;
-import prefuse.action.Action;
 import prefuse.action.ActionList;
 import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
@@ -86,7 +85,7 @@ public class HistogramGraph extends DisplayEx
 	 *            the name of the field (column) of the data table
 	 *            whose histogram is to be shown in the histogram graph.
 	 */
-	public HistogramGraph( HistogramTable histoTable, String startingField )
+	public HistogramGraph( HistogramTable histoTable, String startingField, Color histogramColor )
 	{
 		super( new Visualization() );
 
@@ -103,20 +102,7 @@ public class HistogramGraph extends DisplayEx
 		// --------------------------------------------------------------------
 		// STEP 2: create actions to process the visual data
 
-		ActionList colors = new ActionList();
-		Color barColor = new Color( 255, 100, 100 );
-		colors.add(
-			new ColorAction(
-				DATA_ID,
-				VisualItem.FILLCOLOR, barColor.getRGB()
-			)
-		);
-		colors.add(
-			new ColorAction(
-				DATA_ID,
-				VisualItem.STROKECOLOR, barColor.darker().getRGB()
-			)
-		);
+		ActionList colors = createColorizeActions( histogramColor );
 		m_vis.putAction( "color", colors );
 
 		ActionList draw = new ActionList();
@@ -136,14 +122,35 @@ public class HistogramGraph extends DisplayEx
 		m_vis.run( "draw" );
 	}
 
-	public void setColorizeAction( ColorAction color )
+	public void setBarColor( Color color )
 	{
-		Action oldColor = m_vis.removeAction( "color" );
-		m_vis.putAction( "color", color );
+		m_vis.removeAction( "color" );
+		ActionList colors = createColorizeActions( color );
+		m_vis.putAction( "color", colors );
 
 		ActionList draw = (ActionList)m_vis.getAction( "draw" );
-		draw.remove( oldColor );
-		draw.add( 1, color );
+		draw.remove( 1 );
+		draw.add( 1, colors );
+	}
+
+	private ActionList createColorizeActions( Color color )
+	{
+		ActionList list = new ActionList();
+
+		list.add(
+			new ColorAction(
+				DATA_ID,
+				VisualItem.FILLCOLOR, color.getRGB()
+			)
+		);
+		list.add(
+			new ColorAction(
+				DATA_ID,
+				VisualItem.STROKECOLOR, color.darker().getRGB()
+			)
+		);
+
+		return list;
 	}
 
 	/**

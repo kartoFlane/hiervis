@@ -586,7 +586,11 @@ public class InstanceVisualizationsFrame extends JFrame
 		Table table = context.getHierarchy().getInstanceTable();
 
 		HistogramTable histoTable = new HistogramTable( table, context.getConfig().getNumberOfHistogramBins() );
-		HistogramGraph display = new HistogramGraph( histoTable, table.getColumnName( dim ) );
+		HistogramGraph display = new HistogramGraph(
+			histoTable,
+			table.getColumnName( dim ),
+			context.getConfig().getHistogramColor()
+		);
 
 		display.setBackground( context.getConfig().getBackgroundColor() );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );

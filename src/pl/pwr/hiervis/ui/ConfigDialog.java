@@ -2,6 +2,7 @@ package pl.pwr.hiervis.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.Window;
@@ -40,6 +41,7 @@ public class ConfigDialog extends JDialog
 	private JLabel lblColorParentGroup;
 	private JLabel lblColorAncestorGroup;
 	private JLabel lblColorOtherGroup;
+	private JLabel lblColorHistogram;
 	private JLabel lblColorBackground;
 
 
@@ -181,11 +183,20 @@ public class ConfigDialog extends JDialog
 		lblColorOtherGroup.setPreferredSize( colorLabelDim );
 		cColors.add( lblColorOtherGroup, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 4 ).build() );
 
+		JLabel lblHistogramColor = new JLabel( "Histogram bar color:" );
+		cColors.add( lblHistogramColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 5 ).build() );
+
+		lblColorHistogram = new JLabel();
+		lblColorHistogram.setOpaque( true );
+		lblColorHistogram.setBorder( new LineBorder( Color.lightGray ) );
+		lblColorHistogram.setPreferredSize( colorLabelDim );
+		cColors.add( lblColorHistogram, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 5 ).build() );
+
 		JLabel lblBackgroundColor = new JLabel( "Background color:" );
-		cColors.add( lblBackgroundColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 5 ).build() );
+		cColors.add( lblBackgroundColor, builder.anchorWest().insets( 0, 5, 5, 5 ).position( 0, 6 ).build() );
 
 		lblColorBackground = new JLabel();
-		cColors.add( lblColorBackground, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 5 ).build() );
+		cColors.add( lblColorBackground, builder.anchorEast().fillVertical().insets( 0, 0, 5, 5 ).position( 1, 6 ).build() );
 		lblColorBackground.setOpaque( true );
 		lblColorBackground.setBorder( new LineBorder( Color.lightGray ) );
 		lblColorBackground.setPreferredSize( colorLabelDim );
@@ -212,6 +223,7 @@ public class ConfigDialog extends JDialog
 		lblColorParentGroup.addMouseListener( ml );
 		lblColorAncestorGroup.addMouseListener( ml );
 		lblColorOtherGroup.addMouseListener( ml );
+		lblColorHistogram.addMouseListener( ml );
 		lblColorBackground.addMouseListener( ml );
 
 		// Apply current config values
@@ -221,6 +233,7 @@ public class ConfigDialog extends JDialog
 		lblColorParentGroup.setBackground( cfg.getParentGroupColor() );
 		lblColorAncestorGroup.setBackground( cfg.getAncestorGroupColor() );
 		lblColorOtherGroup.setBackground( cfg.getOtherGroupColor() );
+		lblColorHistogram.setBackground( cfg.getHistogramColor() );
 		lblColorBackground.setBackground( cfg.getBackgroundColor() );
 	}
 
@@ -270,6 +283,7 @@ public class ConfigDialog extends JDialog
 		newConfig.setParentGroupColor( lblColorParentGroup.getBackground() );
 		newConfig.setAncestorGroupColor( lblColorAncestorGroup.getBackground() );
 		newConfig.setOtherGroupColor( lblColorOtherGroup.getBackground() );
+		newConfig.setHistogramColor( lblColorHistogram.getBackground() );
 		newConfig.setBackgroundColor( lblColorBackground.getBackground() );
 
 		newConfig.setPreferredLookAndFeel( listLAF.getSelectedItem().toString() );
