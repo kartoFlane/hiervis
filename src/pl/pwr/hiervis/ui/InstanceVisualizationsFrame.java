@@ -649,13 +649,13 @@ public class InstanceVisualizationsFrame extends JFrame
 	 */
 	private DisplayEx createInstanceDisplayFor( int dimX, int dimY )
 	{
-		Visualization vis = createVisualizationFor( dimX, dimY );
+		Visualization vis = createInstanceVisualizationFor( dimX, dimY );
 		DisplayEx display = createInstanceDisplayFor( vis, dimX, dimY );
 
 		return display;
 	}
 
-	private Visualization createVisualizationFor( int dimX, int dimY )
+	private Visualization createInstanceVisualizationFor( int dimX, int dimY )
 	{
 		return HierarchyProcessor.createInstanceVisualization(
 			context, context.getConfig().getPointSize(), dimX, dimY, true
@@ -1034,7 +1034,13 @@ public class InstanceVisualizationsFrame extends JFrame
 				int dimX = gbc.gridx;
 				int dimY = gbc.gridy;
 
-				display.setVisualization( createVisualizationFor( dimX, dimY ) );
+				if ( dimX != dimY ) {
+					display.setVisualization( createInstanceVisualizationFor( dimX, dimY ) );
+				}
+				else {
+					HistogramGraph histogram = (HistogramGraph)display;
+					histogram.setBarColor( cfg.getHistogramColor() );
+				}
 				display.setBackground( cfg.getBackgroundColor() );
 
 				redrawDisplayIfVisible( display );
