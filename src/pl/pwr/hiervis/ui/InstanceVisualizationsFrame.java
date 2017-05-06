@@ -267,9 +267,11 @@ public class InstanceVisualizationsFrame extends JFrame
 						visHeight = Utils.clamp( visHeightMin, visHeight, visHeightMax );
 						visSizeIncrement = getSizeIncrement( Math.min( visWidth, visHeight ) );
 
-						// Update the displays' preferred sizes so they can shrink to the new size
+						// Update the components' preferred sizes so they can shrink to the new size
 						Dimension d = new Dimension( visWidth, visHeight );
-						forEachDisplay( display -> display.setPreferredSize( d ) );
+						for ( Component c : cViewport.getComponents() ) {
+							c.setPreferredSize( d );
+						}
 
 						updateViewportLayout();
 						updateLabelLayout( true );
@@ -574,6 +576,23 @@ public class InstanceVisualizationsFrame extends JFrame
 		return display;
 	}
 
+	private Component createLabelFor( int dimX, int dimY, String msg )
+	{
+		GridBagConstraintsBuilder builder = new GridBagConstraintsBuilder();
+
+		JLabel lbl = new JLabel( msg );
+		lbl.setHorizontalAlignment( SwingConstants.CENTER );
+		lbl.setVerticalAlignment( SwingConstants.CENTER );
+		lbl.setPreferredSize( new Dimension( visWidth, visHeight ) );
+
+		cViewport.add(
+			lbl,
+			builder.position( dimX, dimY ).insets( displayInsets ).build()
+		);
+
+		return lbl;
+	}
+
 	/**
 	 * Creates a histogram display for the specified dimension and the specified node
 	 * 
@@ -830,22 +849,20 @@ public class InstanceVisualizationsFrame extends JFrame
 	 *            dimension number on the X axis (0 based)
 	 * @param dimY
 	 *            dimension number on the Y axis (0 based)
-	 * @return the display associated with the specified dimensions, or null if it wasn't created yet.
+	 * @return the component associated with the specified dimensions, or null if it wasn't created yet.
 	 */
-	private DisplayEx getDisplay( int dimX, int dimY )
+	private Component getComponent( int dimX, int dimY )
 	{
 		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
-		Component result = null;
 
 		for ( Component c : cViewport.getComponents() ) {
 			GridBagConstraints gbc = layout.getConstraints( c );
 			if ( gbc.gridx == dimX && gbc.gridy == dimY ) {
-				result = c;
-				break;
+				return c;
 			}
 		}
 
-		return (DisplayEx)result;
+		return null;
 	}
 
 	/**
@@ -854,7 +871,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	private DisplayEx getFirstVisibleDisplay()
 	{
 		for ( Component c : cViewport.getComponents() ) {
-			if ( c.isVisible() ) {
+			if ( c.isVisible() && c instanceof DisplayEx ) {
 				return (DisplayEx)c;
 			}
 		}
@@ -862,12 +879,19 @@ public class InstanceVisualizationsFrame extends JFrame
 		return null;
 	}
 
+	private boolean componentsVisible()
+	{
+		return cViewport.getComponents().length > 0;
+	}
+
 	/**
 	 * @return true if any instance display is visible, false otherwise.
 	 */
 	private boolean displaysVisible()
 	{
-		return Arrays.stream( cViewport.getComponents() ).filter( c -> c.isVisible() ).count() > 0;
+		return Arrays.stream( cViewport.getComponents() )
+			.filter( c -> c.isVisible() && c instanceof DisplayEx )
+			.count() > 0;
 	}
 
 	/**
@@ -876,7 +900,9 @@ public class InstanceVisualizationsFrame extends JFrame
 	private void forEachDisplay( Consumer<DisplayEx> func )
 	{
 		for ( Component c : cViewport.getComponents() ) {
-			func.accept( (DisplayEx)c );
+			if ( c instanceof DisplayEx ) {
+				func.accept( (DisplayEx)c );
+			}
 		}
 	}
 
@@ -897,62 +923,43 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> args )
 	{
-		// Setting this to true will cause displays for inverted dimensions to also be created
-		// ie. a square matrix of dimensions will be created
-		// (as opposed to an upper triangle matrix when this constant is set to false)
-		boolean includeFlippedDims = false;
-		// Setting to to true will cause the displays to be shrunk to allow the newly added
-		// displays to fit inside the viewport, if possible.
-		boolean squishDisplays = false;
-		// -----------------------------------------------------------------------------------
-
 		// Unpack event arguments
 		int dim = args.getLeft();
 		boolean horizontal = args.getRight();
 
+		boolean allH = true;
+		boolean allV = true;
 		for ( int i = 0; i < cboxesVertical.length; ++i ) {
+			allH &= cboxesHorizontal[i].isSelected();
+			allV &= cboxesVertical[i].isSelected();
+
 			int x = horizontal ? dim : i;
 			int y = horizontal ? i : dim;
 
 			boolean vis = shouldDisplayBeVisible( x, y );
-			DisplayEx display = getDisplay( x, y );
+			Component c = getComponent( x, y );
 
-			if ( display != null ) {
-				display.setVisible( vis );
-				redrawDisplayIfVisible( display );
+			if ( c != null ) {
+				c.setVisible( vis );
+				if ( c instanceof DisplayEx )
+					redrawDisplayIfVisible( (DisplayEx)c );
 			}
 			else if ( vis ) {
-				if ( includeFlippedDims || ( !includeFlippedDims && x >= y ) ) {
+				if ( x >= y ) {
 					// Lazily create the requested display.
-					display = createDisplayFor( x, y );
+					createDisplayFor( x, y );
+				}
+				else {
+					createLabelFor(
+						x, y,
+						"<html>Visualizations are created only for the upper half of the matrix.</html>"
+					);
 				}
 			}
 		}
 
 		Component c = horizontal ? cCols.getComponent( dim ) : cRows.getComponent( dim );
 		c.setVisible( horizontal ? cboxesHorizontal[dim].isSelected() : cboxesVertical[dim].isSelected() );
-
-		if ( squishDisplays && displaysVisible() ) {
-			int countH = (int)Arrays.stream( cboxesHorizontal ).filter( cbox -> cbox.isSelected() ).count();
-			int countV = (int)Arrays.stream( cboxesVertical ).filter( cbox -> cbox.isSelected() ).count();
-
-			Dimension viewportSize = scrollPane.getViewport().getSize();
-			Dimension newVisSize = new Dimension(
-				( viewportSize.width - countH * ( displayInsets.left + displayInsets.right ) ) / countH,
-				( viewportSize.height - countV * ( displayInsets.top + displayInsets.bottom ) ) / countV
-			);
-
-			newVisSize.width = Utils.clamp( visWidthMin, newVisSize.width, visWidthMax );
-			newVisSize.height = Utils.clamp( visHeightMin, newVisSize.height, visHeightMax );
-
-			if ( ( newVisSize.width + displayInsets.left + displayInsets.right ) * countH <= viewportSize.width )
-				visWidth = newVisSize.width;
-			if ( ( newVisSize.height + displayInsets.top + displayInsets.bottom ) * countV <= viewportSize.height )
-				visHeight = newVisSize.height;
-
-			Dimension d = new Dimension( visWidth, visHeight );
-			forEachDisplay( display -> display.setPreferredSize( d ) );
-		}
 
 		updateViewportLayout();
 		updateLabelLayout( horizontal );
