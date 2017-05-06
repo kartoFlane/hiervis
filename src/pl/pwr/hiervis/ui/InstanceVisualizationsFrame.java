@@ -1039,12 +1039,13 @@ public class InstanceVisualizationsFrame extends JFrame
 				int dimY = gbc.gridy;
 
 				if ( dimX != dimY ) {
-					display.setVisualization( createInstanceVisualizationFor( dimX, dimY ) );
+					// Nothing, color is updated by InstanceColorAction when redrawing
 				}
 				else {
 					HistogramGraph histogram = (HistogramGraph)display;
 					histogram.setBarColor( cfg.getHistogramColor() );
 				}
+
 				display.setBackground( cfg.getBackgroundColor() );
 
 				redrawDisplayIfVisible( display );

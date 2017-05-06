@@ -129,7 +129,7 @@ public class HistogramGraph extends DisplayEx
 		m_vis.putAction( "color", colors );
 
 		ActionList draw = (ActionList)m_vis.getAction( "draw" );
-		draw.remove( 1 );
+		draw.remove( 1 ).cancel();
 		draw.add( 1, colors );
 	}
 

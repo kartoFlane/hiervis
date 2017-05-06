@@ -21,6 +21,8 @@ import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.prefuse.TableEx;
+import pl.pwr.hiervis.prefuse.action.InstanceColorAction;
+import pl.pwr.hiervis.prefuse.action.NodeColorAction;
 import pl.pwr.hiervis.prefuse.visualization.NodeRenderer;
 import pl.pwr.hiervis.prefuse.visualization.PointRenderer;
 import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
@@ -36,13 +38,8 @@ import prefuse.action.assignment.StrokeAction;
 import prefuse.action.layout.AxisLabelLayout;
 import prefuse.action.layout.AxisLayout;
 import prefuse.action.layout.graph.NodeLinkTreeLayout;
-import prefuse.data.Schema;
 import prefuse.data.Table;
 import prefuse.data.Tree;
-import prefuse.data.Tuple;
-import prefuse.data.expression.AbstractExpression;
-import prefuse.data.expression.ComparisonPredicate;
-import prefuse.data.expression.Literal;
 import prefuse.data.query.NumberRangeModel;
 import prefuse.render.AxisRenderer;
 import prefuse.render.DefaultRendererFactory;
@@ -252,7 +249,6 @@ public class HierarchyProcessor
 
 		Tree hierarchyTree = context.getHierarchy().getTree();
 		TreeLayoutData layoutData = context.getHierarchy().getTreeLayoutData();
-		HVConfig config = context.getConfig();
 
 		Visualization vis = new Visualization();
 
@@ -260,7 +256,7 @@ public class HierarchyProcessor
 			final float strokeWidth = 3;
 			vis.add( HVConstants.HIERARCHY_DATA_NAME, hierarchyTree );
 
-			NodeRenderer r = new NodeRenderer( layoutData.getNodeSize(), config );
+			NodeRenderer r = new NodeRenderer( layoutData.getNodeSize() );
 			DefaultRendererFactory drf = new DefaultRendererFactory( r );
 			EdgeRenderer edgeRenderer = new EdgeRenderer( prefuse.Constants.EDGE_TYPE_LINE );
 			edgeRenderer.setDefaultLineWidth( strokeWidth );
@@ -274,7 +270,7 @@ public class HierarchyProcessor
 				layoutData.getSiblingSpace(),
 				layoutData.getSubtreeSpace()
 			);
-			treeLayout.setRootNodeOffset( 0 );// 0.5*finalSizeOfNodes);//offset is set in order to show all nodes on images
+			treeLayout.setRootNodeOffset( 0 );
 			treeLayout.setLayoutBounds(
 				new Rectangle2D.Double(
 					0, 0,
@@ -294,6 +290,12 @@ public class HierarchyProcessor
 				ColorLib.color( Color.lightGray )
 			);
 
+			ColorAction nodeFillColor = new NodeColorAction(
+				context,
+				HVConstants.HIERARCHY_DATA_NAME + ".nodes",
+				VisualItem.FILLCOLOR
+			);
+
 			StrokeAction nodeBorderStroke = new StrokeAction(
 				HVConstants.HIERARCHY_DATA_NAME + ".nodes",
 				StrokeLib.getStroke( strokeWidth )
@@ -302,6 +304,7 @@ public class HierarchyProcessor
 			ActionList designList = new ActionList();
 			designList.add( edgesColor );
 			designList.add( nodeBorderColor );
+			designList.add( nodeFillColor );
 			designList.add( nodeBorderStroke );
 
 			ActionList layout = new ActionList();
@@ -310,6 +313,7 @@ public class HierarchyProcessor
 
 			vis.putAction( "design", designList );
 			vis.putAction( "layout", layout );
+			vis.putAction( "nodeColor", nodeFillColor );
 			// TODO we can here implement a heuristic that will check if after enlarging
 			// the border lines (rows and columns) of pixels do not contain other values
 			// than background colour. If so, then we are expanding one again, otherwise
@@ -523,13 +527,7 @@ public class HierarchyProcessor
 		ValuedRangeModel rangeModelY = new NumberRangeModel( bounds.getMinY(), bounds.getMaxY(), bounds.getMinY(), bounds.getMaxY() );
 		axisY.setRangeModel( rangeModelY );
 
-		ColorAction colorize = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
-		colorize.setDefaultColor( Utils.rgba( Color.MAGENTA ) );
-		colorize.add( getPredicateFor( ElementRole.CURRENT ), Utils.rgba( config.getCurrentGroupColor() ) );
-		colorize.add( getPredicateFor( ElementRole.DIRECT_PARENT ), Utils.rgba( config.getParentGroupColor() ) );
-		colorize.add( getPredicateFor( ElementRole.INDIRECT_PARENT ), Utils.rgba( config.getAncestorGroupColor() ) );
-		colorize.add( getPredicateFor( ElementRole.CHILD ), Utils.rgba( config.getChildGroupColor() ) );
-		colorize.add( getPredicateFor( ElementRole.OTHER ), Utils.rgba( config.getOtherGroupColor() ) );
+		ColorAction colorize = new InstanceColorAction( context, HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
 
 		ActionList axisActions = new ActionList();
 		axisActions.add( axisX );
@@ -560,6 +558,23 @@ public class HierarchyProcessor
 		vis.putAction( "repaint", new RepaintAction() );
 
 		return vis;
+	}
+
+	private static ColorAction createInstanceVisualizationColorAction( HVConfig config )
+	{
+		ColorAction colorize = new ColorAction( HVConstants.INSTANCE_DATA_NAME, VisualItem.FILLCOLOR );
+		colorize.setDefaultColor( Utils.rgba( Color.MAGENTA ) );
+		return colorize;
+	}
+
+	public static void updateInstanceVisualizationColors( HVConfig config, Visualization vis )
+	{
+		ColorAction colorize = createInstanceVisualizationColorAction( config );
+		ActionList draw = (ActionList)vis.removeAction( "draw" );
+		draw.remove( 1 ).cancel();
+		draw.add( 1, colorize );
+
+		vis.putAction( "draw", draw );
 	}
 
 	/**
@@ -617,6 +632,7 @@ public class HierarchyProcessor
 	{
 		disposeAction( vis.removeAction( "design" ) );
 		disposeAction( vis.removeAction( "layout" ) );
+		disposeAction( vis.removeAction( "nodeColor" ) );
 		vis.reset();
 	}
 
@@ -678,46 +694,6 @@ public class HierarchyProcessor
 			for ( int i = ca.size() - 1; i >= 0; --i ) {
 				disposeAction( ca.remove( i ) );
 			}
-		}
-	}
-
-	/**
-	 * @param elementRole
-	 *            the {@link ElementRole} to test for
-	 * @return creates and returns a predicate which returns true for instances whose node's
-	 *         {@link ElementRole} is the same as the one passed in argument.
-	 */
-	public static ComparisonPredicate getPredicateFor( ElementRole elementRole )
-	{
-		return new ComparisonPredicate(
-			ComparisonPredicate.EQ,
-			new InstanceNodeExpression(),
-			Literal.getLiteral( elementRole.getNumber() )
-		);
-	}
-
-
-	/**
-	 * Given a row from the instance data table, extracts the node to which that instance belongs and returns
-	 * its {@link ElementRole}.
-	 */
-	@SuppressWarnings("rawtypes")
-	private static class InstanceNodeExpression extends AbstractExpression
-	{
-		public Class getType( Schema s )
-		{
-			return int.class;
-		}
-
-		public Object get( Tuple t )
-		{
-			return getInt( t );
-		}
-
-		public int getInt( Tuple t )
-		{
-			prefuse.data.Node node = (prefuse.data.Node)t.get( HVConstants.PREFUSE_INSTANCE_NODE_COLUMN_NAME );
-			return node.getInt( HVConstants.PREFUSE_NODE_ROLE_COLUMN_NAME );
 		}
 	}
 }

@@ -462,7 +462,13 @@ public class VisualizerFrame extends JFrame implements ActionListener
 			throw new RuntimeException( "No hierarchy data is available." );
 		}
 
-		Visualization vis = context.createHierarchyVisualization();
+		display.reset();
+		Visualization vis = display.getVisualization();
+		if ( vis != null ) {
+			HierarchyProcessor.disposeHierarchyVis( vis );
+		}
+
+		vis = context.createHierarchyVisualization();
 		display.setVisualization( vis );
 		HierarchyProcessor.layoutVisualization( vis );
 
@@ -523,6 +529,11 @@ public class VisualizerFrame extends JFrame implements ActionListener
 			if ( currentDisplay.getVisualization() == HVConstants.EMPTY_VISUALIZATION ) {
 				recreateHierarchyVisualizationAsync( currentDisplay );
 			}
+			else {
+				currentDisplay.getVisualization().run( "nodeColor" );
+				currentDisplay.damageReport();
+				currentDisplay.repaint();
+			}
 
 			mntmCloseFile.setEnabled( true );
 			mntmSaveFile.setEnabled( true );
@@ -536,6 +547,7 @@ public class VisualizerFrame extends JFrame implements ActionListener
 
 		// Refresh the hierarchy display so that it reflects node roles correctly
 		Display currentDisplay = getCurrentHierarchyDisplay();
+		currentDisplay.getVisualization().run( "nodeColor" );
 		currentDisplay.damageReport();
 		currentDisplay.repaint();
 	}
@@ -545,8 +557,10 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		Display currentDisplay = getCurrentHierarchyDisplay();
 
 		if ( currentDisplay != null ) {
+			currentDisplay.getVisualization().run( "nodeColor" );
 			currentDisplay.setBackground( cfg.getBackgroundColor() );
-			recreateHierarchyVisualizationAsync( currentDisplay );
+			currentDisplay.damageReport();
+			currentDisplay.repaint();
 		}
 	}
 
