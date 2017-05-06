@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
@@ -376,6 +377,8 @@ public class InstanceVisualizationsFrame extends JFrame
 			final int d = i;
 			cboxH.addItemListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, true ) ) );
 			cboxV.addItemListener( e -> onDimensionVisibilityToggled( ImmutablePair.of( d, false ) ) );
+			cboxH.addActionListener( e -> updateToggleAll( d, true ) );
+			cboxV.addActionListener( e -> updateToggleAll( d, false ) );
 
 			cDimsH.add( cboxH );
 			if ( i + 1 < dims ) {
@@ -918,56 +921,99 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 	}
 
-	// ----------------------------------------------------------------------------------------
-	// Listeners
-
-	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> args )
+	/**
+	 * Updates the toggle-all checkbox state, so that it correctly illustrates
+	 * the selection states of its member checkboxes.
+	 * 
+	 * @param dim
+	 *            the index of the checkbox whose selection state changed
+	 * @param horizontal
+	 *            whether the checkbox was horizontal or vertical
+	 */
+	private void updateToggleAll( int dim, boolean horizontal )
 	{
-		// Unpack event arguments
-		int dim = args.getLeft();
-		boolean horizontal = args.getRight();
+		JCheckBox[] arr = horizontal ? cboxesHorizontal : cboxesVertical;
+		JCheckBox cboxToggle = horizontal ? cboxAllH : cboxAllV;
 
-		boolean allH = true;
-		boolean allV = true;
-		for ( int i = 0; i < cboxesVertical.length; ++i ) {
-			allH &= cboxesHorizontal[i].isSelected();
-			allV &= cboxesVertical[i].isSelected();
+		if ( cboxToggle.isSelected() ) {
+			// We were selected, and one dim checkbox was toggled -> need to deselect
+			setCheckboxSilent( cboxToggle, false );
+		}
+		else {
+			// We were not selected, and one dim checkbox was toggled
+			// -> need to query all checkboxes to see if they're selected
+			setCheckboxSilent(
+				cboxToggle,
+				Arrays.stream( arr ).allMatch( cbox -> cbox.isSelected() )
+			);
+		}
+	}
 
-			int x = horizontal ? dim : i;
-			int y = horizontal ? i : dim;
+	/**
+	 * Updates the state of the visualization viewport, creating visualizations or making
+	 * them visible depending on whether the dimension that corresponds to them is currently selected or not.
+	 * 
+	 * @param dimX
+	 *            Index of the horizontal dimension to update.
+	 *            Can be negative to update all horizontal dimensions.
+	 * @param dimY
+	 *            Index of the vertical dimension to update.
+	 *            Can be negative to update all vertical dimensions.
+	 */
+	private void updateDimensionVisibility( int dimX, int dimY )
+	{
+		for ( int y = 0; y < cboxesVertical.length; ++y ) {
+			if ( dimY >= 0 && dimY != y )
+				continue;
+			for ( int x = 0; x < cboxesHorizontal.length; ++x ) {
+				if ( dimX >= 0 && dimX != x )
+					continue;
 
-			boolean vis = shouldDisplayBeVisible( x, y );
-			Component c = getComponent( x, y );
+				boolean vis = shouldDisplayBeVisible( x, y );
+				Component c = getComponent( x, y );
 
-			if ( c != null ) {
-				c.setVisible( vis );
-				if ( c instanceof DisplayEx )
-					redrawDisplayIfVisible( (DisplayEx)c );
-			}
-			else if ( vis ) {
-				if ( x >= y ) {
-					// Lazily create the requested display.
-					createDisplayFor( x, y );
+				if ( c != null ) {
+					c.setVisible( vis );
+					if ( c instanceof DisplayEx )
+						redrawDisplayIfVisible( (DisplayEx)c );
 				}
-				else {
-					createLabelFor(
-						x, y,
-						"<html>Visualizations are created only for the upper half of the matrix.</html>"
-					);
+				else if ( vis ) {
+					if ( x >= y ) {
+						// Lazily create the requested display.
+						createDisplayFor( x, y );
+					}
+					else {
+						createLabelFor(
+							x, y,
+							"<html>Visualizations are created only for the upper half of the matrix.</html>"
+						);
+					}
 				}
 			}
 		}
 
-		Component c = horizontal ? cCols.getComponent( dim ) : cRows.getComponent( dim );
-		c.setVisible( horizontal ? cboxesHorizontal[dim].isSelected() : cboxesVertical[dim].isSelected() );
-
 		updateViewportLayout();
-		updateLabelLayout( horizontal );
 
 		cCols.revalidate();
 		cRows.revalidate();
 		revalidate();
 		repaint();
+	}
+
+	/**
+	 * Sets the specified checkbox's value to the specified boolean value without notifying listeners.
+	 * 
+	 * @param cbox
+	 *            the checkbox to set
+	 * @param newValue
+	 *            the new selection state of the checkbox
+	 */
+	private void setCheckboxSilent( JCheckBox cbox, boolean newValue )
+	{
+		ItemListener l = cbox.getItemListeners()[0];
+		cbox.removeItemListener( l );
+		cbox.setSelected( newValue );
+		cbox.addItemListener( l );
 	}
 
 	/**
@@ -990,6 +1036,26 @@ public class InstanceVisualizationsFrame extends JFrame
 				display.dispose();
 			}
 		);
+	}
+
+	// ----------------------------------------------------------------------------------------
+	// Listeners
+
+	private void onDimensionVisibilityToggled( Pair<Integer, Boolean> args )
+	{
+		// Unpack event arguments
+		int dim = args.getLeft();
+		boolean horizontal = args.getRight();
+
+		int dimX = horizontal ? dim : -1;
+		int dimY = horizontal ? -1 : dim;
+
+		updateDimensionVisibility( dimX, dimY );
+
+		// Update dimension label visibility & layout
+		Component c = horizontal ? cCols.getComponent( dim ) : cRows.getComponent( dim );
+		c.setVisible( horizontal ? cboxesHorizontal[dim].isSelected() : cboxesVertical[dim].isSelected() );
+		updateLabelLayout( horizontal );
 	}
 
 	private void onHierarchyChanging( LoadedHierarchy h )
