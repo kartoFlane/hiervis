@@ -26,7 +26,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JViewport;
@@ -98,6 +100,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	private JScrollPane scrollPaneV;
 	private JCheckBox cboxAllH;
 	private JCheckBox cboxAllV;
+	private JPopupMenu displayPopupMenu;
 
 
 	public InstanceVisualizationsFrame( HVContext context, Frame owner, String subtitle )
@@ -133,6 +136,8 @@ public class InstanceVisualizationsFrame extends JFrame
 		gridBagLayout.columnWeights = new double[] { 0.0, 1.0 };
 		gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
 		getContentPane().setLayout( gridBagLayout );
+
+		displayPopupMenu = createDisplayPopupMenu();
 
 		createCheckboxHolders();
 		createVisualizationHolder();
@@ -829,9 +834,43 @@ public class InstanceVisualizationsFrame extends JFrame
 			}
 		);
 
+		display.setComponentPopupMenu( displayPopupMenu );
+
 		Utils.unzoom( display, 0 );
 
 		return display;
+	}
+
+	private JPopupMenu createDisplayPopupMenu()
+	{
+		JPopupMenu popup = new JPopupMenu();
+
+		JMenuItem mntmUnzoom = new JMenuItem( "Unzoom" );
+		mntmUnzoom.addActionListener(
+			e -> {
+				JMenuItem tm = (JMenuItem)e.getSource();
+				JPopupMenu p = (JPopupMenu)tm.getParent();
+				Display d = (Display)p.getInvoker();
+				Utils.fitToBounds( d, Visualization.ALL_ITEMS, 0, 500 );
+			}
+		);
+		popup.add( mntmUnzoom );
+
+		JMenuItem mntmReset = new JMenuItem( "Reset visualization" );
+		mntmReset.addActionListener(
+			e -> {
+				JMenuItem tm = (JMenuItem)e.getSource();
+				JPopupMenu p = (JPopupMenu)tm.getParent();
+				DisplayEx d = (DisplayEx)p.getInvoker();
+
+				Utils.unzoom( d, 0 );
+				HierarchyProcessor.updateLayoutBounds( d.getVisualization(), null );
+				redrawDisplayIfVisible( d );
+			}
+		);
+		popup.add( mntmReset );
+
+		return popup;
 	}
 
 	/**

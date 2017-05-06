@@ -472,7 +472,6 @@ public class HierarchyProcessor
 		int dimX, int dimY,
 		boolean withLabels )
 	{
-		HVConfig config = context.getConfig();
 		Visualization vis = new Visualization();
 
 		String nameLabelsX = HVConstants.PREFUSE_INSTANCE_AXIS_X_COLUMN_NAME;
