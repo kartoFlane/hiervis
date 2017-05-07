@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
+import basic_hierarchy.interfaces.Hierarchy;
 import internal_measures.statistics.AvgWithStdev;
 import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.util.Event;
@@ -32,13 +33,13 @@ import pl.pwr.hiervis.util.Event;
 public class MeasureManager
 {
 	/** Sent when a measure task is posted for processing. */
-	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskPosted = new Event<>();
+	public final Event<Pair<Hierarchy, MeasureTask>> taskPosted = new Event<>();
 	/** Sent when a measure task computation failed due to an exception. */
-	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskFailed = new Event<>();
+	public final Event<Pair<Hierarchy, MeasureTask>> taskFailed = new Event<>();
 	/** Sent when a measure computation is started. */
-	public final Event<Pair<LoadedHierarchy, MeasureTask>> measureComputing = new Event<>();
+	public final Event<Pair<Hierarchy, MeasureTask>> measureComputing = new Event<>();
 	/** Sent when a measure computation is finished. */
-	public final Event<Triple<LoadedHierarchy, MeasureTask, Object>> measureComputed = new Event<>();
+	public final Event<Triple<Hierarchy, MeasureTask, Object>> measureComputed = new Event<>();
 
 	private MeasureComputeThread computeThread = null;
 	private Map<String, Collection<MeasureTask>> measureGroupMap = null;
@@ -62,29 +63,31 @@ public class MeasureManager
 	 * Checks whether the measure with the specified name is scheduled for processing, or
 	 * currently being processed.
 	 * 
-	 * @param lh
+	 * @param h
 	 *            the hierarchy to check the measure for
 	 * @param measure
 	 *            the measure to look for
 	 * @return true if a measure with the specified identifier is pending calculation, or
 	 *         is currently being calculated. False otherwise.
 	 */
-	public boolean isMeasurePending( LoadedHierarchy lh, MeasureTask measure )
+	public boolean isMeasurePending( Hierarchy h, MeasureTask measure )
 	{
-		return computeThread.isMeasurePending( lh, measure );
+		return computeThread.isMeasurePending( h, measure );
 	}
 
 	/**
 	 * Posts a new task for the thread to process.
 	 * 
-	 * @param lh
+	 * @param holder
+	 *            the result holder in which the measure result will be saved
+	 * @param h
 	 *            the hierarchy to compute the measure for
 	 * @param measure
 	 *            the measure to post
 	 */
-	public void postTask( LoadedHierarchy lh, MeasureTask measure )
+	public void postTask( MeasureResultHolder holder, Hierarchy h, MeasureTask measure )
 	{
-		computeThread.postTask( lh, measure );
+		computeThread.postTask( holder, h, measure );
 	}
 
 	/**
@@ -93,9 +96,27 @@ public class MeasureManager
 	 * @param task
 	 *            the task to post
 	 */
-	public void postTask( Pair<LoadedHierarchy, MeasureTask> task )
+	public void postTask( Triple<MeasureResultHolder, Hierarchy, MeasureTask> task )
 	{
-		computeThread.postTask( task.getLeft(), task.getRight() );
+		postTask( task.getLeft(), task.getMiddle(), task.getRight() );
+	}
+
+	/**
+	 * Posts all measure tasks that have been defined as auto-compute for the specified hierarchy.
+	 * 
+	 * @param holder
+	 *            the result holder in which the measure result will be saved
+	 * @param h
+	 *            the hierarchy to compute the measures for
+	 */
+	public void postAutoComputeTasksFor( MeasureResultHolder holder, Hierarchy h )
+	{
+		for ( MeasureTask task : getAllMeasureTasks() ) {
+			if ( task.autoCompute && task.applicabilityFunction.apply( h )
+				&& !holder.isMeasureComputed( h, task ) ) {
+				postTask( holder, h, task );
+			}
+		}
 	}
 
 	/**
@@ -107,7 +128,7 @@ public class MeasureManager
 	 *            the measure to remove.
 	 * @return true if the task was found and removed, false otherwise.
 	 */
-	public boolean removeTask( LoadedHierarchy lh, MeasureTask measure )
+	public boolean removeTask( Hierarchy lh, MeasureTask measure )
 	{
 		return computeThread.removeTask( lh, measure );
 	}
@@ -119,7 +140,7 @@ public class MeasureManager
 	 *            the task to remove.
 	 * @return true if the task was found and removed, false otherwise.
 	 */
-	public boolean removeTask( Pair<LoadedHierarchy, MeasureTask> task )
+	public boolean removeTask( Pair<Hierarchy, MeasureTask> task )
 	{
 		return computeThread.removeTask( task.getLeft(), task.getRight() );
 	}
@@ -238,7 +259,9 @@ public class MeasureManager
 
 		final Function<MeasureTask, String> dumpHistogram = task -> {
 			StringBuilder buf2 = new StringBuilder();
-			Object measureResult = hierarchy.measureHolder.getMeasureResultOrDefault( task, new double[0] );
+			Object measureResult = hierarchy.measureHolder.getMeasureResultOrDefault(
+				hierarchy.getMainHierarchy(), task, new double[0]
+			);
 
 			if ( measureResult instanceof double[] == false )
 				throw new IllegalArgumentException( "Not a histogram measure: " + task.identifier );
@@ -271,7 +294,9 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult(
+					hierarchy.getMainHierarchy(), task
+				);
 
 				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( task.identifier ).append( ";stdev;" );
@@ -284,7 +309,9 @@ public class MeasureManager
 
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult(
+					hierarchy.getMainHierarchy(), task
+				);
 
 				if ( measureResult instanceof Number || measureResult instanceof AvgWithStdev )
 					buf.append( resultToCSV.apply( measureResult ) );
@@ -297,7 +324,9 @@ public class MeasureManager
 		// Histograms
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult(
+					hierarchy.getMainHierarchy(), task
+				);
 
 				if ( measureResult instanceof double[] )
 					buf.append( dumpHistogram.apply( task ) );
@@ -308,7 +337,9 @@ public class MeasureManager
 		// String measures
 		measures.forEach(
 			task -> {
-				Object measureResult = hierarchy.measureHolder.getMeasureResult( task );
+				Object measureResult = hierarchy.measureHolder.getMeasureResult(
+					hierarchy.getMainHierarchy(), task
+				);
 
 				if ( measureResult instanceof String ) {
 					buf.append( task.identifier ).append( '\n' )
@@ -327,25 +358,23 @@ public class MeasureManager
 
 	// -------------------------------------------------------------------------------------
 
-	private void onTaskPosted( Pair<LoadedHierarchy, MeasureTask> task )
+	private void onTaskPosted( Pair<Hierarchy, MeasureTask> task )
 	{
 		taskPosted.broadcast( task );
 	}
 
-	private void onTaskFailed( Pair<LoadedHierarchy, MeasureTask> task )
+	private void onTaskFailed( Pair<Hierarchy, MeasureTask> task )
 	{
 		taskFailed.broadcast( task );
 	}
 
-	private void onMeasureComputing( Pair<LoadedHierarchy, MeasureTask> task )
+	private void onMeasureComputing( Pair<Hierarchy, MeasureTask> task )
 	{
 		measureComputing.broadcast( task );
 	}
 
-	private void onMeasureComputed( Triple<LoadedHierarchy, MeasureTask, Object> result )
+	private void onMeasureComputed( Triple<Hierarchy, MeasureTask, Object> result )
 	{
-		result.getLeft().measureHolder.putMeasureResult( result.getMiddle(), result.getRight() );
-
 		measureComputed.broadcast( result );
 	}
 }

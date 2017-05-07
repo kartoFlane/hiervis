@@ -413,7 +413,7 @@ public class VisualizerFrame extends JFrame implements ActionListener
 
 				HierarchyUtils.save(
 					fileDialog.getSelectedFile().getAbsolutePath(),
-					lh.data,
+					lh.getMainHierarchy(),
 					true,
 					lh.options.hasTrueClassAttribute,
 					lh.options.hasTnstanceNameAttribute,

@@ -707,7 +707,9 @@ public class InstanceVisualizationsFrame extends JFrame
 	private DisplayEx createInstanceDisplayFor( Visualization vis, int dimX, int dimY )
 	{
 		DisplayEx display = new DisplayEx( vis );
-		display.setHighQuality( context.getHierarchy().data.getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED );
+		display.setHighQuality(
+			context.getHierarchy().getMainHierarchy().getOverallNumberOfInstances() < HVConstants.INSTANCE_COUNT_MED
+		);
 		display.setBackground( context.getConfig().getBackgroundColor() );
 		display.setPreferredSize( new Dimension( visWidth, visHeight ) );
 

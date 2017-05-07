@@ -320,7 +320,7 @@ public class HKOptionsPanel extends JPanel
 		File tmp = File.createTempFile( "hv-h-", ".tmp.csv" );
 		logger.trace( "Saving merged hierarchy to: " + tmp.getAbsolutePath() );
 		HierarchyUtils.save(
-			tmp.getAbsolutePath(), hierarchy.data,
+			tmp.getAbsolutePath(), hierarchy.getMainHierarchy(),
 			true, cfg.isHkWithTrueClass(), cfg.isHkWithInstanceNames(), true
 		);
 

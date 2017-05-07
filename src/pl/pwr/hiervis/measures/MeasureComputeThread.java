@@ -9,7 +9,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
+import basic_hierarchy.interfaces.Hierarchy;
 import pl.pwr.hiervis.util.Event;
 import pl.pwr.hiervis.util.SwingUIUtils;
 
@@ -25,17 +25,17 @@ public class MeasureComputeThread extends Thread
 	private static final Logger log = LogManager.getLogger( MeasureComputeThread.class );
 
 	/** Sent when a measure task is posted for processing. */
-	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskPosted = new Event<>();
+	public final Event<Pair<Hierarchy, MeasureTask>> taskPosted = new Event<>();
 	/** Sent when a measure task computation failed due to an exception. */
-	public final Event<Pair<LoadedHierarchy, MeasureTask>> taskFailed = new Event<>();
+	public final Event<Pair<Hierarchy, MeasureTask>> taskFailed = new Event<>();
 	/** Sent when a measure computation is started. */
-	public final Event<Pair<LoadedHierarchy, MeasureTask>> measureComputing = new Event<>();
+	public final Event<Pair<Hierarchy, MeasureTask>> measureComputing = new Event<>();
 	/** Sent when a measure computation is finished. */
-	public final Event<Triple<LoadedHierarchy, MeasureTask, Object>> measureComputed = new Event<>();
+	public final Event<Triple<Hierarchy, MeasureTask, Object>> measureComputed = new Event<>();
 
 	private final ReentrantLock lock = new ReentrantLock();
-	private Queue<Pair<LoadedHierarchy, MeasureTask>> tasks = new LinkedList<>();
-	private Pair<LoadedHierarchy, MeasureTask> currentTask = null;
+	private Queue<Triple<MeasureResultHolder, Hierarchy, MeasureTask>> tasks = new LinkedList<>();
+	private Triple<MeasureResultHolder, Hierarchy, MeasureTask> currentTask = null;
 
 
 	public MeasureComputeThread()
@@ -49,7 +49,8 @@ public class MeasureComputeThread extends Thread
 	{
 		log.trace( "Compute thread started." );
 
-		LoadedHierarchy hierarchy = null;
+		MeasureResultHolder holder = null;
+		Hierarchy hierarchy = null;
 		MeasureTask measure = null;
 
 		while ( !isInterrupted() ) {
@@ -70,7 +71,8 @@ public class MeasureComputeThread extends Thread
 				lock.lock();
 				try {
 					currentTask = tasks.poll();
-					hierarchy = currentTask.getLeft();
+					holder = currentTask.getLeft();
+					hierarchy = currentTask.getMiddle();
 					measure = currentTask.getRight();
 				}
 				finally {
@@ -81,16 +83,17 @@ public class MeasureComputeThread extends Thread
 					log.trace( String.format( "Computing measure '%s'...", measure.identifier ) );
 					measureComputing.broadcast( Pair.of( hierarchy, measure ) );
 
-					Object result = measure.computeFunction.apply( hierarchy.data );
+					Object result = measure.computeFunction.apply( hierarchy );
+					holder.putMeasureResult( Pair.of( hierarchy, measure ), result );
 
 					log.trace( String.format( "Finished computing measure '%s'", measure.identifier ) );
 					measureComputed.broadcast( Triple.of( hierarchy, measure, result ) );
 				}
 				catch ( Throwable e ) {
-					Pair<LoadedHierarchy, MeasureTask> t = currentTask;
+					Triple<MeasureResultHolder, Hierarchy, MeasureTask> t = currentTask;
 					currentTask = null;
 
-					taskFailed.broadcast( t );
+					taskFailed.broadcast( Pair.of( t.getMiddle(), t.getRight() ) );
 					String msg = String.format( "An error occurred while computing measure '%s'", t.getRight().identifier );
 					log.error( msg, e );
 					SwingUIUtils.showErrorDialog( msg + ":\n\n" + e.getMessage() + "\n\nCheck log for details." );
@@ -99,6 +102,11 @@ public class MeasureComputeThread extends Thread
 			catch ( Throwable e ) {
 				currentTask = null;
 				log.error( "Unexpected error occurred while processing measures.", e );
+			}
+			finally {
+				holder = null;
+				hierarchy = null;
+				measure = null;
 			}
 		}
 
@@ -115,19 +123,19 @@ public class MeasureComputeThread extends Thread
 	 * @return true if a measure with the specified identifier is pending calculation, or
 	 *         is currently being calculated. False otherwise.
 	 */
-	public boolean isMeasurePending( LoadedHierarchy hierarchy, MeasureTask measure )
+	public boolean isMeasurePending( Hierarchy hierarchy, MeasureTask measure )
 	{
 		boolean result = false;
 
 		lock.lock();
 		try {
 			if ( currentTask != null ) {
-				result = currentTask.getLeft().equals( hierarchy )
+				result = currentTask.getMiddle().equals( hierarchy )
 					&& currentTask.getRight().equals( measure );
 			}
 			else {
-				for ( Pair<LoadedHierarchy, MeasureTask> task : tasks ) {
-					if ( task.getLeft().equals( hierarchy )
+				for ( Triple<MeasureResultHolder, Hierarchy, MeasureTask> task : tasks ) {
+					if ( task.getMiddle().equals( hierarchy )
 						&& task.getRight().equals( measure ) ) {
 						result = true;
 						break;
@@ -145,53 +153,61 @@ public class MeasureComputeThread extends Thread
 	/**
 	 * Posts a new task for the thread to process.
 	 * 
+	 * @param holder
+	 *            the result holder in which the measure result will be saved
+	 * @param hierarchy
+	 *            the hierarchy for which the measure is to be computed
 	 * @param task
 	 *            the task to post
 	 */
-	public void postTask( LoadedHierarchy hierarchy, MeasureTask task )
+	public void postTask( MeasureResultHolder holder, Hierarchy hierarchy, MeasureTask task )
 	{
+		if ( holder == null ) {
+			throw new IllegalArgumentException( "Holder must not be null!" );
+		}
 		if ( hierarchy == null ) {
-			throw new IllegalStateException( "Hierarchy must not be null!" );
+			throw new IllegalArgumentException( "Hierarchy must not be null!" );
 		}
 		if ( task == null ) {
 			throw new IllegalArgumentException( "Task must not be null!" );
 		}
 
-		Pair<LoadedHierarchy, MeasureTask> pair = Pair.of( hierarchy, task );
+		Triple<MeasureResultHolder, Hierarchy, MeasureTask> arg = Triple.of( holder, hierarchy, task );
 
 		lock.lock();
 		try {
-			tasks.add( pair );
+			tasks.add( arg );
 		}
 		finally {
 			lock.unlock();
 		}
 
-		taskPosted.broadcast( pair );
+		taskPosted.broadcast( Pair.of( hierarchy, task ) );
 	}
 
 	/**
 	 * Removes the task from processing queue, if it is not already being processed.
 	 * 
+	 * @param hierarchy
+	 *            the hierarchy for which the measure is to be computed
 	 * @param task
 	 *            the task to remove.
 	 * @return true if the task was found and removed, false otherwise.
 	 */
-	public boolean removeTask( LoadedHierarchy hierarchy, MeasureTask task )
+	public boolean removeTask( Hierarchy hierarchy, MeasureTask task )
 	{
 		if ( hierarchy == null ) {
-			throw new IllegalStateException( "Hierarchy must not be null!" );
+			throw new IllegalArgumentException( "Hierarchy must not be null!" );
 		}
 		if ( task == null ) {
 			throw new IllegalArgumentException( "Task must not be null!" );
 		}
 
 		boolean result = false;
-		Pair<LoadedHierarchy, MeasureTask> pair = Pair.of( hierarchy, task );
 
 		lock.lock();
 		try {
-			result = tasks.remove( pair );
+			result = tasks.removeIf( t -> t.getMiddle().equals( hierarchy ) && t.getRight().equals( task ) );
 		}
 		finally {
 			lock.unlock();

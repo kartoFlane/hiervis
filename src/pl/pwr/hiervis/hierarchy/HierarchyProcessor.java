@@ -26,6 +26,7 @@ import pl.pwr.hiervis.prefuse.action.NodeColorAction;
 import pl.pwr.hiervis.prefuse.visualization.NodeRenderer;
 import pl.pwr.hiervis.prefuse.visualization.PointRenderer;
 import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
+import pl.pwr.hiervis.util.HierarchyUtils;
 import pl.pwr.hiervis.util.Utils;
 import prefuse.Constants;
 import prefuse.Visualization;
@@ -359,12 +360,12 @@ public class HierarchyProcessor
 	 */
 	public static String[] getFeatureNames( LoadedHierarchy hierarchy )
 	{
-		String[] dataNames = hierarchy.data.getDataNames();
+		String[] dataNames = hierarchy.getMainHierarchy().getDataNames();
 
 		if ( dataNames == null ) {
 			// Input file had no column names -- got to make them up ourselves.
 			try {
-				Instance instance = hierarchy.data.getRoot().getSubtreeInstances().get( 0 );
+				Instance instance = HierarchyUtils.getFirstInstance( hierarchy.getMainHierarchy() );
 				int dimCount = instance.getData().length;
 				dataNames = new String[dimCount];
 				for ( int i = 0; i < dimCount; ++i ) {
@@ -430,7 +431,7 @@ public class HierarchyProcessor
 		// TODO: Implement some sort of culling so that we remove overlapping instances?
 		// Could use k-d trees maybe?
 
-		for ( Instance instance : hierarchy.data.getRoot().getSubtreeInstances() ) {
+		for ( Instance instance : hierarchy.getMainHierarchy().getRoot().getSubtreeInstances() ) {
 			int row = table.addRow();
 
 			double[] data = instance.getData();
@@ -507,7 +508,7 @@ public class HierarchyProcessor
 		Table table = context.getHierarchy().getInstanceTable();
 		vis.addTable( HVConstants.INSTANCE_DATA_NAME, table );
 
-		Node root = context.getHierarchy().data.getRoot();
+		Node root = context.getHierarchy().getMainHierarchy().getRoot();
 		Rectangle2D bounds = Utils.calculateBoundingRectForCluster( root, dimX, dimY );
 
 		AxisLayout axisX = new AxisLayout(

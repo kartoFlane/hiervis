@@ -1,13 +1,18 @@
 package pl.pwr.hiervis.hierarchy;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
+import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.measures.MeasureResultHolder;
 import pl.pwr.hiervis.prefuse.TableEx;
 import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
+import pl.pwr.hiervis.util.HierarchyUtils;
 import prefuse.data.Tree;
 
 
@@ -21,9 +26,11 @@ import prefuse.data.Tree;
  */
 public class LoadedHierarchy
 {
-	public final Hierarchy data;
 	public final LoadedHierarchy.Options options;
 	public final MeasureResultHolder measureHolder;
+
+	private final Hierarchy mainHierarchy;
+	private final Map<Node, Hierarchy> nodeHierarchyMap;
 
 	private Tree hierarchyTree;
 	private TreeLayoutData hierarchyTreeLayout;
@@ -39,9 +46,11 @@ public class LoadedHierarchy
 		if ( o == null )
 			throw new IllegalArgumentException( "Options must not be null!" );
 
-		this.data = h;
 		this.options = o;
 		this.measureHolder = new MeasureResultHolder();
+
+		this.mainHierarchy = h;
+		this.nodeHierarchyMap = new HashMap<>();
 	}
 
 	/**
@@ -57,7 +66,7 @@ public class LoadedHierarchy
 		// Might want to use some kind of algorithm to figure out optimal tree layout area?
 		// 1024x1024 seems to work well enough for now.
 		Pair<Tree, TreeLayoutData> treeData = HierarchyProcessor.buildHierarchyTree(
-			data.getRoot(), 2048, 2048
+			mainHierarchy.getRoot(), 2048, 2048
 		);
 		hierarchyTree = treeData.getLeft();
 		hierarchyTreeLayout = treeData.getRight();
@@ -73,6 +82,44 @@ public class LoadedHierarchy
 	public boolean isProcessed()
 	{
 		return hierarchyTree != null && hierarchyTreeLayout != null && instanceTable != null;
+	}
+
+	public Hierarchy getMainHierarchy()
+	{
+		return mainHierarchy;
+	}
+
+	public Hierarchy getNodeHierarchy( Node n )
+	{
+		if ( n == null ) {
+			throw new IllegalArgumentException( "Node must not be null!" );
+		}
+
+		if ( !nodeHierarchyMap.containsKey( n ) ) {
+			if ( !HierarchyUtils.contains( mainHierarchy, n ) ) {
+				throw new IllegalArgumentException( "Node does not belong to the hierarchy!" );
+			}
+			Hierarchy h = HierarchyUtils.wrapNode( mainHierarchy, n );
+			nodeHierarchyMap.put( n, h );
+			return h;
+		}
+		else {
+			return nodeHierarchyMap.get( n );
+		}
+	}
+
+	public boolean isOwnerOf( Hierarchy h )
+	{
+		if ( h == null ) {
+			throw new IllegalArgumentException( "Hierarchy must not be null!" );
+		}
+
+		if ( h == mainHierarchy ) {
+			return true;
+		}
+		else {
+			return nodeHierarchyMap.containsValue( h );
+		}
 	}
 
 	/**
@@ -122,6 +169,8 @@ public class LoadedHierarchy
 	public void dispose()
 	{
 		measureHolder.clear();
+
+		nodeHierarchyMap.clear();
 
 		hierarchyTree.dispose();
 		hierarchyTree.removeAllSets();

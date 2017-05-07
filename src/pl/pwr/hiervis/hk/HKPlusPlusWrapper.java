@@ -167,7 +167,10 @@ public class HKPlusPlusWrapper
 		boolean withTrueClass, boolean withInstanceNames ) throws IOException
 	{
 		LoadedHierarchy subHierarchy = HierarchyUtils.subHierarchyShallow( hierarchy, selectedNode.getId() );
-		HierarchyUtils.save( hkInputFile.getAbsolutePath(), subHierarchy.data, false, withTrueClass, withInstanceNames, true );
+		HierarchyUtils.save(
+			hkInputFile.getAbsolutePath(), subHierarchy.getMainHierarchy(),
+			false, withTrueClass, withInstanceNames, true
+		);
 	}
 
 	/**

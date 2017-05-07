@@ -384,13 +384,7 @@ public class HVContext
 
 	private void onHierarchyChanged( LoadedHierarchy h )
 	{
-		// Schedule auto-compute tasks
-		for ( MeasureTask task : measureManager.getAllMeasureTasks() ) {
-			if ( task.autoCompute && task.applicabilityFunction.apply( h.data )
-				&& !h.measureHolder.isMeasureComputed( task ) ) {
-				measureManager.postTask( currentHierarchy, task );
-			}
-		}
+		measureManager.postAutoComputeTasksFor( h.measureHolder, h.getMainHierarchy() );
 
 		System.gc();
 	}
