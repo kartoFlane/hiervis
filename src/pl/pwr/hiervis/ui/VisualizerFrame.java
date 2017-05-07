@@ -34,6 +34,7 @@ import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.hierarchy.HierarchyProcessor;
 import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
+import pl.pwr.hiervis.hk.ui.HKOptionsFrame;
 import pl.pwr.hiervis.prefuse.DisplayEx;
 import pl.pwr.hiervis.prefuse.control.CustomToolTipControl;
 import pl.pwr.hiervis.prefuse.control.MouseControl;
@@ -271,10 +272,10 @@ public class VisualizerFrame extends JFrame implements ActionListener
 					if ( item instanceof NodeItem ) {
 						Node n = HierarchyUtils.findGroup( context.getHierarchy(), item.getRow() );
 
-						NodeDetailsFrame detailsFrame = new NodeDetailsFrame( context, this, n, subtitle );
+						HKOptionsFrame hkFrame = new HKOptionsFrame( context, this, n, subtitle );
 
-						detailsFrame.setVisible( true );
-						detailsFrame.setLocationRelativeTo( this );
+						hkFrame.setVisible( true );
+						hkFrame.setLocationRelativeTo( this );
 					}
 				}
 			)
