@@ -60,6 +60,8 @@ public class HVConfig
 	private int pointSize;
 	@SerializableField
 	private int numberOfHistogramBins;
+	@SerializableField
+	private int doubleFormatPrecision;
 
 	@SerializableField
 	private String preferredLookAndFeel;
@@ -100,8 +102,9 @@ public class HVConfig
 	public HVConfig()
 	{
 		// Setup default values.
-		numberOfHistogramBins = 100;
 		pointSize = 3;
+		numberOfHistogramBins = 100;
+		doubleFormatPrecision = 3;
 
 		currentGroupColor = Color.red;
 		childGroupColor = Color.green;
@@ -487,6 +490,16 @@ public class HVConfig
 	public int getNumberOfHistogramBins()
 	{
 		return numberOfHistogramBins;
+	}
+
+	public int getDoubleFormatPrecision()
+	{
+		return doubleFormatPrecision;
+	}
+
+	public void setDoubleFormatPrecision( int doubleFormatPrecision )
+	{
+		this.doubleFormatPrecision = doubleFormatPrecision;
 	}
 
 	public void setPreferredLookAndFeel( String lookAndFeel )

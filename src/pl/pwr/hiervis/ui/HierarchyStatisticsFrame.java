@@ -12,7 +12,10 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -50,6 +53,7 @@ import org.apache.logging.log4j.Logger;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import internal_measures.statistics.AvgWithStdev;
+import pl.pwr.hiervis.core.HVConfig;
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.measures.MeasureManager;
@@ -83,6 +87,8 @@ public class HierarchyStatisticsFrame extends JFrame
 	private WindowListener ownerListener;
 	private int verticalScrollValue = 0;
 
+	private DecimalFormat format;
+
 
 	public HierarchyStatisticsFrame( HVContext context, Window frame, String subtitle )
 	{
@@ -93,6 +99,10 @@ public class HierarchyStatisticsFrame extends JFrame
 		setDefaultCloseOperation( HIDE_ON_CLOSE );
 		setMinimumSize( new Dimension( 400, 200 ) );
 		setSize( 400, 350 );
+
+		format = (DecimalFormat)NumberFormat.getInstance( Locale.ENGLISH );
+		format.setMinimumFractionDigits( 0 );
+		format.setMaximumFractionDigits( context.getConfig().getDoubleFormatPrecision() );
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -151,6 +161,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		context.hierarchyChanged.addListener( this::onHierarchyChanged );
 		context.nodeSelectionChanging.addListener( this::nodeSelectionChanging );
 		context.nodeSelectionChanged.addListener( this::nodeSelectionChanged );
+		context.configChanged.addListener( this::onConfigChanged );
 
 		if ( context.isHierarchyDataLoaded() ) {
 			context.getHierarchy().measureHolder.forComputedMeasures(
@@ -506,7 +517,7 @@ public class HierarchyStatisticsFrame extends JFrame
 			for ( int i = 0; i < data.length; ++i ) {
 				buf.append( Integer.toString( i ) )
 					.append( ": " )
-					.append( Double.toString( data[i] ) );
+					.append( formatDoubleValue( data[i] ) );
 
 				if ( i + 1 < data.length )
 					buf.append( "\n" );
@@ -516,7 +527,9 @@ public class HierarchyStatisticsFrame extends JFrame
 		}
 		else if ( result instanceof AvgWithStdev ) {
 			AvgWithStdev avg = (AvgWithStdev)result;
-			buf.append( avg.getAvg() ).append( " ± " ).append( avg.getStdev() );
+			buf.append( formatDoubleValue( avg.getAvg() ) )
+				.append( " ± " )
+				.append( formatDoubleValue( avg.getStdev() ) );
 
 			if ( measure.isQualityMeasure() ) {
 				buf.insert( 0, "Value: " ).append( '\n' )
@@ -527,7 +540,8 @@ public class HierarchyStatisticsFrame extends JFrame
 			return createFixedTextComponent( buf.toString() );
 		}
 		else if ( result instanceof Double ) {
-			buf.append( result.toString() );
+			Double v = (Double)result;
+			buf.append( formatDoubleValue( v ) );
 
 			if ( measure.isQualityMeasure() ) {
 				buf.insert( 0, "Value:\t" ).append( '\n' )
@@ -550,7 +564,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		}
 	}
 
-	private static String formatDesiredValue( double value )
+	private String formatDesiredValue( double value )
 	{
 		if ( value == Double.MAX_VALUE )
 			return Double.toString( Double.POSITIVE_INFINITY );
@@ -559,7 +573,12 @@ public class HierarchyStatisticsFrame extends JFrame
 		if ( value == 0 )
 			return "0";
 
-		return Double.toString( value );
+		return formatDoubleValue( value );
+	}
+
+	private String formatDoubleValue( double value )
+	{
+		return format.format( value );
 	}
 
 	private JTextComponent createFixedTextComponent( String msg )
@@ -740,6 +759,11 @@ public class HierarchyStatisticsFrame extends JFrame
 		if ( context.getHierarchy().isOwnerOf( task.getLeft() ) ) {
 			SwingUtilities.invokeLater( () -> recreateMeasurePanel( task ) );
 		}
+	}
+
+	private void onConfigChanged( HVConfig cfg )
+	{
+		format.setMaximumFractionDigits( cfg.getDoubleFormatPrecision() );
 	}
 
 	private void onHierarchyChanging( LoadedHierarchy oldHierarchy )
