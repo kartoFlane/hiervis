@@ -784,7 +784,21 @@ public class InstanceVisualizationsFrame extends JFrame
 					if ( e.isAltDown() ) {
 						DisplayEx d = (DisplayEx)e.getComponent();
 
+						AffineTransform transform = d.getTransform();
+						AffineTransform transformI = d.getInverseTransform();
+
 						Rectangle2D layoutBounds = HierarchyProcessor.getLayoutBounds( d.getVisualization() );
+						if ( layoutBounds.getX() > 0 ) {
+							// Un-translate the layout bounds in case we're zoomed in.
+							// We need absolute values to be able to calculate the layout correctly.
+							Point2D tl = new Point2D.Double( layoutBounds.getMinX(), layoutBounds.getMinY() );
+							Point2D br = new Point2D.Double( layoutBounds.getMaxX(), layoutBounds.getMaxY() );
+							transform.transform( tl, tl );
+							transform.transform( br, br );
+							layoutBounds = new Rectangle2D.Double(
+								tl.getX(), tl.getY(), br.getX() - tl.getX(), br.getY() - tl.getY()
+							);
+						}
 
 						// Scale the current layout area by 10%
 						double zoomDelta = 1 - 0.1 * e.getWheelRotation();
@@ -793,20 +807,15 @@ public class InstanceVisualizationsFrame extends JFrame
 
 						layoutBounds.setFrame( 0, 0, newW, newH );
 
-						if ( layoutBounds != null ) {
-							AffineTransform transform = d.getTransform();
-							AffineTransform transformI = d.getInverseTransform();
+						Point2D focusOld = transformI.transform( e.getPoint(), new Point2D.Double() );
+						Point2D focusNew = new Point2D.Double( focusOld.getX() * zoomDelta, focusOld.getY() * zoomDelta );
+						Point2D focusDelta = new Point2D.Double( focusNew.getX() - focusOld.getX(), focusNew.getY() - focusOld.getY() );
 
-							Point2D focusOld = transformI.transform( e.getPoint(), new Point2D.Double() );
-							Point2D focusNew = new Point2D.Double( focusOld.getX() * zoomDelta, focusOld.getY() * zoomDelta );
-							Point2D focusDelta = new Point2D.Double( focusNew.getX() - focusOld.getX(), focusNew.getY() - focusOld.getY() );
+						transform.translate( -focusDelta.getX(), -focusDelta.getY() );
+						Utils.setTransform( d, transform );
+						HierarchyProcessor.updateLayoutBounds( d.getVisualization(), layoutBounds );
 
-							transform.translate( -focusDelta.getX(), -focusDelta.getY() );
-							Utils.setTransform( d, transform );
-							HierarchyProcessor.updateLayoutBounds( d.getVisualization(), layoutBounds );
-
-							redrawDisplayIfVisible( d );
-						}
+						redrawDisplayIfVisible( d );
 					}
 				}
 			}

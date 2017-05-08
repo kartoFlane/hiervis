@@ -259,6 +259,8 @@ public class VisualizerFrame extends JFrame implements ActionListener
 		mouseControl.addAction(
 			new MouseAction(
 				TriggerAreaTypes.VISUAL_ITEM, MouseEvent.BUTTON1, true, ( item, e ) -> {
+					e.getComponent().requestFocusInWindow();
+
 					if ( item instanceof NodeItem ) {
 						context.setSelectedRow( item.getRow() );
 					}
