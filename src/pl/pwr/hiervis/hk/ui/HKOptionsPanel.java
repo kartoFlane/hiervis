@@ -141,7 +141,7 @@ public class HKOptionsPanel extends JPanel
 	public void setupDefaultValues( HVConfig cfg )
 	{
 		cboxTrueClass.setEnabled( hierarchy.options.hasTrueClassAttribute );
-		cboxInstanceNames.setEnabled( hierarchy.options.hasTnstanceNameAttribute );
+		cboxInstanceNames.setEnabled( hierarchy.options.hasInstanceNameAttribute );
 
 		txtClusters.setText( "" + cfg.getHkClusters() );
 		txtIterations.setText( "" + cfg.getHkIterations() );

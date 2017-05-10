@@ -149,7 +149,7 @@ public class FileLoadingOptionsDialog extends JDialog
 		LoadedHierarchy.Options prevOptions = context.getHierarchyOptions();
 
 		cboxTrueClass.setSelected( prevOptions.hasTrueClassAttribute );
-		cboxInstanceName.setSelected( prevOptions.hasTnstanceNameAttribute );
+		cboxInstanceName.setSelected( prevOptions.hasInstanceNameAttribute );
 		cboxDataNames.setSelected( prevOptions.hasColumnHeader );
 		cboxFillGaps.setSelected( prevOptions.isFillBreadthGaps );
 	}

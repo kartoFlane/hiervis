@@ -404,7 +404,7 @@ public class HierarchyProcessor
 			table.addColumn( HVConstants.PREFUSE_INSTANCE_TRUENODE_ID_COLUMN_NAME, String.class );
 		}
 
-		if ( options.hasTnstanceNameAttribute ) {
+		if ( options.hasInstanceNameAttribute ) {
 			table.addColumn( HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, String.class );
 		}
 
@@ -446,7 +446,7 @@ public class HierarchyProcessor
 				table.set( row, HVConstants.PREFUSE_INSTANCE_TRUENODE_ID_COLUMN_NAME, instance.getTrueClass() );
 			}
 
-			if ( hierarchy.options.hasTnstanceNameAttribute ) {
+			if ( hierarchy.options.hasInstanceNameAttribute ) {
 				table.set( row, HVConstants.PREFUSE_INSTANCE_LABEL_COLUMN_NAME, instance.getInstanceName() );
 			}
 		}

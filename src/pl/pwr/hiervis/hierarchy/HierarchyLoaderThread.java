@@ -53,7 +53,7 @@ public class HierarchyLoaderThread extends Thread
 
 			Hierarchy hierarchy = reader.load(
 				file.getAbsolutePath(),
-				options.hasTnstanceNameAttribute,
+				options.hasInstanceNameAttribute,
 				options.hasTrueClassAttribute,
 				options.hasColumnHeader,
 				options.isFillBreadthGaps,

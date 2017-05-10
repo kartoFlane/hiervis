@@ -419,7 +419,7 @@ public class VisualizerFrame extends JFrame implements ActionListener
 					lh.getMainHierarchy(),
 					true,
 					lh.options.hasTrueClassAttribute,
-					lh.options.hasTnstanceNameAttribute,
+					lh.options.hasInstanceNameAttribute,
 					true
 				);
 			}

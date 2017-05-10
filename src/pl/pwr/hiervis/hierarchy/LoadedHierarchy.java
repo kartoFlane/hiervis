@@ -198,7 +198,7 @@ public class LoadedHierarchy
 	{
 		public static final Options DEFAULT = new Options( false, false, false, false, false );
 
-		public final boolean hasTnstanceNameAttribute;
+		public final boolean hasInstanceNameAttribute;
 		public final boolean hasTrueClassAttribute;
 		public final boolean hasColumnHeader;
 		public final boolean isFillBreadthGaps;
@@ -224,7 +224,7 @@ public class LoadedHierarchy
 			boolean fillBreadthGaps,
 			boolean useSubtree )
 		{
-			this.hasTnstanceNameAttribute = withInstanceNameAttribute;
+			this.hasInstanceNameAttribute = withInstanceNameAttribute;
 			this.hasTrueClassAttribute = withTrueClassAttribute;
 			this.hasColumnHeader = withHeader;
 			this.isFillBreadthGaps = fillBreadthGaps;
@@ -242,7 +242,7 @@ public class LoadedHierarchy
 
 		public boolean equals( Options o )
 		{
-			return hasTnstanceNameAttribute == o.hasTnstanceNameAttribute
+			return hasInstanceNameAttribute == o.hasInstanceNameAttribute
 				&& hasTrueClassAttribute == o.hasTrueClassAttribute
 				&& hasColumnHeader == o.hasColumnHeader
 				&& isFillBreadthGaps == o.isFillBreadthGaps

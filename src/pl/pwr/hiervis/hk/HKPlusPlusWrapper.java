@@ -195,7 +195,7 @@ public class HKPlusPlusWrapper
 
 		Hierarchy output = new GeneratedCSVReader().load(
 			hkOutputFile.getAbsolutePath(),
-			options.hasTnstanceNameAttribute,
+			options.hasInstanceNameAttribute,
 			options.hasTrueClassAttribute,
 			options.hasColumnHeader,
 			options.isFillBreadthGaps,
