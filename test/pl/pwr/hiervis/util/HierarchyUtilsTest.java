@@ -22,6 +22,9 @@ import basic_hierarchy.interfaces.Node;
 
 public class HierarchyUtilsTest
 {
+	/** Feature values' array is copied by reference when cloning Instances (memory optimization) */
+	private static final boolean _featureArrayOptimization = true;
+
 	Hierarchy alpha = null;
 
 
@@ -38,7 +41,7 @@ public class HierarchyUtilsTest
 	@Test
 	public void testClone()
 	{
-		Hierarchy test = HierarchyUtils.clone( alpha, null );
+		Hierarchy test = HierarchyUtils.clone( alpha, false, null );
 		Assert.assertFalse( test == alpha );
 
 		compareHierarchies( alpha, test );
@@ -54,8 +57,11 @@ public class HierarchyUtilsTest
 	@Test
 	public void testMerge()
 	{
-		testMerge( alpha, "gen.0.2", Constants.ROOT_ID );
-		testMerge( alpha, "gen.0.1.1", Constants.ROOT_ID );
+		Hierarchy test = HierarchyUtils.subHierarchy( alpha, "gen.0.2", Constants.ROOT_ID );
+		testMerge( alpha, test, "gen.0.2" );
+
+		test = HierarchyUtils.subHierarchy( alpha, "gen.0.1.1", "gen.0.8.4.3" );
+		testMerge( alpha, test, "gen.0.1.1" );
 	}
 
 	// -------------------------------------------------------------
@@ -96,26 +102,32 @@ public class HierarchyUtilsTest
 				Assert.assertFalse( alphaI == testI );
 				Assert.assertEquals( alphaI.getTrueClass(), testI.getTrueClass() );
 				Assert.assertEquals( alphaI.getInstanceName(), testI.getInstanceName() );
-				Assert.assertEquals( alphaI.getData(), testI.getData() );
+				if ( _featureArrayOptimization ) {
+					Assert.assertEquals( alphaI.getData(), testI.getData() );
+				}
+				else {
+					Assert.assertFalse( alphaI.getData() == testI.getData() );
+					Assert.assertArrayEquals( alphaI.getData(), testI.getData(), 0 );
+				}
 			}
 		}
 	}
 
-	public static void testMerge( Hierarchy alphaH, String srcId, String destId )
+	public static void testMerge( Hierarchy alphaH, Hierarchy testH, String mergeNodeId )
 	{
-		Hierarchy testH = HierarchyUtils.subHierarchy( alphaH, srcId, destId );
-		if ( !destId.equals( Constants.ROOT_ID ) ) {
-			testH = HierarchyUtils.subHierarchy( testH, destId, srcId );
-		}
-		testMerge( alphaH, testH, srcId );
-	}
-
-	public static void testMerge( Hierarchy alphaH, Hierarchy testH, String srcId )
-	{
-		testH = HierarchyUtils.merge( testH, alphaH, srcId );
+		testH = HierarchyUtils.merge( testH, alphaH, mergeNodeId );
 		compareHierarchies( alphaH, testH );
 	}
 
+	/**
+	 * Compares the two hierarchies for deep equality, while also asserting that they don't contain
+	 * the same objects (by reference).
+	 * 
+	 * @param a
+	 *            the first hierarchy
+	 * @param b
+	 *            the second hierarchy
+	 */
 	public static void compareHierarchies( Hierarchy a, Hierarchy b )
 	{
 		Assert.assertFalse( a == b );
@@ -142,6 +154,10 @@ public class HierarchyUtilsTest
 			Assert.assertEquals( a.getParent().getId(), b.getParent().getId() );
 		}
 
+		// Node representations are created artificially, therefore they can't
+		// reference the same feature values array object.
+		compareInstances( a.getNodeRepresentation(), b.getNodeRepresentation(), false );
+
 		List<Instance> aIs = a.getNodeInstances();
 		List<Instance> bIs = b.getNodeInstances();
 		Assert.assertEquals( aIs.size(), bIs.size() );
@@ -150,17 +166,26 @@ public class HierarchyUtilsTest
 			Instance aI = aIs.get( j );
 			Instance bI = bIs.get( j );
 
-			compareInstances( aI, bI );
+			compareInstances( aI, bI, _featureArrayOptimization );
 		}
 	}
 
-	public static void compareInstances( Instance a, Instance b )
+	public static void compareInstances( Instance a, Instance b, boolean featureArrayOptimization )
 	{
+		if ( a == null && b == null )
+			return;
+
 		Assert.assertFalse( a == b );
 		Assert.assertEquals( a.getNodeId(), b.getNodeId() );
 		Assert.assertEquals( a.getTrueClass(), b.getTrueClass() );
 		Assert.assertEquals( a.getInstanceName(), b.getInstanceName() );
-		Assert.assertEquals( a.getData(), b.getData() );
+		if ( featureArrayOptimization ) {
+			Assert.assertEquals( a.getData(), b.getData() );
+		}
+		else {
+			Assert.assertFalse( a.getData() == b.getData() );
+			Assert.assertArrayEquals( a.getData(), b.getData(), 0 );
+		}
 	}
 
 	// -------------------------------------------------------------

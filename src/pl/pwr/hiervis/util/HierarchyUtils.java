@@ -99,7 +99,7 @@ public class HierarchyUtils
 				dest = remove( dest, nodeId );
 			}
 			else {
-				dest = clone( dest, null );
+				dest = clone( dest, useSubtree, null );
 			}
 
 			Arrays.stream( dest.getGroups() ).forEach( n -> nodes.add( (BasicNode)n ) );
@@ -193,7 +193,8 @@ public class HierarchyUtils
 	 */
 	public static Hierarchy remove( Hierarchy source, String nodeId )
 	{
-		return clone( source, n -> !n.getId().startsWith( nodeId ) );
+		final boolean useSubtree = false;
+		return clone( source, useSubtree, n -> !n.getId().startsWith( nodeId ) );
 	}
 
 	/**
@@ -297,6 +298,11 @@ public class HierarchyUtils
 							new BasicInstance(
 								in.getInstanceName(),
 								id,
+								// NOTE: Technically we should copy the array for a true deep copy,
+								// however in the context of this application it makes no sense, since
+								// we never modify feature values of instances, and duplication of these
+								// arrays ends up being a considerable memory hog.
+								// Arrays.copyOf( in.getData(), in.getData().length ),
 								in.getData(),
 								in.getTrueClass()
 							)
@@ -312,43 +318,66 @@ public class HierarchyUtils
 	 * Creates a deep copy of the specified hierarchy, creating copies of {@link Node}s and {@link Instance}s
 	 * that comprise the {@link Hierarchy}.
 	 * 
-	 * @param h
+	 * One exception is that {@link Instance}s are not cloned 100% deeply -- the feature values array is copied
+	 * by reference, since it is never modified, at least for now.
+	 * 
+	 * @param source
 	 *            the hierarchy to clone.
+	 * @param useSubtree
+	 *            whether the centroid calculation should also include child nodes' instances
 	 * @param nodeInclusionPredicate
 	 *            predicate allowing to select nodes that should be included in the cloned hierarchy.
 	 *            Can be null to include all nodes.
 	 * @return the cloned hierarchy
 	 */
-	public static Hierarchy clone( Hierarchy h, Predicate<Node> nodeInclusionPredicate )
+	public static Hierarchy clone( Hierarchy source, boolean useSubtree, Predicate<Node> nodeInclusionPredicate )
 	{
-		final boolean useSubtree = false;
-
 		List<BasicNode> nodes = new LinkedList<>();
 
-		Arrays.stream( h.getGroups() ).forEach(
+		Arrays.stream( source.getGroups() ).forEach(
 			n -> {
 				if ( nodeInclusionPredicate != null && !nodeInclusionPredicate.test( n ) ) {
 					return;
 				}
 
-				BasicNode clonedNode = new BasicNode( n.getId(), null, useSubtree );
-
-				n.getNodeInstances().forEach(
-					in -> clonedNode.addInstance(
-						new BasicInstance(
-							in.getInstanceName(),
-							in.getNodeId(),
-							in.getData(),
-							in.getTrueClass()
-						)
-					)
-				);
-
-				nodes.add( clonedNode );
+				nodes.add( clone( n, useSubtree ) );
 			}
 		);
 
-		return buildHierarchy( nodes, h.getDataNames(), useSubtree );
+		return buildHierarchy( nodes, source.getDataNames(), useSubtree );
+	}
+
+	/**
+	 * Creates a deep copy of the specified node, creating copies of {@link Instance}s that have
+	 * been assigned to this {@link Node}.
+	 * 
+	 * @param source
+	 *            the node to clone
+	 * @param useSubtree
+	 *            whether the centroid calculation should also include child nodes' instances
+	 * @return
+	 */
+	public static BasicNode clone( Node source, boolean useSubtree )
+	{
+		// Can't clone the parent reference, leave it as null.
+		BasicNode clonedNode = new BasicNode( source.getId(), null, useSubtree );
+		source.getNodeInstances().forEach( in -> clonedNode.addInstance( clone( in ) ) );
+		return clonedNode;
+	}
+
+	public static Instance clone( Instance source )
+	{
+		return new BasicInstance(
+			source.getInstanceName(),
+			source.getNodeId(),
+			// NOTE: Technically we should copy the array for a true deep copy,
+			// however in the context of this application it makes no sense, since
+			// we never modify feature values of instances, and duplication of these
+			// arrays ends up being a considerable memory hog.
+			// Arrays.copyOf( in.getData(), in.getData().length ),
+			source.getData(),
+			source.getTrueClass()
+		);
 	}
 
 	/**
