@@ -230,5 +230,23 @@ public class LoadedHierarchy
 			this.isFillBreadthGaps = fillBreadthGaps;
 			this.isUseSubtree = useSubtree;
 		}
+
+		@Override
+		public boolean equals( Object o )
+		{
+			if ( o instanceof Options ) {
+				return equals( (Options)o );
+			}
+			return false;
+		}
+
+		public boolean equals( Options o )
+		{
+			return hasTnstanceNameAttribute == o.hasTnstanceNameAttribute
+				&& hasTrueClassAttribute == o.hasTrueClassAttribute
+				&& hasColumnHeader == o.hasColumnHeader
+				&& isFillBreadthGaps == o.isFillBreadthGaps
+				&& isUseSubtree == o.isUseSubtree;
+		}
 	}
 }
