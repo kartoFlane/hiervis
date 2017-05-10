@@ -131,7 +131,11 @@ public class HierarchyUtilsTest
 	public static void compareHierarchies( Hierarchy a, Hierarchy b )
 	{
 		Assert.assertFalse( a == b );
+		Assert.assertEquals( a.getRoot().getId(), b.getRoot().getId() );
 		Assert.assertEquals( a.getOverallNumberOfInstances(), b.getOverallNumberOfInstances() );
+		Assert.assertArrayEquals( a.getClasses(), b.getClasses() );
+		Assert.assertArrayEquals( a.getClassesCount(), b.getClassesCount() );
+		Assert.assertArrayEquals( a.getDataNames(), b.getDataNames() );
 
 		List<Node> aNodes = Arrays.asList( a.getGroups() );
 		List<Node> bNodes = Arrays.asList( b.getGroups() );
