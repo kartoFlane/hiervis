@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import basic_hierarchy.common.Constants;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import basic_hierarchy.reader.GeneratedCSVReader;
@@ -163,12 +164,12 @@ public class HKPlusPlusWrapper
 	 *             if an I/O error occurs
 	 */
 	public void prepareInputFile(
-		LoadedHierarchy hierarchy, Node selectedNode,
+		Hierarchy hierarchy, Node selectedNode,
 		boolean withTrueClass, boolean withInstanceNames ) throws IOException
 	{
-		LoadedHierarchy subHierarchy = HierarchyUtils.subHierarchyShallow( hierarchy, selectedNode.getId() );
+		Hierarchy subHierarchy = HierarchyUtils.subHierarchy( hierarchy, selectedNode.getId(), Constants.ROOT_ID );
 		HierarchyUtils.save(
-			hkInputFile.getAbsolutePath(), subHierarchy.getMainHierarchy(),
+			hkInputFile.getAbsolutePath(), subHierarchy,
 			false, withTrueClass, withInstanceNames, true
 		);
 	}

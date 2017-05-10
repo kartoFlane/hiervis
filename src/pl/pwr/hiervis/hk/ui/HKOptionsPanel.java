@@ -202,7 +202,7 @@ public class HKOptionsPanel extends JPanel
 
 			logger.trace( "Preparing input file..." );
 			wrapper.prepareInputFile(
-				hierarchy, node,
+				hierarchy.getMainHierarchy(), node,
 				cboxTrueClass.isSelected(), cboxInstanceNames.isSelected()
 			);
 
