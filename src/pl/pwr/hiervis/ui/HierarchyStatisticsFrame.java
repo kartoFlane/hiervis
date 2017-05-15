@@ -13,6 +13,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Locale;
@@ -103,6 +104,9 @@ public class HierarchyStatisticsFrame extends JFrame
 		format = (DecimalFormat)NumberFormat.getInstance( Locale.ENGLISH );
 		format.setMinimumFractionDigits( 0 );
 		format.setMaximumFractionDigits( context.getConfig().getDoubleFormatPrecision() );
+		DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+		symbols.setGroupingSeparator( ' ' );
+		format.setDecimalFormatSymbols( symbols );
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -516,7 +520,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 			for ( int i = 0; i < data.length; ++i ) {
 				buf.append( Integer.toString( i ) )
-					.append( ": " )
+					.append( ":\t" )
 					.append( formatDoubleValue( data[i] ) );
 
 				if ( i + 1 < data.length )
