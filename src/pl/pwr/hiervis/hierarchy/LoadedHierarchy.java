@@ -99,7 +99,7 @@ public class LoadedHierarchy
 			if ( !HierarchyUtils.contains( mainHierarchy, n ) ) {
 				throw new IllegalArgumentException( "Node does not belong to the hierarchy!" );
 			}
-			Hierarchy h = HierarchyUtils.wrapNode( mainHierarchy, n );
+			Hierarchy h = HierarchyUtils.wrapNode( mainHierarchy, n, true );
 			nodeHierarchyMap.put( n, h );
 			return h;
 		}

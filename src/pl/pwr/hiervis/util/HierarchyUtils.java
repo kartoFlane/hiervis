@@ -198,30 +198,39 @@ public class HierarchyUtils
 	}
 
 	/**
-	 * Creates a thin wrapper hierarchy around the specified node.
-	 * Includes child nodes of this node.
+	 * Creates a wrapper hierarchy around the specified node. The returned hierarchy
+	 * is a deep copy of the specified node (and its subtree, if that option is selected)
 	 * 
 	 * @param source
 	 *            the source hierarchy the node belongs to
 	 * @param node
 	 *            the node to wrap
+	 * @param withSubtree
+	 *            whether to include child nodes of the specified node
 	 * @return the wrapper hierarchy
 	 */
-	public static Hierarchy wrapNode( Hierarchy source, Node node )
+	public static Hierarchy wrapNode( Hierarchy source, Node node, boolean withSubtree )
 	{
 		List<BasicNode> nodes = new LinkedList<>();
 
-		Arrays.stream( source.getGroups() )
-			.filter( n -> n.getId().startsWith( node.getId() ) )
-			.forEach( n -> nodes.add( (BasicNode)n ) );
+		if ( withSubtree ) {
+			Arrays.stream( source.getGroups() )
+				.filter( n -> n.getId().startsWith( node.getId() ) )
+				.forEach( n -> nodes.add( clone( n, false ) ) );
+		}
+		else {
+			Arrays.stream( source.getGroups() )
+				.filter( n -> n.getId().equals( node.getId() ) )
+				.forEach( n -> nodes.add( clone( n, false ) ) );
+		}
 
 		// Ensure that the node is actually first in the nodes list,
 		// and will thus become the root of the new hierarchy.
-		if ( !nodes.get( 0 ).equals( node ) ) {
+		if ( !nodes.get( 0 ).getId().equals( node.getId() ) ) {
 			throw new IllegalStateException();
 		}
 
-		return new BasicHierarchy( nodes, source.getDataNames() );
+		return buildHierarchy( nodes, source.getDataNames(), false );
 	}
 
 	/**
