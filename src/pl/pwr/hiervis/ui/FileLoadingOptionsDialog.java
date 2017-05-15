@@ -1,25 +1,30 @@
 package pl.pwr.hiervis.ui;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.WindowEvent;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import pl.pwr.hiervis.core.HVContext;
 import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.util.SwingUIUtils;
-import pl.pwr.hiervis.util.ui.JMultilineLabel;
 
 
 @SuppressWarnings("serial")
 public class FileLoadingOptionsDialog extends JDialog
 {
+	private static final int _prefWidth = 350;
+
 	private LoadedHierarchy.Options options = null;
 
 	private JCheckBox cboxTrueClass;
@@ -37,7 +42,7 @@ public class FileLoadingOptionsDialog extends JDialog
 		setModal( true );
 
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 350 };
+		gridBagLayout.columnWidths = new int[] { _prefWidth };
 		gridBagLayout.columnWeights = new double[] { 1.0 };
 		gridBagLayout.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
 		getContentPane().setLayout( gridBagLayout );
@@ -47,103 +52,62 @@ public class FileLoadingOptionsDialog extends JDialog
 
 		SwingUIUtils.installEscapeCloseOperation( this );
 
-		// Try to coax the pane into correct dimensions...
-		revalidate();
-		setPreferredSize( getPreferredSize() );
 		pack();
 	}
 
 	private void createOptionsPanel( HVContext context )
 	{
 		JPanel cOptions = new JPanel();
+
+		cOptions.setLayout( new BoxLayout( cOptions, BoxLayout.Y_AXIS ) );
+
 		GridBagConstraints gbc_cOptions = new GridBagConstraints();
 		gbc_cOptions.fill = GridBagConstraints.BOTH;
-		gbc_cOptions.insets = new Insets( 0, 0, 5, 0 );
+		gbc_cOptions.insets = new Insets( 5, 5, 5, 5 );
 		gbc_cOptions.gridx = 0;
 		gbc_cOptions.gridy = 0;
 		getContentPane().add( cOptions, gbc_cOptions );
-		GridBagLayout gbl_cOptions = new GridBagLayout();
-		gbl_cOptions.columnWidths = new int[] { 350, 0 };
-		gbl_cOptions.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_cOptions.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		cOptions.setLayout( gbl_cOptions );
 
 		cboxTrueClass = new JCheckBox( "True Class" );
-		GridBagConstraints gbc_cboxTrueClass = new GridBagConstraints();
-		gbc_cboxTrueClass.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cboxTrueClass.insets = new Insets( 5, 5, 5, 0 );
-		gbc_cboxTrueClass.gridx = 0;
-		gbc_cboxTrueClass.gridy = 0;
-		cOptions.add( cboxTrueClass, gbc_cboxTrueClass );
+		cOptions.add( cboxTrueClass );
 
-		JMultilineLabel lblTrueClass = new JMultilineLabel(
-			"Whether the input file contains a column specifying the true class of each instance."
+		JLabel lblTrueClass = new JLabel(
+			"<html>Whether the input file contains a column specifying the true class of each instance.</html>"
 		);
-		lblTrueClass.setRows( 3 );
-		GridBagConstraints gbc_lblTrueClass = new GridBagConstraints();
-		gbc_lblTrueClass.fill = GridBagConstraints.HORIZONTAL;
-		gbc_lblTrueClass.insets = new Insets( 0, 5, 10, 5 );
-		gbc_lblTrueClass.gridx = 0;
-		gbc_lblTrueClass.gridy = 1;
-		cOptions.add( lblTrueClass, gbc_lblTrueClass );
+		fixedWidthLabel( lblTrueClass, _prefWidth );
+		cOptions.add( lblTrueClass );
+		cOptions.add( Box.createVerticalStrut( 10 ) );
 
 		cboxInstanceName = new JCheckBox( "Instance Name" );
-		GridBagConstraints gbc_cboxInstanceName = new GridBagConstraints();
-		gbc_cboxInstanceName.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cboxInstanceName.insets = new Insets( 0, 5, 5, 0 );
-		gbc_cboxInstanceName.gridx = 0;
-		gbc_cboxInstanceName.gridy = 2;
-		cOptions.add( cboxInstanceName, gbc_cboxInstanceName );
+		cOptions.add( cboxInstanceName );
 
-		JMultilineLabel lblInstanceName = new JMultilineLabel(
-			"Whether the input file contains a column specifying instance name of each instance."
+		JLabel lblInstanceName = new JLabel(
+			"<html>Whether the input file contains a column specifying instance name of each instance.</html>"
 		);
-		lblInstanceName.setRows( 3 );
-		GridBagConstraints gbc_lblInstanceName = new GridBagConstraints();
-		gbc_lblInstanceName.fill = GridBagConstraints.HORIZONTAL;
-		gbc_lblInstanceName.insets = new Insets( 0, 5, 10, 5 );
-		gbc_lblInstanceName.gridx = 0;
-		gbc_lblInstanceName.gridy = 3;
-		cOptions.add( lblInstanceName, gbc_lblInstanceName );
+		fixedWidthLabel( lblInstanceName, _prefWidth );
+		cOptions.add( lblInstanceName );
+		cOptions.add( Box.createVerticalStrut( 10 ) );
 
 		cboxDataNames = new JCheckBox( "Data Names" );
-		GridBagConstraints gbc_cboxDataNames = new GridBagConstraints();
-		gbc_cboxDataNames.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cboxDataNames.insets = new Insets( 0, 5, 5, 0 );
-		gbc_cboxDataNames.gridx = 0;
-		gbc_cboxDataNames.gridy = 4;
-		cOptions.add( cboxDataNames, gbc_cboxDataNames );
+		cOptions.add( cboxDataNames );
 
-		JMultilineLabel lblDataNames = new JMultilineLabel(
-			"Whether the input file contains names of each data column."
+		JLabel lblDataNames = new JLabel(
+			"<html>Whether the input file contains names of each data column.</html>"
 		);
-		lblDataNames.setRows( 3 );
-		GridBagConstraints gbc_lblDataNames = new GridBagConstraints();
-		gbc_lblDataNames.fill = GridBagConstraints.HORIZONTAL;
-		gbc_lblDataNames.insets = new Insets( 0, 5, 10, 5 );
-		gbc_lblDataNames.gridx = 0;
-		gbc_lblDataNames.gridy = 5;
-		cOptions.add( lblDataNames, gbc_lblDataNames );
+		fixedWidthLabel( lblDataNames, _prefWidth );
+		cOptions.add( lblDataNames );
+		cOptions.add( Box.createVerticalStrut( 10 ) );
 
 		cboxFillGaps = new JCheckBox( "Fill Breadth Gaps" );
-		GridBagConstraints gbc_cboxFillGaps = new GridBagConstraints();
-		gbc_cboxFillGaps.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cboxFillGaps.insets = new Insets( 0, 5, 5, 0 );
-		gbc_cboxFillGaps.gridx = 0;
-		gbc_cboxFillGaps.gridy = 6;
-		cOptions.add( cboxFillGaps, gbc_cboxFillGaps );
+		cOptions.add( cboxFillGaps );
 
-		JMultilineLabel lblFillGaps = new JMultilineLabel(
-			"Whether the hierarchy constructed from the input file should be " +
-				"fixed to account for possible gaps in instance siblings."
+		JLabel lblFillGaps = new JLabel(
+			"<html>Whether the hierarchy constructed from the input file should be " +
+				"fixed to account for possible gaps in instance siblings.</html>"
 		);
-		lblDataNames.setRows( 3 );
-		GridBagConstraints gbc_lblFillGaps = new GridBagConstraints();
-		gbc_lblFillGaps.fill = GridBagConstraints.HORIZONTAL;
-		gbc_lblFillGaps.insets = new Insets( 0, 5, 10, 5 );
-		gbc_lblFillGaps.gridx = 0;
-		gbc_lblFillGaps.gridy = 7;
-		cOptions.add( lblFillGaps, gbc_lblFillGaps );
+		fixedWidthLabel( lblFillGaps, _prefWidth );
+		cOptions.add( lblFillGaps );
+		cOptions.add( Box.createVerticalStrut( 10 ) );
 
 		// Apply previous options
 		LoadedHierarchy.Options prevOptions = context.getHierarchyOptions();
@@ -186,6 +150,12 @@ public class FileLoadingOptionsDialog extends JDialog
 				dispatchEvent( new WindowEvent( this, WindowEvent.WINDOW_CLOSING ) );
 			}
 		);
+	}
+
+	private static void fixedWidthLabel( JLabel lbl, int width )
+	{
+		Dimension d = lbl.getPreferredSize();
+		lbl.setPreferredSize( new Dimension( width, ( 1 + d.width / width ) * d.height ) );
 	}
 
 	private void updateOptions( HVContext context )
