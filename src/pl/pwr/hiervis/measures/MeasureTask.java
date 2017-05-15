@@ -7,7 +7,7 @@ import interfaces.QualityMeasure;
 
 
 /**
- * A pair that associates a measure calculation function with a user-friendly unique identifier.
+ * A wrapper object around the various measures that can be computed for a {@link Hierarchy}.
  * 
  * @author Tomasz Bachmiński
  *
@@ -15,10 +15,22 @@ import interfaces.QualityMeasure;
 public final class MeasureTask implements Comparable<MeasureTask>
 {
 	// All fields are immutable, so it should be safe to expose them.
+
+	/** Instance of the measure object itself that was instantiated in the script. */
 	public final Object measureObject;
+	/** Name of the computed measure, used in GUI. */
 	public final String identifier;
+	/**
+	 * Whether this measure should be computed automatically as soon as the hierarchy is loaded,
+	 * if the measure is applicable to the hierarchy.
+	 */
 	public final boolean autoCompute;
+	/**
+	 * The function that returns a boolean value indicating whether the measure is applicable for
+	 * the currently loaded hierarchy. This field is null if the measure is always applicable.
+	 */
 	public final Function<Hierarchy, Boolean> applicabilityFunction;
+	/** The function that will compute the measure. */
 	public final Function<Hierarchy, Object> computeFunction;
 
 
