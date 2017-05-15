@@ -215,6 +215,12 @@ public class HierarchyUtils
 			.filter( n -> n.getId().startsWith( node.getId() ) )
 			.forEach( n -> nodes.add( (BasicNode)n ) );
 
+		// Ensure that the node is actually first in the nodes list,
+		// and will thus become the root of the new hierarchy.
+		if ( !nodes.get( 0 ).equals( node ) ) {
+			throw new IllegalStateException();
+		}
+
 		return new BasicHierarchy( nodes, source.getDataNames() );
 	}
 
@@ -374,7 +380,7 @@ public class HierarchyUtils
 			// however in the context of this application it makes no sense, since
 			// we never modify feature values of instances, and duplication of these
 			// arrays ends up being a considerable memory hog.
-			// Arrays.copyOf( in.getData(), in.getData().length ),
+			// Arrays.copyOf( source.getData(), source.getData().length ),
 			source.getData(),
 			source.getTrueClass()
 		);

@@ -165,15 +165,21 @@ public class HierarchyUtilsTest
 		List<Instance> aIs = a.getNodeInstances();
 		List<Instance> bIs = b.getNodeInstances();
 		Assert.assertEquals( aIs.size(), bIs.size() );
-		final int _endj = aIs.size();
-		for ( int j = 0; j < _endj; ++j ) {
-			Instance aI = aIs.get( j );
-			Instance bI = bIs.get( j );
-
-			compareInstances( aI, bI, _featureArrayOptimization );
+		final int _endi = aIs.size();
+		for ( int i = 0; i < _endi; ++i ) {
+			compareInstances( aIs.get( i ), bIs.get( i ), _featureArrayOptimization );
 		}
 	}
 
+	/**
+	 * @param a
+	 *            the first instance to compare
+	 * @param b
+	 *            the second instance to compare
+	 * @param featureArrayOptimization
+	 *            whether to assume that when instances are cloned, their feature values'
+	 *            array is copied by reference instead of deeply cloned (memory optimization)
+	 */
 	public static void compareInstances( Instance a, Instance b, boolean featureArrayOptimization )
 	{
 		if ( a == null && b == null )
@@ -184,7 +190,7 @@ public class HierarchyUtilsTest
 		Assert.assertEquals( a.getTrueClass(), b.getTrueClass() );
 		Assert.assertEquals( a.getInstanceName(), b.getInstanceName() );
 		if ( featureArrayOptimization ) {
-			Assert.assertEquals( a.getData(), b.getData() );
+			Assert.assertTrue( a.getData() == b.getData() );
 		}
 		else {
 			Assert.assertFalse( a.getData() == b.getData() );
