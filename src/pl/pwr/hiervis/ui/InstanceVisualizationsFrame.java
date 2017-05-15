@@ -874,12 +874,16 @@ public class InstanceVisualizationsFrame extends JFrame
 				JPopupMenu p = (JPopupMenu)tm.getParent();
 				DisplayEx d = (DisplayEx)p.getInvoker();
 
-				Utils.unzoom( d, 0 );
-				HierarchyProcessor.updateLayoutBounds( d.getVisualization(), null );
-				redrawDisplayIfVisible( d );
+				resetDisplayLayoutBounds( d );
 			}
 		);
 		popup.add( mntmReset );
+
+		popup.add( new JSeparator() );
+
+		JMenuItem mntmResetAll = new JMenuItem( "Reset all visualizations" );
+		mntmResetAll.addActionListener( e -> forEachScatterPlot( this::resetDisplayLayoutBounds ) );
+		popup.add( mntmResetAll );
 
 		return popup;
 	}
@@ -949,11 +953,30 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	/**
 	 * Executes the specified function for each existing display in the grid.
+	 * This includes both scatter plots as well as histograms.
 	 */
 	private void forEachDisplay( Consumer<DisplayEx> func )
 	{
 		for ( Component c : cViewport.getComponents() ) {
 			if ( c instanceof DisplayEx ) {
+				func.accept( (DisplayEx)c );
+			}
+		}
+	}
+
+	private void forEachHistogram( Consumer<HistogramGraph> func )
+	{
+		for ( Component c : cViewport.getComponents() ) {
+			if ( c instanceof HistogramGraph ) {
+				func.accept( (HistogramGraph)c );
+			}
+		}
+	}
+
+	private void forEachScatterPlot( Consumer<DisplayEx> func )
+	{
+		for ( Component c : cViewport.getComponents() ) {
+			if ( c instanceof DisplayEx && c instanceof HistogramGraph == false ) {
 				func.accept( (DisplayEx)c );
 			}
 		}
@@ -969,6 +992,13 @@ public class InstanceVisualizationsFrame extends JFrame
 		else {
 			d.reset();
 		}
+	}
+
+	private void resetDisplayLayoutBounds( DisplayEx d )
+	{
+		Utils.unzoom( d, 0 );
+		HierarchyProcessor.updateLayoutBounds( d.getVisualization(), null );
+		redrawDisplayIfVisible( d );
 	}
 
 	/**
