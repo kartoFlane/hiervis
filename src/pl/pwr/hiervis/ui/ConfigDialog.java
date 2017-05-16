@@ -35,6 +35,7 @@ public class ConfigDialog extends JDialog
 {
 	private JComboBox<String> listLAF;
 	private JSlider sldPointSize;
+	private JSlider sldPrecision;
 
 	private JLabel lblColorCurrentGroup;
 	private JLabel lblColorChildGroup;
@@ -108,17 +109,26 @@ public class ConfigDialog extends JDialog
 		sldPointSize.setSnapToTicks( true );
 		sldPointSize.setPaintTicks( true );
 		sldPointSize.setMajorTickSpacing( 1 );
+		sldPointSize.setToolTipText( "Size of an individual data point in instance visualizations, in pixels." );
 		cGeneral.add( sldPointSize, builder.fillHorizontal().insets( 0, 5, 10, 5 ).position( 0, 3 ).build() );
 
-		sldPointSize.setToolTipText(
-			SwingUIUtils.toHTML( "Size of an individual data point in instance visualizations, in pixels." )
-		);
+		JLabel lblPrecision = new JLabel( "Measure value precision:" );
+		cGeneral.add( lblPrecision, builder.fillHorizontal().insets( 5 ).position( 0, 4 ).build() );
+
+		sldPrecision = new JSlider( 1, 5 );
+		sldPrecision.setPaintLabels( true );
+		sldPrecision.setSnapToTicks( true );
+		sldPrecision.setPaintTicks( true );
+		sldPrecision.setMajorTickSpacing( 1 );
+		sldPrecision.setToolTipText( "Precision at which fractional measure values are displayed." );
+		cGeneral.add( sldPrecision, builder.fillHorizontal().insets( 0, 5, 10, 5 ).position( 0, 5 ).build() );
 
 		// Apply current config values
 		HVConfig cfg = context.getConfig();
 
 		listLAF.setSelectedItem( cfg.getPreferredLookAndFeel() );
 		sldPointSize.setValue( cfg.getPointSize() );
+		sldPrecision.setValue( cfg.getDoubleFormatPrecision() );
 	}
 
 	private void createColorsTab( HVContext context, JTabbedPane cTabs )
@@ -297,6 +307,7 @@ public class ConfigDialog extends JDialog
 
 		newConfig.setPreferredLookAndFeel( listLAF.getSelectedItem().toString() );
 		newConfig.setPointSize( sldPointSize.getValue() );
+		newConfig.setDoubleFormatPrecision( sldPrecision.getValue() );
 	}
 
 	/**
