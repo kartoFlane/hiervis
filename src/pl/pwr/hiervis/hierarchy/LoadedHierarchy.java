@@ -30,7 +30,7 @@ public class LoadedHierarchy
 	public final MeasureResultHolder measureHolder;
 
 	private final Hierarchy mainHierarchy;
-	private final Map<Node, Hierarchy> nodeHierarchyMap;
+	private final Map<Pair<Node, Boolean>, Hierarchy> nodeHierarchyMap;
 
 	private Tree hierarchyTree;
 	private TreeLayoutData hierarchyTreeLayout;
@@ -89,22 +89,24 @@ public class LoadedHierarchy
 		return mainHierarchy;
 	}
 
-	public Hierarchy getNodeHierarchy( Node n )
+	public Hierarchy getNodeHierarchy( Node n, boolean withSubtree )
 	{
 		if ( n == null ) {
 			throw new IllegalArgumentException( "Node must not be null!" );
 		}
 
-		if ( !nodeHierarchyMap.containsKey( n ) ) {
+		Pair<Node, Boolean> pair = Pair.of( n, withSubtree );
+
+		if ( !nodeHierarchyMap.containsKey( pair ) ) {
 			if ( !HierarchyUtils.contains( mainHierarchy, n ) ) {
 				throw new IllegalArgumentException( "Node does not belong to the hierarchy!" );
 			}
-			Hierarchy h = HierarchyUtils.wrapNode( mainHierarchy, n, true );
-			nodeHierarchyMap.put( n, h );
+			Hierarchy h = HierarchyUtils.wrapNode( mainHierarchy, n, withSubtree );
+			nodeHierarchyMap.put( pair, h );
 			return h;
 		}
 		else {
-			return nodeHierarchyMap.get( n );
+			return nodeHierarchyMap.get( pair );
 		}
 	}
 

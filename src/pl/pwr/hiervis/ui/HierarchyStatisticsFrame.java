@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -60,6 +61,7 @@ import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.measures.MeasureManager;
 import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.util.HierarchyUtils;
+import pl.pwr.hiervis.util.SwingUIUtils;
 
 
 /*
@@ -84,6 +86,7 @@ public class HierarchyStatisticsFrame extends JFrame
 
 	private JTabbedPane tabPane;
 	private JMenuItem mntmDump;
+	private JCheckBox cboxSubtree;
 
 	private WindowListener ownerListener;
 	private int verticalScrollValue = 0;
@@ -107,6 +110,24 @@ public class HierarchyStatisticsFrame extends JFrame
 		DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
 		symbols.setGroupingSeparator( ' ' );
 		format.setDecimalFormatSymbols( symbols );
+
+		cboxSubtree = new JCheckBox( "Compute measures for subtree" );
+		cboxSubtree.setSelected( context.getConfig().isMeasuresUseSubtree() );
+		cboxSubtree.setToolTipText(
+			SwingUIUtils.toHTML(
+				"If checked, measures will be computed for the currently selected node and its subtree.\n" +
+					"Otherwise, measures will be computed for the currently selected node only."
+			)
+		);
+		cboxSubtree.addItemListener(
+			e -> {
+				context.getConfig().setMeasuresUseSubtree( cboxSubtree.isSelected() );
+
+				// Recreate the tab so that it pertains to the correct hierarchy
+				nodeSelectionChanging( context.getHierarchy().getSelectedRow() );
+				nodeSelectionChanged( context.getHierarchy().getSelectedRow() );
+			}
+		);
 
 		ownerListener = new WindowAdapter() {
 			@Override
@@ -301,7 +322,9 @@ public class HierarchyStatisticsFrame extends JFrame
 			task -> task.applicabilityFunction.apply( h )
 		);
 
-		addMeasurePanels( h, createBulkTaskPanel( "Calculate All", h, validMeasureTasks ) );
+		JPanel mainPanel = getPanel( h );
+
+		addPanels( mainPanel, createBulkTaskPanel( "Calculate All", h, validMeasureTasks ) );
 
 		for ( String groupPath : measureManager.listMeasureTaskGroups() ) {
 			Collection<MeasureTask> measureTasks = measureManager.getMeasureTaskGroup( groupPath ).stream()
@@ -315,27 +338,25 @@ public class HierarchyStatisticsFrame extends JFrame
 					: groupPath;
 				friendlyGroupName = toCamelCase( friendlyGroupName.replaceAll( "_([a-z])", " $1" ), " " );
 
-				addMeasurePanels(
-					h,
+				addPanels(
+					mainPanel,
 					createFillerPanel( 10 ),
 					createSeparatorPanel( friendlyGroupName )
 				);
 
 				if ( measureTasks.size() > 1 ) {
-					addMeasurePanels( h, createBulkTaskPanel( "Calculate All " + friendlyGroupName, h, measureTasks ) );
+					addPanels( mainPanel, createBulkTaskPanel( "Calculate All " + friendlyGroupName, h, measureTasks ) );
 				}
 
 				for ( MeasureTask task : measureTasks ) {
-					addMeasurePanels( h, createMeasurePanel( h, task ) );
+					addPanels( mainPanel, createMeasurePanel( h, task ) );
 				}
 			}
 		}
 	}
 
-	private void addMeasurePanels( Hierarchy h, JPanel... panels )
+	private void addPanels( JPanel mainPanel, JPanel... panels )
 	{
-		JPanel mainPanel = getPanel( h );
-
 		int curItems = mainPanel.getComponentCount();
 		int newItems = curItems + panels.length;
 
@@ -537,8 +558,8 @@ public class HierarchyStatisticsFrame extends JFrame
 
 			if ( measure.isQualityMeasure() ) {
 				buf.insert( 0, "Value: " ).append( '\n' )
-					.append( "Desired:\t" ).append( formatDesiredValue( measure.getDesiredValue() ) ).append( '\n' )
-					.append( "Undesired:\t" ).append( formatDesiredValue( measure.getNotDesiredValue() ) );
+					.append( "Desired:\t" ).append( formatDoubleValue( measure.getDesiredValue() ) ).append( '\n' )
+					.append( "Undesired:\t" ).append( formatDoubleValue( measure.getNotDesiredValue() ) );
 			}
 
 			return createFixedTextComponent( buf.toString() );
@@ -549,8 +570,8 @@ public class HierarchyStatisticsFrame extends JFrame
 
 			if ( measure.isQualityMeasure() ) {
 				buf.insert( 0, "Value:\t" ).append( '\n' )
-					.append( "Desired:\t" ).append( formatDesiredValue( measure.getDesiredValue() ) ).append( '\n' )
-					.append( "Undesired:\t" ).append( formatDesiredValue( measure.getNotDesiredValue() ) );
+					.append( "Desired:\t" ).append( formatDoubleValue( measure.getDesiredValue() ) ).append( '\n' )
+					.append( "Undesired:\t" ).append( formatDoubleValue( measure.getNotDesiredValue() ) );
 			}
 
 			return createFixedTextComponent( buf.toString() );
@@ -568,7 +589,7 @@ public class HierarchyStatisticsFrame extends JFrame
 		}
 	}
 
-	private String formatDesiredValue( double value )
+	private String formatDoubleValue( double value )
 	{
 		if ( value == Double.MAX_VALUE )
 			return Double.toString( Double.POSITIVE_INFINITY );
@@ -576,12 +597,9 @@ public class HierarchyStatisticsFrame extends JFrame
 			return Double.toString( Double.NEGATIVE_INFINITY );
 		if ( value == 0 )
 			return "0";
+		if ( Double.isNaN( value ) || value == Double.NaN )
+			return "NaN";
 
-		return formatDoubleValue( value );
-	}
-
-	private String formatDoubleValue( double value )
-	{
 		return format.format( value );
 	}
 
@@ -603,7 +621,14 @@ public class HierarchyStatisticsFrame extends JFrame
 	{
 		LoadedHierarchy lh = context.getHierarchy();
 		Node n = HierarchyUtils.findGroup( lh, lh.getSelectedRow() );
-		Hierarchy nh = lh.getNodeHierarchy( n );
+		Hierarchy nh = lh.getNodeHierarchy( n, context.getConfig().isMeasuresUseSubtree() );
+
+		JPanel cSubtree = new JPanel();
+		cSubtree.add( cboxSubtree, BorderLayout.NORTH );
+
+		JPanel panel = getPanel( 1 );
+		addPanels( panel, cSubtree );
+
 		createMeasurePanels( nh );
 		context.getMeasureManager().postAutoComputeTasksFor( lh.measureHolder, nh );
 	}

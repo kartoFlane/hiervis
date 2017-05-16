@@ -230,7 +230,7 @@ public class HierarchyUtils
 			throw new IllegalStateException();
 		}
 
-		return buildHierarchy( nodes, source.getDataNames(), false );
+		return new BasicHierarchy( nodes, source.getDataNames() );
 	}
 
 	/**

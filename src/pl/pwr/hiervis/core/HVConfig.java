@@ -62,6 +62,8 @@ public class HVConfig
 	private int numberOfHistogramBins;
 	@SerializableField
 	private int doubleFormatPrecision;
+	@SerializableField
+	private boolean measuresUseSubtree;
 
 	@SerializableField
 	private String preferredLookAndFeel;
@@ -102,10 +104,6 @@ public class HVConfig
 	public HVConfig()
 	{
 		// Setup default values.
-		pointSize = 3;
-		numberOfHistogramBins = 100;
-		doubleFormatPrecision = 3;
-
 		currentGroupColor = Color.red;
 		childGroupColor = Color.green;
 		parentGroupColor = Color.black;
@@ -113,6 +111,11 @@ public class HVConfig
 		otherGroupColor = Color.lightGray;
 		histogramColor = Color.magenta;
 		backgroundColor = new Color( -1 );
+
+		numberOfHistogramBins = 100;
+		pointSize = 3;
+		doubleFormatPrecision = 3;
+		measuresUseSubtree = false;
 
 		preferredLookAndFeel = "";
 		stopXfceLafChange = false;
@@ -500,6 +503,16 @@ public class HVConfig
 	public void setDoubleFormatPrecision( int doubleFormatPrecision )
 	{
 		this.doubleFormatPrecision = doubleFormatPrecision;
+	}
+
+	public boolean isMeasuresUseSubtree()
+	{
+		return measuresUseSubtree;
+	}
+
+	public void setMeasuresUseSubtree( boolean measuresUseSubtree )
+	{
+		this.measuresUseSubtree = measuresUseSubtree;
 	}
 
 	public void setPreferredLookAndFeel( String lookAndFeel )
