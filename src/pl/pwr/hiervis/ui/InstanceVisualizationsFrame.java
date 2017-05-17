@@ -997,6 +997,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	private void resetDisplayLayoutBounds( DisplayEx d )
 	{
 		Utils.unzoom( d, 0 );
+		Utils.setTransform( d, new AffineTransform() );
 		HierarchyProcessor.updateLayoutBounds( d.getVisualization(), null );
 		redrawDisplayIfVisible( d );
 	}
