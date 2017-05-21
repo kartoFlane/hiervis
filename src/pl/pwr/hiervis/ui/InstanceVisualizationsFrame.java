@@ -7,6 +7,7 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemListener;
@@ -556,7 +557,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	}
 
 	/**
-	 * Creates a display for the specified dimensions and the specified node
+	 * Creates a display for the specified dimensions
 	 * 
 	 * @param dimX
 	 *            index of the X dimension
@@ -581,6 +582,8 @@ public class InstanceVisualizationsFrame extends JFrame
 			builder.position( dimX, dimY ).insets( displayInsets ).fill().build()
 		);
 
+		context.getHierarchy().getVisualizationStateFor( dimX, dimY ).applyTo( display );
+
 		return display;
 	}
 
@@ -602,7 +605,7 @@ public class InstanceVisualizationsFrame extends JFrame
 	}
 
 	/**
-	 * Creates a histogram display for the specified dimension and the specified node
+	 * Creates a histogram display for the specified dimension
 	 * 
 	 * @param dim
 	 *            dimension index
@@ -788,6 +791,7 @@ public class InstanceVisualizationsFrame extends JFrame
 						AffineTransform transformI = d.getInverseTransform();
 
 						Rectangle2D layoutBounds = HierarchyProcessor.getLayoutBounds( d.getVisualization() );
+
 						if ( layoutBounds.getX() > 0 ) {
 							// Un-translate the layout bounds in case we're zoomed in.
 							// We need absolute values to be able to calculate the layout correctly.
@@ -920,6 +924,16 @@ public class InstanceVisualizationsFrame extends JFrame
 		}
 
 		return null;
+	}
+
+	private Point getDisplayXY( Display d )
+	{
+		GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
+		GridBagConstraints gbc = layout.getConstraints( d );
+		int dimX = gbc.gridx;
+		int dimY = gbc.gridy;
+
+		return new Point( dimX, dimY );
 	}
 
 	/**
@@ -1055,8 +1069,15 @@ public class InstanceVisualizationsFrame extends JFrame
 
 				if ( c != null ) {
 					c.setVisible( vis );
-					if ( c instanceof DisplayEx )
-						redrawDisplayIfVisible( (DisplayEx)c );
+
+					if ( c instanceof DisplayEx ) {
+						DisplayEx d = (DisplayEx)c;
+
+						if ( !vis )
+							context.getHierarchy().getVisualizationStateFor( dimX, dimY ).store( d );
+
+						redrawDisplayIfVisible( d );
+					}
 				}
 				else if ( vis ) {
 					if ( x >= y ) {
@@ -1109,10 +1130,15 @@ public class InstanceVisualizationsFrame extends JFrame
 	{
 		forEachDisplay(
 			display -> {
-				if ( display instanceof HistogramGraph )
+				if ( display instanceof HistogramGraph ) {
 					HierarchyProcessor.disposeHistogramVis( display.getVisualization() );
-				else
+				}
+				else {
+					Point dxy = getDisplayXY( display );
+					context.getHierarchy().getVisualizationStateFor( dxy.x, dxy.y ).store( display );
+
 					HierarchyProcessor.disposeInstanceVis( display.getVisualization() );
+				}
 				display.reset();
 				display.dispose();
 			}
@@ -1187,12 +1213,9 @@ public class InstanceVisualizationsFrame extends JFrame
 
 		forEachDisplay(
 			display -> {
-				GridBagLayout layout = (GridBagLayout)cViewport.getLayout();
-				GridBagConstraints gbc = layout.getConstraints( display );
-				int dimX = gbc.gridx;
-				int dimY = gbc.gridy;
+				Point dxy = getDisplayXY( display );
 
-				if ( dimX != dimY ) {
+				if ( dxy.x != dxy.y ) {
 					// Nothing, color is updated by InstanceColorAction when redrawing
 				}
 				else {

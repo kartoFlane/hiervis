@@ -37,6 +37,7 @@ public class LoadedHierarchy
 
 	private final Hierarchy mainHierarchy;
 	private final Map<Pair<Node, Boolean>, Hierarchy> nodeHierarchyMap;
+	private final Map<Pair<Integer, Integer>, VisualizationState> visStateMap;
 
 	private Tree hierarchyTree;
 	private TreeLayoutData hierarchyTreeLayout;
@@ -57,6 +58,7 @@ public class LoadedHierarchy
 
 		this.mainHierarchy = h;
 		this.nodeHierarchyMap = new HashMap<>();
+		this.visStateMap = new HashMap<>();
 	}
 
 	/**
@@ -130,6 +132,29 @@ public class LoadedHierarchy
 		}
 	}
 
+	public VisualizationState getVisualizationStateFor( int dimensionIndexX, int dimensionIndexY )
+	{
+		return getVisualizationStateFor( Pair.of( dimensionIndexX, dimensionIndexY ) );
+	}
+
+	public VisualizationState getVisualizationStateFor( Pair<Integer, Integer> key )
+	{
+		int x = key.getLeft();
+		int y = key.getRight();
+		if ( y > x ) {
+			key = Pair.of( y, x );
+		}
+
+		if ( visStateMap.containsKey( key ) ) {
+			return visStateMap.get( key );
+		}
+		else {
+			VisualizationState result = new VisualizationState();
+			visStateMap.put( key, result );
+			return result;
+		}
+	}
+
 	/**
 	 * @return tree structure representing relationships between groups (nodes) in the hierarchy.
 	 *         Used to create the main hierarchy visualization.
@@ -179,6 +204,7 @@ public class LoadedHierarchy
 		measureHolder.clear();
 
 		nodeHierarchyMap.clear();
+		visStateMap.clear();
 
 		hierarchyTree.dispose();
 		hierarchyTree.removeAllSets();
