@@ -1,5 +1,10 @@
 package pl.pwr.hiervis.hierarchy;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +14,7 @@ import basic_hierarchy.common.HierarchyBuilder;
 import basic_hierarchy.interfaces.Hierarchy;
 import basic_hierarchy.interfaces.Node;
 import pl.pwr.hiervis.core.HVConfig;
+import pl.pwr.hiervis.core.HVConstants;
 import pl.pwr.hiervis.measures.MeasureResultHolder;
 import pl.pwr.hiervis.prefuse.TableEx;
 import pl.pwr.hiervis.prefuse.visualization.TreeLayoutData;
@@ -231,6 +237,48 @@ public class LoadedHierarchy
 			this.hasColumnHeader = withHeader;
 			this.isFillBreadthGaps = fillBreadthGaps;
 			this.isUseSubtree = useSubtree;
+		}
+
+		/**
+		 * Attempts to detect the appropriate loading options for the specified hierarchy file.
+		 * 
+		 * @param file
+		 *            a hierarchy file in CSV format.
+		 * @return hopefully appropriate options that will load the file correctly
+		 * @throws IOException
+		 */
+		public static Options detect( File file ) throws IOException
+		{
+			Path path = file.toPath();
+			Object[] lines = Files.lines( path, StandardCharsets.UTF_8 ).limit( 2 ).toArray();
+
+			String firstLine = (String)lines[0];
+			String secondLine = (String)lines[1];
+			String[] columns = firstLine.split( HVConstants.CSV_FILE_SEPARATOR );
+
+			boolean withHeader = !columns[0].startsWith( "gen." );
+
+			if ( withHeader ) {
+				columns = secondLine.split( HVConstants.CSV_FILE_SEPARATOR );
+			}
+
+			boolean withTrueClass = columns[1].startsWith( "gen." );
+
+			boolean withInstanceName = false;
+			try {
+				Double.valueOf( withTrueClass ? columns[2] : columns[1] );
+				// Successfully parsed, meaning that this column contains feature value = no instance name
+				withInstanceName = false;
+			}
+			catch ( NumberFormatException e ) {
+				// Failed to parse, meaning that this column contains some non-digit chars = likely instance name
+				withInstanceName = true;
+			}
+
+			return new Options(
+				withInstanceName, withTrueClass, withHeader,
+				DEFAULT.isFillBreadthGaps, DEFAULT.isUseSubtree
+			);
 		}
 
 		@Override

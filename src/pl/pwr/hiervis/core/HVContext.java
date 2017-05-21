@@ -3,6 +3,7 @@ package pl.pwr.hiervis.core;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,6 @@ import pl.pwr.hiervis.hierarchy.HierarchyProcessor;
 import pl.pwr.hiervis.hierarchy.LoadedHierarchy;
 import pl.pwr.hiervis.hk.HKPlusPlusWrapper;
 import pl.pwr.hiervis.measures.MeasureManager;
-import pl.pwr.hiervis.measures.MeasureTask;
 import pl.pwr.hiervis.ui.FileLoadingOptionsDialog;
 import pl.pwr.hiervis.ui.HierarchyStatisticsFrame;
 import pl.pwr.hiervis.ui.InstanceVisualizationsFrame;
@@ -255,11 +255,20 @@ public class HVContext
 	{
 		log.trace( String.format( "Selected file: '%s'", file ) );
 
-		FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( this, window );
+		LoadedHierarchy.Options options = null;
+		try {
+			options = LoadedHierarchy.Options.detect( file );
+		}
+		catch ( IOException e ) {
+			// Something went wrong, just roll with previous options.
+			options = getHierarchyOptions();
+		}
+
+		FileLoadingOptionsDialog optionsDialog = new FileLoadingOptionsDialog( this, window, options );
 		optionsDialog.setLocationRelativeTo( window );
 		optionsDialog.setVisible( true );
 
-		LoadedHierarchy.Options options = optionsDialog.getOptions();
+		options = optionsDialog.getOptions();
 		if ( options == null ) {
 			log.trace( "Loading aborted." );
 		}

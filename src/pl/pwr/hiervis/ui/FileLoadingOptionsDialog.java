@@ -33,7 +33,7 @@ public class FileLoadingOptionsDialog extends JDialog
 	private JCheckBox cboxFillGaps;
 
 
-	public FileLoadingOptionsDialog( HVContext context, Window frame )
+	public FileLoadingOptionsDialog( HVContext context, Window frame, LoadedHierarchy.Options initialOptions )
 	{
 		super( frame, "File Loading Options" );
 		setResizable( false );
@@ -47,7 +47,7 @@ public class FileLoadingOptionsDialog extends JDialog
 		gridBagLayout.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
 		getContentPane().setLayout( gridBagLayout );
 
-		createOptionsPanel( context );
+		createOptionsPanel( context, initialOptions );
 		createButtonPanel( context );
 
 		SwingUIUtils.installEscapeCloseOperation( this );
@@ -55,7 +55,7 @@ public class FileLoadingOptionsDialog extends JDialog
 		pack();
 	}
 
-	private void createOptionsPanel( HVContext context )
+	private void createOptionsPanel( HVContext context, LoadedHierarchy.Options initialOptions )
 	{
 		JPanel cOptions = new JPanel();
 
@@ -72,7 +72,7 @@ public class FileLoadingOptionsDialog extends JDialog
 		cOptions.add( cboxTrueClass );
 
 		JLabel lblTrueClass = new JLabel(
-			"<html>Whether the input file contains a column specifying the true class of each instance.</html>"
+			"<html>Whether the input file contains a column specifying ground-truth assignment of each instance.</html>"
 		);
 		fixedWidthLabel( lblTrueClass, _prefWidth );
 		cOptions.add( lblTrueClass );
@@ -82,17 +82,17 @@ public class FileLoadingOptionsDialog extends JDialog
 		cOptions.add( cboxInstanceName );
 
 		JLabel lblInstanceName = new JLabel(
-			"<html>Whether the input file contains a column specifying instance name of each instance.</html>"
+			"<html>Whether the input file contains a column specifying name of each instance.</html>"
 		);
 		fixedWidthLabel( lblInstanceName, _prefWidth );
 		cOptions.add( lblInstanceName );
 		cOptions.add( Box.createVerticalStrut( 10 ) );
 
-		cboxDataNames = new JCheckBox( "Data Names" );
+		cboxDataNames = new JCheckBox( "Column Header" );
 		cOptions.add( cboxDataNames );
 
 		JLabel lblDataNames = new JLabel(
-			"<html>Whether the input file contains names of each data column.</html>"
+			"<html>Whether the first row of the input file is a column header.</html>"
 		);
 		fixedWidthLabel( lblDataNames, _prefWidth );
 		cOptions.add( lblDataNames );
@@ -103,19 +103,17 @@ public class FileLoadingOptionsDialog extends JDialog
 
 		JLabel lblFillGaps = new JLabel(
 			"<html>Whether the hierarchy constructed from the input file should be " +
-				"fixed to account for possible gaps in instance siblings.</html>"
+				"fixed to account for missing group siblings.</html>"
 		);
 		fixedWidthLabel( lblFillGaps, _prefWidth );
 		cOptions.add( lblFillGaps );
 		cOptions.add( Box.createVerticalStrut( 10 ) );
 
-		// Apply previous options
-		LoadedHierarchy.Options prevOptions = context.getHierarchyOptions();
-
-		cboxTrueClass.setSelected( prevOptions.hasTrueClassAttribute );
-		cboxInstanceName.setSelected( prevOptions.hasInstanceNameAttribute );
-		cboxDataNames.setSelected( prevOptions.hasColumnHeader );
-		cboxFillGaps.setSelected( prevOptions.isFillBreadthGaps );
+		// Apply initial options
+		cboxTrueClass.setSelected( initialOptions.hasTrueClassAttribute );
+		cboxInstanceName.setSelected( initialOptions.hasInstanceNameAttribute );
+		cboxDataNames.setSelected( initialOptions.hasColumnHeader );
+		cboxFillGaps.setSelected( initialOptions.isFillBreadthGaps );
 	}
 
 	private void createButtonPanel( HVContext context )
