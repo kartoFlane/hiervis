@@ -105,7 +105,7 @@ public class InstanceVisualizationsFrame extends JFrame
 
 	public InstanceVisualizationsFrame( HVContext context, Frame owner, String subtitle )
 	{
-		super( "Instance Visualizations" + ( subtitle == null ? "" : ( " [ " + subtitle + " ]" ) ) );
+		super( "Instance Visualizations Frame" + ( subtitle == null ? "" : ( " [ " + subtitle + " ]" ) ) );
 		this.context = context;
 
 		setDefaultCloseOperation( HIDE_ON_CLOSE );

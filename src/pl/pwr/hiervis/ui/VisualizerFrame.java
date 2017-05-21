@@ -81,7 +81,7 @@ public class VisualizerFrame extends JFrame implements ActionListener
 
 	public VisualizerFrame( HVContext context, String subtitle )
 	{
-		super( "Hierarchy View" + ( subtitle == null ? "" : ( " [ " + subtitle + " ]" ) ) );
+		super( "Hierarchy Frame" + ( subtitle == null ? "" : ( " [ " + subtitle + " ]" ) ) );
 		this.subtitle = subtitle;
 
 		if ( context == null )
