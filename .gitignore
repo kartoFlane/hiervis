@@ -1,3 +1,5 @@
+bin/
+build/
 *.class
 *.tmp
 *.bak
@@ -5,7 +7,6 @@
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
-bin/
 
 # Windows image file caches
 Thumbs.db
