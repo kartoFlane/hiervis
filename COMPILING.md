@@ -2,7 +2,7 @@
 
 The source code for this sofware makes heavy use of lambas, and as such will require Java 8 to compile.
 
-Assuming that no changes need to be made to any of the projects on which this software depends, compilation consists only of cloning the repository and runnig the [Ant build file](ant_build.xml) (in [Eclipse](https://www.eclipse.org/): right click on the Ant build file, select `Run As... > Ant Build`).
+Assuming that no changes need to be made to any of the projects on which this software depends, compilation consists only of cloning the repository and running the [Ant build file](ant_build.xml) (in [Eclipse](https://www.eclipse.org/): right click on the Ant build file, select `Run As... > Ant Build`).
 
 In case such changes are necessary, the projects in question will need to be updated, recompiled, and their respective jars in the [libraries](lib) folder replaced with the new versions. After that, the build file will need to be ran again to rebuild the visualizer.
 
