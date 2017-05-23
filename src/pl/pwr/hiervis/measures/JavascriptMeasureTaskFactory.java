@@ -1,8 +1,12 @@
 package pl.pwr.hiervis.measures;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -54,6 +58,19 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 		}
 		else {
 			engine = factory.getScriptEngine();
+		}
+
+		try {
+			File jarDir = new File( "measure-jars" );
+			Files.list( jarDir.toPath() ).forEach(
+				p -> {
+					if ( p.endsWith( ".jar" ) ) {
+						loadJar( p.toFile() );
+					}
+				}
+			);
+		}
+		catch ( IOException e ) {
 		}
 	}
 
@@ -136,7 +153,7 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 			}
 
 			JSObject measureData = (JSObject)scriptCallback.call( null );
-			Object measure = getMember( measureData, "measure" );
+			Object measure = getOptionalMember( measureData, "measure", null );
 			String id = getMember( measureData, "id" );
 			JSObject computeCallback = getMember( measureData, "callback" );
 
@@ -159,7 +176,7 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 				}
 				catch ( Throwable e ) {
 					log.error(
-						String.format( "Unexpected rrror while invoking applicability callback for measure '%s': ", id ), e
+						String.format( "Unexpected error while invoking applicability callback for measure '%s': ", id ), e
 					);
 				}
 				return false;
@@ -198,6 +215,30 @@ public class JavascriptMeasureTaskFactory implements MeasureTaskFactory
 		}
 
 		return null;
+	}
+
+	/**
+	 * Use a nasty reflection hack to dynamically load jars that define measures.
+	 * 
+	 * @param jarFile
+	 *            the jar file to load
+	 */
+	private static void loadJar( File jarFile )
+	{
+		try {
+			URL url = jarFile.toURI().toURL();
+
+			Class<?>[] parameters = new Class[] { URL.class };
+
+			URLClassLoader sysLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
+			Class<?> sysClass = URLClassLoader.class;
+			Method method = sysClass.getDeclaredMethod( "addURL", parameters );
+			method.setAccessible( true );
+			method.invoke( sysLoader, new Object[] { url } );
+		}
+		catch ( Exception e ) {
+			throw new RuntimeException( String.format( "Exception while loading measure jarfile '%s'.", jarFile.getPath() ), e );
+		}
 	}
 
 	@SuppressWarnings("unchecked")

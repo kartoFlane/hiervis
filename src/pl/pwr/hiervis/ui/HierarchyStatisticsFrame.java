@@ -336,7 +336,13 @@ public class HierarchyStatisticsFrame extends JFrame
 				String friendlyGroupName = groupPath.contains( "/" )
 					? groupPath.substring( groupPath.lastIndexOf( "/" ) + 1 )
 					: groupPath;
-				friendlyGroupName = toCamelCase( friendlyGroupName.replaceAll( "_([a-z])", " $1" ), " " );
+
+				if ( friendlyGroupName.isEmpty() ) {
+					friendlyGroupName = "Uncategorized Measures";
+				}
+				else {
+					friendlyGroupName = toCamelCase( friendlyGroupName.replaceAll( "_([a-z])", " $1" ), " " );
+				}
 
 				addPanels(
 					mainPanel,
@@ -564,8 +570,17 @@ public class HierarchyStatisticsFrame extends JFrame
 
 			return createFixedTextComponent( buf.toString() );
 		}
-		else if ( result instanceof Double ) {
-			Double v = (Double)result;
+		else if ( result instanceof Double || result instanceof Float ) {
+			double v = 0;
+
+			if ( result instanceof Double ) {
+				v = (Double)result;
+			}
+			else {
+				Float f = (Float)result;
+				v = f.doubleValue();
+			}
+
 			buf.append( formatDoubleValue( v ) );
 
 			if ( measure.isQualityMeasure() ) {
@@ -575,6 +590,9 @@ public class HierarchyStatisticsFrame extends JFrame
 			}
 
 			return createFixedTextComponent( buf.toString() );
+		}
+		else if ( result instanceof Number ) {
+			return createFixedTextComponent( ( (Number)result ).toString() );
 		}
 		else if ( result instanceof String ) {
 			return createFixedTextComponent( (String)result );

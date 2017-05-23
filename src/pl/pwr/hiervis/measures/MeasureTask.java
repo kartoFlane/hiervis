@@ -54,9 +54,6 @@ public final class MeasureTask implements Comparable<MeasureTask>
 		String identifier, boolean autoCompute,
 		Function<Hierarchy, Boolean> applicabilityFunction, Function<Hierarchy, Object> computeFunction )
 	{
-		if ( measure == null ) {
-			throw new IllegalArgumentException( "Measure must not be null!" );
-		}
 		if ( identifier == null || identifier.isEmpty() ) {
 			throw new IllegalArgumentException( "Identifier is null or an empty string!" );
 		}

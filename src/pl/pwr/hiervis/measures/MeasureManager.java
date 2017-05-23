@@ -176,7 +176,6 @@ public class MeasureManager
 					if ( measure != null ) {
 						String groupPath = filePath.getParent().toString()
 							.replace( dirPath.toString(), "" )
-							.substring( 1 )
 							.replace( "\\", "/" );
 
 						Collection<MeasureTask> group = measureGroupMap.get( groupPath );
