@@ -1,67 +1,67 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project basedir="." default="build" name="hiervis">
-    <property environment="env"/>
-	
-    <property name="target" value="1.8"/>
-    <property name="source" value="1.8"/>
-	
-	<property name="main-class" value="pl.pwr.hiervis.HierarchyVisualizer"/>
+	<property environment="env" />
 
-    <path id="hiervis.classpath">
-    	<!-- Build the classpath: include the bin/ folder and every *.jar in lib/ folder. -->
-        <pathelement location="bin"/>
-	    <fileset dir="${basedir}/">
-	        <include name="lib/*.jar"/>
-	    </fileset>
-    </path>
+	<property name="target" value="1.8" />
+	<property name="source" value="1.8" />
+
+	<property name="main-class" value="pl.pwr.hiervis.HierarchyVisualizer" />
+
+	<path id="hiervis.classpath">
+		<!-- Build the classpath: include the bin/ folder and every *.jar in lib/ folder. -->
+		<pathelement location="bin" />
+		<fileset dir="${basedir}/">
+			<include name="lib/*.jar" />
+		</fileset>
+	</path>
 
 	<pathconvert property="mf.classpath" pathsep=" ">
 		<!-- Prepare the manifest file class path -->
-	    <path refid="hiervis.classpath"/>
-	    <mapper>
-	        <chainedmapper>
-	            <flattenmapper/>
-	            <globmapper from="*.jar" to="lib/*.jar"/>
-	        </chainedmapper>
-	    </mapper>
+		<path refid="hiervis.classpath" />
+		<mapper>
+			<chainedmapper>
+				<flattenmapper />
+				<globmapper from="*.jar" to="lib/*.jar" />
+			</chainedmapper>
+		</mapper>
 	</pathconvert>
 
-    <target name="compile">
+	<target name="compile">
 		<!-- Copy source files to the bin/ folder -->
-        <mkdir dir="bin"/>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="src">
-                <exclude name="**/*.launch"/>
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-    	
-    	<!-- Compile them -->
-        <javac debug="true" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
-            <src path="src"/>
-            <classpath refid="hiervis.classpath"/>
-        </javac>
-    </target>
-	
+		<mkdir dir="bin" />
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src">
+				<exclude name="**/*.launch" />
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+
+		<!-- Compile them -->
+		<javac debug="true" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+			<src path="src" />
+			<classpath refid="hiervis.classpath" />
+		</javac>
+	</target>
+
 	<target name="build" depends="compile">
-		<mkdir dir="build"/>
-		<mkdir dir="build/lib"/>
-		
+		<mkdir dir="build" />
+		<mkdir dir="build/lib" />
+
 		<!-- Assemble the skel folder, lib, and compiled project into a build -->
 		<copy includeemptydirs="true" todir="build">
-			<fileset dir="skel"/>
+			<fileset dir="skel" />
 		</copy>
 		<copy includeemptydirs="true" todir="build/lib">
-			<fileset dir="lib"/>
+			<fileset dir="lib" />
 		</copy>
 		<jar basedir="bin" destfile="build/hv.jar">
 			<manifest>
 				<attribute name="Main-Class" value="${main-class}" />
-		        <attribute name="Class-Path" value="${mf.classpath}"/>
+				<attribute name="Class-Path" value="${mf.classpath}" />
 			</manifest>
 		</jar>
-		
+
 		<!-- Clean up the bin foler so's not to litter -->
-		<delete dir="bin"/>
+		<delete dir="bin" />
 	</target>
 </project>
