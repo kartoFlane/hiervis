@@ -8,7 +8,7 @@ There are two ways to add new measures: either by including a compiled jar file 
 
 **This option is mostly relevant for simple measures that *do not* rely on external classes.**
 
-First, go to [scripts/measures](skel/scripts/measures) folder in the visualizer's directory, and create a new file, named `MyMeasure.js`. Open it with your preferred editor and insert the following code:
+First, go to [scripts/measures](scripts/measures) folder in the visualizer's directory, and create a new file, named `MyMeasure.js`. Open it with your preferred editor and insert the following code:
 
 ```
 function() {
@@ -35,11 +35,11 @@ First, you will need to implement the measures you want in Java, using the [Qual
 
 If that functionality is not necessary, then technically any method that takes a [Hierarchy](https://github.com/toSterr/basic_hierarchy/blob/master/src/basic_hierarchy/interfaces/Hierarchy.java) object as argument and returns a numeric value, an array of doubles, or a string will be valid. In cases where a result in the form of an average with standard deviation is desired, the measure will need to return an instance of [AvgWithStdev](https://github.com/toSterr/hierarchy_measures/blob/master/src/internal_measures/statistics/AvgWithStdev.java) class.
 
-Once the measures are implemented, you will need to export the project containing your measures as a jar file (it doesn't have to be runnable, just has to contain the compiled .class files). Place the jar file into [measure-jars](skel/measure-jars) folder in the visualizer's directory.
+Once the measures are implemented, you will need to export the project containing your measures as a jar file (it doesn't have to be runnable, just has to contain the compiled .class files). Place the jar file into [measure-jars](measure-jars) folder in the visualizer's directory.
 
 The next part is very similar to Option 1, but with several key differences.
 
-Go to [scripts/measures](skel/scripts/measures) folder in the visualizer's directory, and create a new file, named `MyMeasure.js`. Open it with your preferred editor and insert the following code:
+Go to [scripts/measures](scripts/measures) folder in the visualizer's directory, and create a new file, named `MyMeasure.js`. Open it with your preferred editor and insert the following code:
 
 ```
 function() {
