@@ -1,16 +1,23 @@
 # Hierarchy Visualizer
-A Java desktop application used for interactive visualization of tree structures (hierarchies of clusters).
 
-## Libraries
-This project utilizes the following third-party libraries (distribution jars included in the repository):
-* [Prefuse](http://prefuse.org/) - data visualization library
-* [Apache Commons](https://commons.apache.org/)
-    * [CLI](https://commons.apache.org/proper/commons-cli/) (version 1.2)
-    * [Lang](https://commons.apache.org/proper/commons-lang/) (verison 3.4)
-    * [Math](https://commons.apache.org/proper/commons-math/) (version 3.6)
-* [Apache Log4j 2](http://logging.apache.org/log4j/2.x/) - logging library
-* [Jackson](https://github.com/FasterXML/jackson) - JSON parser for Java
-* [Basic Hierarchy](https://github.com/kartoFlane/basic_hierarchy/) - contains common data structures used to represent HoCs, as well as logic to create them.
+The visualizer is a graphical user interface program that facilitates visual analysis of Object Cluster Hierarchies. It provides the user with interactive visualizations of both the hierarchy structure, as well as contents of each individual node of the hierarchy, and provides a generic framework for calculation of quality measures for the hierarchy or any of its nodes.
+
+
+# Compilation and usage
+
+## Compilation
+
+Instructions on how to compile the software are available [here](COMPILING.md).
+
+## Usage
+
+Compiled jars can be found in the [releases](releases) page. After downloading and unpacking the archive, run `start.bat` (for Windows) or `start.sh` (for Linux).
 
 ## Requirements
-* [Java](http://www.java.com/en/download/) (1.8 or higher)
+
+This software requires [Java](http://www.java.com/en/download/) 1.8 or higher in order to run.
+
+
+# License
+
+This software is provided under the MIT License. Please read the [full license](LICENSE) for more information.
