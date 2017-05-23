@@ -11,3 +11,6 @@ The start.sh shell script is not my own invention. It's been created (or otherwi
 
 ## src
 Unsurprisingly, this folder contains the source code of the program.
+
+## test
+This directory contains tests for the software's source code. Separated from the `src` folder to prevent inclusion of JUnit testing suite as a dependency.
